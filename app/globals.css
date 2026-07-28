@@ -10,6 +10,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-inter: var(--font-inter);
+  --font-bricolage: var(--font-bricolage);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +25,69 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.highlight {
+  background: #c8f3ef;
+  animation: highlightSweep 2.1s ease-in-out infinite;
+}
+
+@keyframes highlightSweep {
+  /* Start: hidden */
+  0% {
+    left: 0;
+    right: 100%;
+  }
+
+  /* Grow */
+  40% {
+    left: 0;
+    right: 0;
+  }
+
+  /* Pause */
+  60% {
+    left: 0;
+    right: 0;
+  }
+
+  /* Shrink */
+  100% {
+    left: 100%;
+    right: 0;
+  }
+}
+
+.line {
+  animation: lineSweep 2.1s ease-in-out infinite;
+}
+
+@keyframes lineSweep {
+  /* Start: no width */
+  0% {
+    left: 0;
+    right: 100%;
+  }
+
+  /* Grow */
+  40% {
+    left: 0;
+    right: 0;
+  }
+
+  /* Pause */
+  60% {
+    left: 0;
+    right: 0;
+  }
+
+  /* Shrink from left → right */
+  100% {
+    left: 100%;
+    right: 0;
+  }
+}
+
+html {
+  scrollbar-gutter: stable;
 }

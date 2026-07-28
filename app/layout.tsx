@@ -1,8 +1,20 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+});
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yourdomain.com"), // update once you have a domain
+  metadataBase: new URL("https://yourdomain.com"),
   title: {
     default: "Shreyash Bagade - Full Stack Web & App Developer",
     template: "%s | Shreyash Bagade",
@@ -17,6 +29,9 @@ export const metadata: Metadata = {
     "Next.js developer",
   ],
   authors: [{ name: "Shreyash Bagade" }],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Shreyash Bagade - Full Stack Web & App Developer",
     description:
@@ -25,7 +40,7 @@ export const metadata: Metadata = {
     siteName: "Shreyash Bagade",
     images: [
       {
-        url: "/og-image.png", // we'll create this later
+        url: "/og-image.png",
         width: 1200,
         height: 630,
       },
@@ -46,14 +61,13 @@ export const metadata: Metadata = {
   },
 };
 
+
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={`${inter.variable} ${bricolage.variable}`}>
+      <body className="font-inter antialiased">{children}</body>
     </html>
   );
 }

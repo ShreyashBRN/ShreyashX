@@ -56,13 +56,13 @@ export default function Navbar() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link
             href="/"
-            className="text-[1.05rem] font-bold tracking-[-0.02em] text-[#141816] transition-colors duration-300 hover:text-[#0d7377]"
+            className="text-[1.05rem] font-inter font-bold tracking-[-0.04em] text-[#141816] transition-colors duration-300 hover:text-[#0d7377]"
           >
             Shreyash Bagade
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden items-center gap-8 text-[14px] font-medium md:flex">
+          <nav className="hidden items-center gap-8 text-[15px] font-medium md:flex">
             <NavLink href="#projects">Projects</NavLink>
             <NavLink href="/blog">Blog</NavLink>
             <NavLink href="#contact">Contact</NavLink>
