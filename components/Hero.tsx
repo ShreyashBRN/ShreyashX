@@ -30,8 +30,8 @@ export default function Hero() {
         return () => clearInterval(interval);
       }, []);
   return (
-    <section className="relative w-full min-h-[92vh] bg-[#f6f4ef] flex items-center">
-      <Container className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-12 lg:gap-20 items-center">
+    <section className="relative w-full min-h-[92vh] overflow-x-hidden bg-[#f6f4ef] py-12 lg:py-0 flex items-center">
+      <Container className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10 sm:gap-12 lg:gap-20 items-center">
         {/* LEFT: Marketing content */}
         <div className="mt-1 animate-[fadeInUp_700ms_ease-out_forwards] text-center lg:text-left">
         <Link
@@ -49,7 +49,7 @@ export default function Hero() {
   <FaLongArrowAltRight className="mt-[2px]" />
 </Link>
 
-          <h1 className="mt-6 text-[48px] md:text-[64px] font-bricolage lg:text-[55px] font-extrabold text-[#111111] leading-[1.3] tracking-[-0.06em]">
+          <h1 className="mt-6 text-[clamp(2.25rem,8vw,3.5rem)] md:text-[64px] font-bricolage lg:text-[55px] font-extrabold text-[#111111] leading-[1.3] tracking-[-0.06em]">
           I build  &nbsp;&nbsp;
 <span
   className={`text-[#0d7d86] transition-opacity duration-500 ${
@@ -119,7 +119,7 @@ export default function Hero() {
             }}
           />
 
-          <div className="w-full h-[650px] max-w-sm bg-white rounded-[28px] border border-black/[.06]  -ml-4 shadow-[0_18px_50px_rgba(0,0,0,0.08)] p-4 transition-transform duration-250 ">
+          <div className="w-full max-w-sm bg-white rounded-[28px] border border-black/[.06] shadow-[0_18px_50px_rgba(0,0,0,0.08)] p-4 transition-transform duration-250">
             <div className="flex items-center justify-between">
               <span className="text-[14px] font-bold text-[#111111]">
                 Shreyash Bagade
@@ -134,7 +134,7 @@ export default function Hero() {
               </span>
             </div>
 
-            <div className="relative w-full h-[380px] rounded-[24px] overflow-hidden mt-[18px]">
+            <div className="relative w-full aspect-[4/5] max-h-[380px] rounded-[24px] overflow-hidden mt-[18px]">
               <Image
                 src="/profile.jpg"
                 alt="Shreyash Bagade, full stack developer"

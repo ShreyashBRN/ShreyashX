@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Container from "./Container";
 
 function NavLink({
   href,
@@ -53,7 +54,7 @@ export default function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-black/5 bg-[#f6f4ef]">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <Container className="flex h-16 items-center justify-between">
           <Link
             href="/"
             className="text-[1.05rem] font-inter font-bold tracking-[-0.04em] text-[#141816] transition-colors duration-300 hover:text-[#0d7377]"
@@ -79,13 +80,13 @@ export default function Navbar() {
             <span className="block h-0.5 w-6 bg-black"></span>
             <span className="block h-0.5 w-6 bg-black"></span>
           </button>
-        </div>
+        </Container>
       </header>
 
       {/* Mobile fullscreen menu */}
       {isOpen && (
         <div className="fixed inset-0 z-[60] flex flex-col bg-[#f6f4ef]">
-          <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
+          <Container className="flex h-16 items-center justify-between">
             <span className="text-[1.05rem] font-bold tracking-[-0.02em] text-[#141816]">
               Shreyash Bagade
             </span>
@@ -97,7 +98,7 @@ export default function Navbar() {
               <span className="absolute h-0.5 w-6 rotate-45 bg-black"></span>
               <span className="absolute h-0.5 w-6 -rotate-45 bg-black"></span>
             </button>
-          </div>
+          </Container>
 
           <nav className="flex flex-1 flex-col items-center justify-center gap-16 text-3xl font-semibold text-[#141816]">
             <a href="#projects" onClick={() => setIsOpen(false)}>

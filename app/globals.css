@@ -3,6 +3,11 @@
 :root {
   --background: #f6f4ef;
   --background-elevated: #fffcf7;
+
+  /* Centered content layout — adjust these to change width and side padding */
+  --container-max: 75rem; /* 1200px — decrease (e.g. 72rem) for narrower, increase for wider */
+  --container-padding: 1.5rem; /* 24px mobile gutter */
+  --container-padding-sm: 2rem; /* 32px tablet+ gutter */
 }
 
 @theme inline {
@@ -88,6 +93,6 @@ body {
   }
 }
 
-html {
+/* html {
   scrollbar-gutter: stable;
-}
+} */
