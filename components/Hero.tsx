@@ -91,7 +91,7 @@ export default function Hero() {
   </span>
 </h1>
 
-           <p className="mt-4 lg:mt-[5px] max-w-[600px] mx-0 lg:mx-0 text-left text-[14px] sm:text-[17px] md:text-[18px] lg:text-[17px] font-normal text-[#4a4a4a] leading-[1.5] lg:leading-[1.75]">
+           <p className="mt-2 lg:mt-[5px] max-w-[600px] mx-0 lg:mx-0 text-left text-[14px] sm:text-[17px] md:text-[18px] lg:text-[17px] font-normal text-[#4a4a4a] leading-[1.5] lg:leading-[1.75]">
             I&apos;m{" "}
             <span className="relative inline-block">
   Shreyash Bagade
@@ -109,10 +109,11 @@ export default function Hero() {
             for startups and founders who need to look sharp and get found.
           </p>
 
-          <div className="mt-7 flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+          {/* <div className="mt-7 flex flex-col sm:flex-row justify-center lg:justify-start gap-4"> */}
+          <div className="mt-4 lg:mt-7 flex flex-row justify-start gap-3 lg:gap-4">
           <Link
   href="#projects"
-  className="group inline-flex h-[50px] items-center justify-center overflow-hidden rounded-full bg-[#111111] px-[22px] text-[15px] font-semibold text-white transition-all duration-300 hover:-translate-y-[2px]"
+  className="group inline-flex h-[45px] lg:h-[50px] items-center justify-center overflow-hidden rounded-full bg-[#111111] px-[15px] lg:px-[22px] text-[14px] lg:text-[15px] font-semibold text-white transition-all duration-300 hover:-translate-y-[2px]"
 >
   <span className="relative h-[18px] overflow-hidden">
     <span className="block transition-transform duration-300 ease-out group-hover:-translate-y-full">
@@ -129,7 +130,7 @@ export default function Hero() {
 </Link>
             <Link
               href="#contact"
-              className="h-[58px] px-[20px] inline-flex items-center justify-center rounded-full b border border-[#d6d6d6] text-[15px] font-semibold transition-colors duration-250 hover:bg-[#fafafa]"
+              className="h-[45px] lg:h-[50px] px-[20px]  hover:border-black inline-flex items-center justify-center rounded-full b border border-[#d6d6d6] text-[14px] lg:text-[15px] font-semibold transition-colors duration-250 hover:bg-[#fafafa]"
             >
               Contact
             </Link>
@@ -137,7 +138,7 @@ export default function Hero() {
         </div>
 
         {/* RIGHT: Floating profile card */}
-        <div className="relative animate-[fadeInRight_800ms_ease-out_forwards] [animation-delay:150ms] flex justify-center lg:justify-end">
+        <div className="-mt-6 lg:mt-0 relative animate-[fadeInRight_800ms_ease-out_forwards] [animation-delay:150ms] flex justify-center lg:justify-end">
           <div
             className="absolute inset-0 -z-10"
             style={{
@@ -146,7 +147,7 @@ export default function Hero() {
             }}
           />
 
-          <div className="w-full max-w-sm bg-white rounded-[28px] border border-black/[.06] shadow-[0_18px_50px_rgba(0,0,0,0.08)] p-4 transition-transform duration-250">
+          <div className="w-full max-w-sm bg-white rounded-[22px] border border-black/[.06] shadow-[0_18px_50px_rgba(0,0,0,0.08)] p-4 transition-transform duration-250">
             <div className="flex items-center justify-between">
               <span className="text-[14px] font-bold text-[#111111]">
                 Shreyash Bagade
@@ -161,31 +162,32 @@ export default function Hero() {
               </span>
             </div>
 
-            <div className="relative w-full aspect-[4/5] max-h-[380px] rounded-[24px] overflow-hidden mt-[18px]">
-              <Image
-                src="/profile.jpg"
-                alt="Shreyash Bagade, full stack developer"
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 440px"
-                className="object-cover"
-              />
-            </div>
+            {/* <div className="relative w-full h-[280px] lg:h-[380px] overflow-hidden rounded-[24px] mt-[18px]"> */}
+            <div className="relative mt-2 lg:mt-2 w-full h-[300px] lg:h-[380px] overflow-hidden rounded-[16px]">
 
-            <h2 className="text-center text-[20px] font-bold text-[#111111] mt-3">
+  <Image
+    src="/image.png"
+    alt="Shreyash Bagade"
+    width={500}
+    height={700}
+    className="w-full h-full object-cover "
+  />
+</div>
+
+            <h2 className="text-center text-[19px] lg:text-[20px] font-bold text-[#111111] mt-3">
               Shreyash Bagade
             </h2>
-            <p className="text-center text-[14px] font-semibold text-[#0d7d86] mt-[7px]">
+            <p className="text-center text-[14px] lg:text-[14px] font-semibold text-[#0d7d86] mt-[7px]">
               Full Stack Engineer
             </p>
 
-            <div className="flex items-center justify-center gap-[18px] mt-3">
+            <div className="flex items-center justify-center gap-[18px] mt-1 lg:mt-3">
               <a
-                href="https://instagram.com/yourhandle"
+                href="https://instagram.com/bhgh"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="h-10 w-10 rounded-full border border-[#d8d8d8] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
+                className="h-10 w-10 lg:h-10 lg:w-10 rounded-full border border-[#d8d8d8] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
               >
                 <FaInstagram size={20} />
               </a>
@@ -194,7 +196,7 @@ export default function Hero() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
-                className="h-10 w-10 rounded-full border border-[#d8d8d8] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
+                className="h-10 w-10 lg:h-10 lg:w-10 rounded-full border border-[#d8d8d8] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
               >
                 <FaGithub size={20} />
               </a>
@@ -203,7 +205,7 @@ export default function Hero() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
-                className="h-10 w-10 rounded-full border border-[#d8d8d8] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
+                className="h-10 w-10 lg:h-10 lg:w-10 rounded-full border border-[#d8d8d8] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
               >
                 <FaLinkedin size={20} />
               </a>
@@ -211,7 +213,7 @@ export default function Hero() {
 
             <Link
   href="#contact"
-  className="group relative mt-5 flex h-[50px] w-full items-center justify-center overflow-hidden rounded-full bg-[#111111] text-[16px] font-semibold text-white transition-all duration-300 hover:-translate-y-[2px]"
+  className="group relative mt-4 lg:mt-5 flex h-[50px] w-full items-center justify-center overflow-hidden rounded-full bg-[#111111] text-[14px] lg:text-[16px] font-semibold text-white transition-all duration-300 hover:-translate-y-[2px]"
 >
   <span className="relative h-[20px] overflow-hidden">
     <span className="block transition-transform duration-300 ease-out group-hover:-translate-y-full">
