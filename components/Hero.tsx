@@ -34,9 +34,10 @@ export default function Hero() {
       <Container className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10 sm:gap-12 lg:gap-20 items-center">
         {/* LEFT: Marketing content */}
         <div className="mt-1 animate-[fadeInUp_700ms_ease-out_forwards] text-center lg:text-left">
+        <div className="-mt-8 lg:mt-0 flex justify-start">
         <Link
   href="#projects"
-  className="inline-flex items-start gap-1 text-[14px] font-semibold text-[#0d7d86] tracking-[-0.02em]"
+  className="inline-flex items-start gap-1 text-[13px] sm:text-[15px] lg:text-[14px]  font-semibold text-[#0d7d86] tracking-[-0.02em]"
 >
   <span className="inline-flex flex-col">
     <span>Selected work below</span>
@@ -48,8 +49,9 @@ export default function Hero() {
 
   <FaLongArrowAltRight className="mt-[2px]" />
 </Link>
+</div>
 
-          <h1 className="mt-6 text-[clamp(2.25rem,8vw,3.5rem)] md:text-[64px] font-bricolage lg:text-[55px] font-extrabold text-[#111111] leading-[1.3] tracking-[-0.06em]">
+          {/* <h1 className="mt-6 text-[clamp(2.25rem,8vw,3.5rem)] md:text-[64px] font-bricolage lg:text-[55px] font-extrabold text-[#111111] leading-[1.3] tracking-[-0.06em]">
           I build  &nbsp;&nbsp;
 <span
   className={`text-[#0d7d86] transition-opacity duration-500 ${
@@ -62,9 +64,34 @@ export default function Hero() {
             that ship clean
             <br />
             and convert.
-          </h1>
+          </h1> */}
 
-          <p className="mt-[5px] mx-auto lg:mx-0 max-w-[600px] text-[20px] md:text-[17px] font-normal text-[#4a4a4a] leading-[1.75]">
+<h1 className="mt-2 lg:mt-6 text-left lg:text-left font-bricolage font-extrabold text-[#111111] tracking-[-0.06em] leading-[1.1] text-[28px] sm:text-[40px] md:text-[48px] lg:text-[55px]">
+  I build{" "}&nbsp;&nbsp;
+  <span
+    className={`text-[#0d7d86] transition-opacity duration-500 ${
+      fade ? "opacity-100" : "opacity-0"
+    }`}
+  >
+    {words[index]}
+  </span>
+
+  {/* Mobile */}
+  <span className="lg:hidden">
+    <br />
+    that convert.
+  </span>
+
+  {/* Desktop */}
+  <span className="hidden lg:inline">
+    <br />
+    that ship clean
+    <br />
+    and convert.
+  </span>
+</h1>
+
+           <p className="mt-4 lg:mt-[5px] max-w-[600px] mx-0 lg:mx-0 text-left text-[14px] sm:text-[17px] md:text-[18px] lg:text-[17px] font-normal text-[#4a4a4a] leading-[1.5] lg:leading-[1.75]">
             I&apos;m{" "}
             <span className="relative inline-block">
   Shreyash Bagade
