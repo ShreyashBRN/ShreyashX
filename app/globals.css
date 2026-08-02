@@ -96,3 +96,43 @@ body {
 /* html {
   scrollbar-gutter: stable;
 } */
+
+/* Horizontal scroll tracks that align with Container content on all screen sizes */
+.container-scroll-track {
+  scroll-padding-inline-start: max(
+    var(--container-padding),
+    calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding))
+  );
+}
+
+.container-scroll-track > div {
+  padding-inline-start: max(
+    var(--container-padding),
+    calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding))
+  );
+}
+
+@media (min-width: 40rem) {
+  .container-scroll-track {
+    scroll-padding-inline-start: max(
+      var(--container-padding-sm),
+      calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding-sm))
+    );
+  }
+
+  .container-scroll-track > div {
+    padding-inline-start: max(
+      var(--container-padding-sm),
+      calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding-sm))
+    );
+  }
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
