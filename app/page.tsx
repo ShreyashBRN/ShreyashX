@@ -1,22 +1,7 @@
-// import Navbar from "@/components/Navbar";
-// import Hero from "@/components/Hero"
-// import Projects from "@/components/Projects"
-
-// export default function Home() {
-//   return (
-//     <main className="overflow-x-hidden">
-//       <Navbar />
-//       <Hero />
-//       <Projects />
-
-//     </main>
-//   );
-// }
-
-
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Projects from "@/components/Projects";
+import Collaborate from "@/components/Collaborate"
 
 export default function Home() {
   return (
@@ -24,6 +9,8 @@ export default function Home() {
       <Navbar />
       <Hero />
       <Projects />
+      <Collaborate />
+
     </main>
   );
 }
