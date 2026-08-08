@@ -145,7 +145,7 @@ export default function Projects() {
         className="sticky overflow-hidden flex flex-col"
         style={{
           top: NAVBAR_HEIGHT,
-          height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
+          height: `calc(100dvh - ${NAVBAR_HEIGHT}px)`,
         }}
       >
         <Container className="pt-8 lg:pt-14 shrink-0">
