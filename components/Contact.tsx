@@ -1,20 +1,42 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import emailjs from "@emailjs/browser";
 import Container from "./Container";
 
+// Same EmailJS service/template used on your previous portfolio.
+// Swap these if you'd rather send this site's messages to a different template.
+const EMAILJS_SERVICE_ID = "service_xr877hu";
+const EMAILJS_TEMPLATE_ID = "template_vjoiodm";
+const EMAILJS_PUBLIC_KEY = "qp7ma87qFelAFUUkf";
+
+type Status = "idle" | "loading" | "success" | "error";
+
 export default function Contact() {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const formRef = useRef<HTMLFormElement>(null);
+  const [status, setStatus] = useState<Status>("idle");
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // wire up your submit logic (API route, email service, etc.) here
-    console.log(form);
+    if (!formRef.current) return;
+
+    setStatus("loading");
+
+    try {
+      // sendForm reads each input's `name` attribute directly, so it must
+      // match the variable names used inside your EmailJS template exactly
+      // (this reuses the same field names as your previous portfolio's form).
+      await emailjs.sendForm(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        formRef.current,
+        EMAILJS_PUBLIC_KEY
+      );
+      setStatus("success");
+      formRef.current.reset();
+    } catch (err) {
+      console.error("EmailJS error:", err);
+      setStatus("error");
+    }
   };
 
   return (
@@ -26,19 +48,19 @@ export default function Contact() {
             edge reaches that point, since that's how CSS `sticky` works. */}
         <div className="sticky top-14 z-10 max-w-[560px] mx-auto">
           <div className="text-start">
-          <span className="relative inline-block text-[13px] font-semibold text-[#0d7d86] tracking-[0.08em] uppercase pb-1">
-  Get in touch
-  <span className="absolute left-0 -bottom-[3px] h-[2px] w-full overflow-hidden">
-    <span className="line absolute top-0 bottom-0 bg-[#0d7d86]" />
-  </span>
-</span>
+            <span className="relative inline-block text-[13px] font-semibold text-[#0d7d86] tracking-[0.08em] uppercase pb-1">
+              Get in touch
+              <span className="absolute left-0 -bottom-[3px] h-[2px] w-full overflow-hidden">
+                <span className="line absolute top-0 bottom-0 bg-[#0d7d86]" />
+              </span>
+            </span>
 
             <h2 className="mt-4 font-bricolage text-[36px] sm:text-[44px] lg:text-[52px] font-extrabold text-[#111111] leading-[1.1] tracking-[-0.03em]">
               Let&apos;s{" "}
               <span className="relative inline-flex items-center overflow-hidden rounded-[14px] px-3 align-middle">
-  <span className="highlight absolute inset-0 rounded-[14px] bg-[#c9ece4]" />
-  <span className="relative z-10">collaborate</span>
-</span>
+                <span className="highlight absolute inset-0 rounded-[14px] bg-[#c9ece4]" />
+                <span className="relative z-10">collaborate</span>
+              </span>
             </h2>
 
             <p className="mt-4 text-[16px] sm:text-[17px] text-[#4a4a4a] leading-[1.7]">
@@ -48,6 +70,7 @@ export default function Contact() {
           </div>
 
           <form
+            ref={formRef}
             onSubmit={handleSubmit}
             className="mt-8 bg-[#fffcf7] border border-black/[.06] rounded-[24px] p-6 sm:p-8 lg:p-10 shadow-[0_18px_50px_rgba(0,0,0,0.05)]"
           >
@@ -62,10 +85,9 @@ export default function Contact() {
                 id="name"
                 name="name"
                 type="text"
-                value={form.name}
-                onChange={handleChange}
                 required
-                className="mt-2 w-full rounded-[12px] border border-black/[.08] bg-white px-4 py-3 text-[15px] text-[#111111] outline-none transition-colors focus:border-[#0d7d86]"
+                disabled={status === "loading"}
+                className="mt-2 w-full rounded-[12px] border border-black/[.08] bg-white px-4 py-3 text-[15px] text-[#111111] outline-none transition-colors focus:border-[#0d7d86] disabled:opacity-60"
               />
             </div>
 
@@ -80,10 +102,9 @@ export default function Contact() {
                 id="email"
                 name="email"
                 type="email"
-                value={form.email}
-                onChange={handleChange}
                 required
-                className="mt-2 w-full rounded-[12px] border border-black/[.08] bg-white px-4 py-3 text-[15px] text-[#111111] outline-none transition-colors focus:border-[#0d7d86]"
+                disabled={status === "loading"}
+                className="mt-2 w-full rounded-[12px] border border-black/[.08] bg-white px-4 py-3 text-[15px] text-[#111111] outline-none transition-colors focus:border-[#0d7d86] disabled:opacity-60"
               />
             </div>
 
@@ -99,19 +120,30 @@ export default function Contact() {
                 name="message"
                 rows={6}
                 placeholder="Tell me about the project..."
-                value={form.message}
-                onChange={handleChange}
                 required
-                className="mt-2 w-full resize-y rounded-[12px] border border-black/[.08] bg-white px-4 py-3 text-[15px] text-[#111111] outline-none transition-colors placeholder:text-[#9a9a9a] focus:border-[#0d7d86]"
+                disabled={status === "loading"}
+                className="mt-2 w-full resize-y rounded-[12px] border border-black/[.08] bg-white px-4 py-3 text-[15px] text-[#111111] outline-none transition-colors placeholder:text-[#9a9a9a] focus:border-[#0d7d86] disabled:opacity-60"
               />
             </div>
 
             <button
               type="submit"
-              className="mt-6 w-full h-[52px] rounded-full bg-[#111111] text-[15px] font-semibold text-white transition-colors duration-250 hover:bg-[#222222]"
+              disabled={status === "loading"}
+              className="mt-6 w-full h-[52px] rounded-full bg-[#111111] text-[15px] font-semibold text-white transition-colors duration-250 hover:bg-[#222222] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Send Message
+              {status === "loading" ? "Sending..." : "Send Message"}
             </button>
+
+            {status === "success" && (
+              <p className="mt-4 text-[14px] text-[#0d7d86] text-center">
+                Thanks — your message is in. I&apos;ll get back to you soon.
+              </p>
+            )}
+            {status === "error" && (
+              <p className="mt-4 text-[14px] text-red-600 text-center">
+                Something went wrong. Please try again, or email me directly.
+              </p>
+            )}
           </form>
         </div>
       </Container>
