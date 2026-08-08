@@ -1,4 +1,3 @@
-
 "use client";
 import { useRef, useState } from "react";
 import {
@@ -11,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Container from "./Container";
 import { projects, type Project } from "@/data/projects";
+import Collaborate from "@/components/Collaborate"
 
 // Adjust this to your actual fixed Navbar's rendered height in px.
 const NAVBAR_HEIGHT = 32;
@@ -139,7 +139,7 @@ export default function Projects() {
       ref={sectionRef}
       id="projects"
       className="relative bg-[#F2F1ED]"
-      style={{ height: `${total * 100}vh` }}
+      style={{ height: `350vh` }}
     >
       <div
         className="sticky overflow-hidden flex flex-col"
@@ -204,7 +204,8 @@ export default function Projects() {
             </div>
           </div>
 
-          <div className="relative h-full self-center -mt-64">
+          {/* <div className="relative h-full self-center -mt-64"> */}
+          <div className="relative w-full h-[300px] self-center -mt-[630px]">
             {projects.map((project, i) => (
               <StackCard
                 key={project.id}
@@ -218,21 +219,33 @@ export default function Projects() {
           </div>
         </Container>
 
-        {/* Mobile: single stacked column with full card content */}
-        <Container className="lg:hidden relative flex-1 min-h-0 mt-6">
-          <div className="relative h-full">
-            {projects.map((project, i) => (
-              <StackCard
-                key={project.id}
-                project={project}
-                index={i}
-                total={total}
-                scrollYProgress={scrollYProgress}
-                variant="mobile"
-              />
-            ))}
-          </div>
+       
+ <Container className="lg:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
+          <div className="relative w-full h-[420px] -mt-[300px]">
+  {projects.map((project, i) => (
+    <StackCard
+      key={project.id}
+      project={project}
+      index={i}
+      total={total}
+      scrollYProgress={scrollYProgress}
+      variant="mobile"
+    />
+  ))}
+</div>
         </Container>
+
+<motion.div
+  className="absolute inset-x-0 z-30 bottom-12 lg:top-[580px] lg:bottom-auto"
+  style={{
+    y: useTransform(scrollYProgress, [(total - 1) / total, 1], [200, 0]),
+    opacity: useTransform(scrollYProgress, [(total - 1) / total, 1], [0, 1]),
+  }}
+>
+  <Container>
+    <Collaborate />
+  </Container>
+</motion.div>
       </div>
     </section>
   );

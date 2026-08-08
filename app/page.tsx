@@ -1,7 +1,8 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Projects from "@/components/Projects";
-import Collaborate from "@/components/Collaborate"
+import Collaborate from "@/components/Collaborate";
+import Contact from "@/components/Contact";
 
 export default function Home() {
   return (
@@ -9,7 +10,9 @@ export default function Home() {
       <Navbar />
       <Hero />
       <Projects />
-      <Collaborate />
+      {/* <Collaborate /> */}
+      {/* <Contact /> */}
+
 
     </main>
   );
