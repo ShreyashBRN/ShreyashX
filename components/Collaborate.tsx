@@ -8,9 +8,12 @@ export default function Collaborate() {
       <div className="bg-[#161616] rounded-[16px] lg:rounded-[20px] p-4 sm:p-6 lg:p-7 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 lg:gap-4">
         {/* Left: label + heading + description */}
         <div>
-          <span className="inline-block text-[11px] sm:text-[14px] font-semibold text-[#5fd4c4] tracking-[0.08em] uppercase border-b-2 border-[#5fd4c4] pb-0.5">
-            Collaborate
-          </span>
+        <span className="relative inline-block text-[11px] sm:text-[14px] font-semibold text-[#5fd4c4] tracking-[0.08em] uppercase pb-0.5">
+  Collaborate
+  <span className="absolute left-0 -bottom-[3px] h-[2px] w-full overflow-hidden">
+    <span className="line absolute top-0 bottom-0 bg-[#5fd4c4]" />
+  </span>
+</span>
 
           <h2 className="mt-2 lg:mt-4 text-[15px] sm:text-[20px] lg:text-[27px] font-extrabold text-white leading-[1.2] tracking-[-0.02em] max-w-[600px]">
             Need a website, landing page, or mobile app?

@@ -51,21 +51,6 @@ export default function Hero() {
 </Link>
 </div>
 
-          {/* <h1 className="mt-6 text-[clamp(2.25rem,8vw,3.5rem)] md:text-[64px] font-bricolage lg:text-[55px] font-extrabold text-[#111111] leading-[1.3] tracking-[-0.06em]">
-          I build  &nbsp;&nbsp;
-<span
-  className={`text-[#0d7d86] transition-opacity duration-500 ${
-    fade ? "opacity-100" : "opacity-0"
-  }`}
->
-  {words[index]}
-</span>
-            <br />
-            that ship clean
-            <br />
-            and convert.
-          </h1> */}
-
 <h1 className="mt-2 lg:mt-6 text-left lg:text-left font-bricolage font-extrabold text-[#111111] tracking-[-0.06em] leading-[1.1] text-[28px] sm:text-[40px] md:text-[48px] lg:text-[55px]">
   I build{" "}&nbsp;&nbsp;
   <span
