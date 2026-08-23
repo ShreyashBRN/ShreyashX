@@ -170,7 +170,7 @@ export default function Projects() {
       style={{ height: `350svh` }}
     >
       <div
-        className="sticky overflow-hidden flex flex-col"
+        className="sticky overflow-hidden flex flex-col overflow-visible lg:overflow-hidden"
         style={{
           top: NAVBAR_HEIGHT,
           height: `calc(100dvh - ${NAVBAR_HEIGHT}px)`,
