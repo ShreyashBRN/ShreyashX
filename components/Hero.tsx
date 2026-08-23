@@ -151,7 +151,8 @@ export default function Hero() {
             <div className="relative mt-2 lg:mt-2 w-full h-[300px] lg:h-[380px] overflow-hidden rounded-[16px]">
 
   <Image
-    src="/image.png"
+    // src="/image.png"
+    src="/img2portfolio.jpeg"
     alt="Shreyash Bagade"
     width={500}
     height={700}
