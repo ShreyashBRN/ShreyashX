@@ -1,5 +1,6 @@
 "use client";
-import { useRef, useState } from "react";
+// import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   useScroll,
   useTransform,
@@ -15,7 +16,34 @@ import Collaborate from "@/components/Collaborate"
 // Adjust this to your actual fixed Navbar's rendered height in px.
 const NAVBAR_HEIGHT = 32;
 const PEEK_OFFSET = 6; // px each stacked card peeks above the one below it
+function ChevronStep({ step }: { step: number }) {
+  const [active, setActive] = useState(0);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActive((prev) => (prev + 1) % 3);
+    }, 250);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <svg
+      width="28"
+      height="16"
+      viewBox="0 0 28 16"
+      fill="none"
+      style={{ transition: "stroke 0.25s ease" }}
+    >
+      <path
+        d="M2 2L14 14L26 2"
+        stroke={active === step ? "#0d7d86" : "#c4c2b8"}
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 function StackCard({
   project,
   index,
@@ -220,20 +248,37 @@ export default function Projects() {
         </Container>
 
        
- <Container className="lg:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
-          <div className="relative w-full h-[420px] -mt-[230px]">
-  {projects.map((project, i) => (
-    <StackCard
-      key={project.id}
-      project={project}
-      index={i}
-      total={total}
-      scrollYProgress={scrollYProgress}
-      variant="mobile"
-    />
-  ))}
-</div>
-        </Container>
+        <Container className="lg:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
+  <div className="relative w-full h-[420px] -mt-[300px]">
+    {/* indicator now FIRST, no z-index, so cards stack above it */}
+    <motion.div
+      className="absolute inset-0 flex pt-[200px] flex-col items-center justify-center gap-2 pointer-events-none"
+      style={{
+        opacity: useTransform(scrollYProgress, [0, 0.03], [1, 0]),
+      }}
+    >
+      <div className="flex flex-col items-center gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <ChevronStep key={i} step={i} />
+        ))}
+      </div>
+      <span className="text-[11px] font-semibold text-[#4a4a4a] uppercase tracking-[0.08em] mt-1">
+        Scroll down
+      </span>
+    </motion.div>
+
+    {projects.map((project, i) => (
+      <StackCard
+        key={project.id}
+        project={project}
+        index={i}
+        total={total}
+        scrollYProgress={scrollYProgress}
+        variant="mobile"
+      />
+    ))}
+  </div>
+</Container>
 
 <motion.div
   className="absolute inset-x-0 z-30 -bottom-5  lg:top-[580px] lg:bottom-auto"
