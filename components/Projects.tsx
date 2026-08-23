@@ -249,7 +249,7 @@ export default function Projects() {
 
        
         <Container className="lg:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
-  <div className="relative w-full h-[420px] -mt-[300px]">
+  <div className="relative w-full h-[420px] -mt-[230px]">
     {/* indicator now FIRST, no z-index, so cards stack above it */}
     <motion.div
       className="absolute inset-0 flex pt-[200px] flex-col items-center justify-center gap-2 pointer-events-none"
