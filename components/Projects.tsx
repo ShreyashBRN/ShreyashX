@@ -139,7 +139,7 @@ export default function Projects() {
       ref={sectionRef}
       id="projects"
       className="relative bg-[#F2F1ED]"
-      style={{ height: `350vh` }}
+      style={{ height: `350svh` }}
     >
       <div
         className="sticky overflow-hidden flex flex-col"
@@ -221,7 +221,7 @@ export default function Projects() {
 
        
  <Container className="lg:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
-          <div className="relative w-full h-[420px] -mt-[300px]">
+          <div className="relative w-full h-[420px] -mt-[230px]">
   {projects.map((project, i) => (
     <StackCard
       key={project.id}
@@ -236,7 +236,7 @@ export default function Projects() {
         </Container>
 
 <motion.div
-  className="absolute inset-x-0 z-30 bottom-12 lg:top-[580px] lg:bottom-auto"
+  className="absolute inset-x-0 z-30 -bottom-5  lg:top-[580px] lg:bottom-auto"
   style={{
     y: useTransform(scrollYProgress, [(total - 1) / total, 1], [200, 0]),
     opacity: useTransform(scrollYProgress, [(total - 1) / total, 1], [0, 1]),

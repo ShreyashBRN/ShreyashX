@@ -30,7 +30,7 @@ export default function Hero() {
         return () => clearInterval(interval);
       }, []);
   return (
-    <section className="relative w-full min-h-[92vh] overflow-x-hidden bg-[#f6f4ef] py-12 lg:py-0 flex items-center">
+    <section className="relative w-full min-h-[92svh] overflow-x-hidden bg-[#f6f4ef] py-12 lg:py-0 flex items-center">
       <Container className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10 sm:gap-12 lg:gap-20 items-center">
         {/* LEFT: Marketing content */}
         <div className="mt-1 animate-[fadeInUp_700ms_ease-out_forwards] text-center lg:text-left">
