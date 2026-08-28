@@ -257,11 +257,11 @@ export default function Hero() {
         return () => clearInterval(interval);
       }, []);
   return (
-    <section className="relative w-full lg:min-h-[92svh] overflow-x-hidden bg-[#f6f4ef] py-12 lg:py-0 flex lg:items-center">
-      <Container className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10 sm:gap-12 lg:gap-20 items-center">
+    <section className="relative w-full md:min-h-[92svh] overflow-x-hidden bg-[#f6f4ef] py-12 md:py-0 flex md:items-center">
+      <Container className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-10 sm:gap-12 lg:gap-20 items-center">
         {/* LEFT: Marketing content */}
-        <div className="mt-1 animate-[fadeInUp_700ms_ease-out_forwards] text-center lg:text-left">
-        <div className="-mt-8 lg:mt-0 flex justify-start">
+        <div className="mt-1 animate-[fadeInUp_700ms_ease-out_forwards] text-center md:text-left">
+        <div className="-mt-8 md:mt-0 flex justify-start">
         <Link
   href="#projects"
   className="inline-flex items-start gap-1 text-[13px] sm:text-[15px] lg:text-[14px]  font-semibold text-[#0d7d86] tracking-[-0.02em]"
@@ -289,13 +289,13 @@ export default function Hero() {
   </span>
 
   {/* Mobile */}
-  <span className="lg:hidden">
+  <span className="md:hidden">
     <br />
     that convert.
   </span>
 
   {/* Desktop */}
-  <span className="hidden lg:inline">
+  <span className="hidden md:inline">
     <br />
     that ship clean
     <br />
@@ -350,7 +350,7 @@ export default function Hero() {
         </div>
 
         {/* RIGHT: Floating profile card */}
-        <div className="-mt-6 lg:mt-0 relative animate-[fadeInRight_800ms_ease-out_forwards] [animation-delay:150ms] flex justify-center lg:justify-end">
+        <div className="-mt-6 md:mt-0 relative animate-[fadeInRight_800ms_ease-out_forwards] [animation-delay:150ms] flex justify-center md:justify-end">
           <div
             className="absolute inset-0 -z-10"
             style={{

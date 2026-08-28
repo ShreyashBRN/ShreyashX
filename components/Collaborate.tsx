@@ -5,7 +5,7 @@ export default function Collaborate() {
   return (
     <section className="w-full bg-[#f6f4ef]">
       
-      <div className="bg-[#161616] rounded-[16px] lg:rounded-[20px] p-4 sm:p-6 lg:p-7 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 lg:gap-4">
+      <div className="bg-[#161616] rounded-[16px] lg:rounded-[20px] p-4 sm:p-6 lg:p-7 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 lg:gap-4">
         {/* Left: label + heading + description */}
         <div>
         <span className="relative inline-block text-[11px] sm:text-[14px] font-semibold text-[#5fd4c4] tracking-[0.08em] uppercase pb-0.5">
@@ -26,7 +26,7 @@ export default function Collaborate() {
           </p>
 
           {/* Mobile/tablet button — sits under the text, hidden on desktop */}
-          <div className="mt-2 lg:mt-3 lg:hidden">
+          <div className="mt-2 lg:mt-3 md:hidden">
             <Link
               href="#contact"
               className="inline-flex h-[30px] sm:h-[38px] items-center justify-center rounded-full bg-white px-4 sm:px-5 text-[11px] sm:text-[13px] font-semibold text-[#111111] transition-transform duration-250 hover:-translate-y-[2px]"
@@ -37,7 +37,7 @@ export default function Collaborate() {
         </div>
 
         {/* Desktop button — sits to the right, vertically centered */}
-        <div className="hidden lg:block shrink-0">
+        <div className="hidden md:block shrink-0">
           <Link
             href="#contact"
             className="inline-flex h-[48px] items-center justify-center rounded-full bg-white px-5 text-[13px] font-semibold text-[#111111] transition-transform duration-250 hover:-translate-y-[2px]"

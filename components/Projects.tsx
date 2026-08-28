@@ -483,7 +483,7 @@ export default function Projects() {
       style={{ height: `350svh` }}
     >
       <div
-        className="sticky overflow-hidden flex flex-col overflow-visible lg:overflow-hidden"
+        className="sticky overflow-hidden flex flex-col overflow-visible md:overflow-hidden"
         style={{
           top: NAVBAR_HEIGHT,
           height: `calc(100dvh - ${NAVBAR_HEIGHT}px)`,
@@ -493,13 +493,13 @@ export default function Projects() {
           <h2 className="font-bricolage text-[32px] sm:text-[36px] lg:text-[58px] font-extrabold text-[#111111] tracking-[-0.03em]">
             Projects.
           </h2>
-          <p className="hidden lg:block mt-1 max-w-[560px] text-[15px] sm:text-[16px] text-[#4a4a4a] leading-[1.7]">
+          <p className="hidden md:block mt-1 max-w-[560px] text-[15px] sm:text-[16px] text-[#4a4a4a] leading-[1.7]">
           Selected work across websites, landing pages, and mobile<br /> apps. Scroll the gallery to explore each build.
           </p>
         </Container>
 
         {/* Desktop: split layout */}
-        <Container className="hidden lg:grid lg:grid-cols-2 lg:gap-16 flex-1 min-h-0 mt-8">
+        <Container className="hidden md:grid md:grid-cols-2 md:gap-16 flex-1 min-h-0 mt-8">
           <div className="self-center h-full">
             <span className="text-[13px] font-semibold text-[#0d7d86] uppercase tracking-wide bg-[#DBE2DC] px-2 py-1 rounded-[6px]">
               {activeProject.category}
@@ -561,7 +561,7 @@ export default function Projects() {
         </Container>
 
        
-        <Container className="lg:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
+        <Container className="md:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
   <div className="relative w-full h-[420px]">
     {/* indicator now FIRST, no z-index, so cards stack above it */}
     <motion.div
@@ -594,7 +594,7 @@ export default function Projects() {
 </Container>
 
 <motion.div
-  className="absolute inset-x-0 z-30 -bottom-5  lg:top-[580px] lg:bottom-auto"
+  className="absolute inset-x-0 z-30 -bottom-5  md:top-[580px] md:bottom-auto"
   style={{
     y: useTransform(scrollYProgress, [(total - 1) / total, 1], [200, 0]),
     opacity: useTransform(scrollYProgress, [(total - 1) / total, 1], [0, 1]),
