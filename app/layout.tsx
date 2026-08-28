@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Bricolage_Grotesque } from "next/font/google";
 import SmoothScroll from "@/components/SmoothScroll";
+import DesktopSiteViewport from "@/components/DesktopSiteViewport";
 import "./globals.css";
 
 const inter = Inter({
@@ -68,7 +69,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${inter.variable} ${bricolage.variable}`}>
-      <body className="font-inter antialiased"><SmoothScroll>{children}</SmoothScroll></body>
+      <body className="font-inter antialiased">
+        <DesktopSiteViewport />
+        <SmoothScroll>{children}</SmoothScroll>
+      </body>
     </html>
   );
 }

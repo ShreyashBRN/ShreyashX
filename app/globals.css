@@ -19,6 +19,12 @@
   --font-bricolage: var(--font-bricolage);
 }
 
+/* Default lg is 64rem (1024px). Phone "Request Desktop Site" is ~980px,
+   so drop lg just below that so type, spacing, and leftover lg: rules match desktop. */
+@theme {
+  --breakpoint-lg: 60rem;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -135,4 +141,20 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Phone desktop-site mode keeps a portrait aspect ratio while CSS width is
+   desktop-sized, so 100dvh/svh become thousands of pixels. Cap to a laptop frame. */
+@media (min-width: 48rem) and (max-aspect-ratio: 1/1) {
+  .hero-frame {
+    min-height: 850px !important;
+  }
+
+  .projects-pin {
+    height: 818px !important;
+  }
+
+  .projects-runway {
+    height: 2975px !important;
+  }
 }

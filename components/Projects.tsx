@@ -479,11 +479,11 @@ export default function Projects() {
     <section
       ref={sectionRef}
       id="projects"
-      className="relative bg-[#F2F1ED]"
+      className="projects-runway relative bg-[#F2F1ED]"
       style={{ height: `350svh` }}
     >
       <div
-        className="sticky overflow-hidden flex flex-col overflow-visible md:overflow-hidden"
+        className="projects-pin sticky overflow-hidden flex flex-col overflow-visible md:overflow-hidden"
         style={{
           top: NAVBAR_HEIGHT,
           height: `calc(100dvh - ${NAVBAR_HEIGHT}px)`,
