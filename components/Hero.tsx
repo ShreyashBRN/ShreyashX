@@ -396,7 +396,7 @@ export default function Hero() {
 
             <div className="flex items-center justify-center gap-[18px] mt-1 lg:mt-3">
             <a
-                href="https://instagram.com/bhgh"
+                href="https://www.instagram.com/shreyashbrn"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
@@ -405,7 +405,7 @@ export default function Hero() {
                 <FaInstagram size={20} />
               </a>
               <a
-                href="https://github.com/yourhandle"
+                href="https://github.com/ShreyashBRN"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
@@ -414,7 +414,7 @@ export default function Hero() {
                 <FaGithub size={20} />
               </a>
               <a
-                href="https://linkedin.com/in/yourhandle"
+                href="https://www.linkedin.com/in/shreyash-b-949033432/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
