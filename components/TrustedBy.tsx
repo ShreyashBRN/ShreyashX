@@ -1,6 +1,6 @@
 import Container from "./Container";
 
-const companies = ["PoolTogether", "NAB India", "Zentrack", "SparkUp"];
+const companies = ["ZnapWatch", "Feriendeals", "ShopBiz", "BusTune"];
 
 export default function TrustedBy() {
   return (
