@@ -19,9 +19,6 @@ export default function Contact() {
     setStatus("loading");
 
     try {
-      // sendForm reads each input's `name` attribute directly, so it must
-      // match the variable names used inside your EmailJS template exactly
-      // (this reuses the same field names as your previous portfolio's form).
       await emailjs.sendForm(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,

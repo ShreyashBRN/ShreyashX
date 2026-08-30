@@ -12,10 +12,6 @@ function LenisFrameSync() {
       lenis?.raf(data.timestamp);
     }
 
-    // Drives Lenis from Framer Motion's own frame loop instead of a separate
-    // requestAnimationFrame call, so scroll-linked animations (useScroll /
-    // useTransform in Projects.tsx) stay perfectly in sync with the smooth
-    // scroll position instead of reading stale/lagging scroll values.
     frame.update(update, true);
     return () => cancelFrame(update);
   }, [lenis]);
