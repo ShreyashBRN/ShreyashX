@@ -157,4 +157,8 @@ body {
   .projects-runway {
     height: 2975px !important;
   }
+
+  .collaborate-wrap {
+    top: 660px !important;
+  }
 }
