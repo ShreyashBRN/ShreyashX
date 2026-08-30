@@ -166,11 +166,11 @@
 //     <section
 //       ref={sectionRef}
 //       id="projects"
-//       className="relative bg-[#F2F1ED]"
+//       className="projects-runway relative bg-[#F2F1ED]"
 //       style={{ height: `350svh` }}
 //     >
 //       <div
-//         className="sticky overflow-hidden flex flex-col overflow-visible lg:overflow-hidden"
+//         className="projects-pin sticky overflow-hidden flex flex-col overflow-visible md:overflow-hidden"
 //         style={{
 //           top: NAVBAR_HEIGHT,
 //           height: `calc(100dvh - ${NAVBAR_HEIGHT}px)`,
@@ -180,13 +180,13 @@
 //           <h2 className="font-bricolage text-[32px] sm:text-[36px] lg:text-[58px] font-extrabold text-[#111111] tracking-[-0.03em]">
 //             Projects.
 //           </h2>
-//           <p className="hidden lg:block mt-1 max-w-[560px] text-[15px] sm:text-[16px] text-[#4a4a4a] leading-[1.7]">
+//           <p className="hidden md:block mt-1 max-w-[560px] text-[15px] sm:text-[16px] text-[#4a4a4a] leading-[1.7]">
 //           Selected work across websites, landing pages, and mobile<br /> apps. Scroll the gallery to explore each build.
 //           </p>
 //         </Container>
 
 //         {/* Desktop: split layout */}
-//         <Container className="hidden lg:grid lg:grid-cols-2 lg:gap-16 flex-1 min-h-0 mt-8">
+//         <Container className="hidden md:grid md:grid-cols-2 md:gap-16 flex-1 min-h-0 mt-8">
 //           <div className="self-center h-full">
 //             <span className="text-[13px] font-semibold text-[#0d7d86] uppercase tracking-wide bg-[#DBE2DC] px-2 py-1 rounded-[6px]">
 //               {activeProject.category}
@@ -248,8 +248,8 @@
 //         </Container>
 
        
-//         <Container className="lg:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
-//   <div className="relative w-full h-[420px] -mt-[230px]">
+//         <Container className="md:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
+//   <div className="relative w-full h-[420px]">
 //     {/* indicator now FIRST, no z-index, so cards stack above it */}
 //     <motion.div
 //       className="absolute inset-0 flex pt-[200px] flex-col items-center justify-center gap-2 pointer-events-none"
@@ -281,7 +281,7 @@
 // </Container>
 
 // <motion.div
-//   className="absolute inset-x-0 z-30 -bottom-5  lg:top-[580px] lg:bottom-auto"
+//   className="absolute inset-x-0 z-30 -bottom-5  md:top-[580px] md:bottom-auto"
 //   style={{
 //     y: useTransform(scrollYProgress, [(total - 1) / total, 1], [200, 0]),
 //     opacity: useTransform(scrollYProgress, [(total - 1) / total, 1], [0, 1]),
@@ -295,6 +295,7 @@
 //     </section>
 //   );
 // }
+
 
 
 
@@ -370,18 +371,25 @@ function StackCard({
   scrollYProgress: ReturnType<typeof useScroll>["scrollYProgress"];
   variant: "desktop" | "mobile";
 }) {
-  const start = index / total;
-  const end = (index + 1) / total;
+  // Card 0 should already be visible in its resting spot on page load —
+  // no scroll required to see the first project. Only cards after it
+  // slide up from below into the stack as the user scrolls.
+  const segments = Math.max(total - 1, 1);
+  const start = index === 0 ? 0 : (index - 1) / segments;
+  const end = index === 0 ? 0 : index / segments;
 
-  // Slides up from below into its resting stacked position, then holds there.
-  const y = useTransform(scrollYProgress, [start, end], [920, index * PEEK_OFFSET]);
+  const y = useTransform(
+    scrollYProgress,
+    index === 0 ? [0, 1] : [start, end],
+    index === 0 ? [0, 0] : [920, index * PEEK_OFFSET]
+  );
   const opacity = useTransform(scrollYProgress, [start, start + 0.05], [0, 1]);
 
   return (
     <motion.div
-  style={{ y, opacity: 1, zIndex: index + 1 }}
-  className="absolute inset-x-0 top-0"
->
+      style={{ y, opacity: 1, zIndex: index + 1 }}
+      className="absolute inset-x-0 top-0"
+    >
       {variant === "desktop" ? (
         <div className="group relative w-full h-[300px] rounded-[24px] overflow-hidden border border-black/[.06] shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
           <Image
@@ -467,7 +475,10 @@ export default function Projects() {
   });
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    const idx = Math.min(total - 1, Math.floor(v * total));
+    // Keep the active-card tracker in sync with the same pacing used by
+    // StackCard (card 0 resolved already, cards 1..total-1 split the rest).
+    const segments = Math.max(total - 1, 1);
+    const idx = Math.min(total - 1, Math.round(v * segments));
     setActiveIndex(idx);
   });
 
