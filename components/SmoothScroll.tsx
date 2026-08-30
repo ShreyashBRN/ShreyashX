@@ -28,6 +28,7 @@ export default function SmoothScroll({
 }: {
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
@@ -38,18 +39,22 @@ export default function SmoothScroll({
       navigator.maxTouchPoints > 0 ||
       window.matchMedia("(pointer: coarse)").matches;
     setIsTouchDevice(touch);
+    setMounted(true);
   }, []);
+
+  // On touch screens / phones, bypass Lenis completely to let the browser's
+  // hardware-accelerated 120Hz/60Hz compositor handle scrolling with zero overhead.
+  if (!mounted || isTouchDevice) {
+    return <>{children}</>;
+  }
 
   return (
     <ReactLenis
       root
       options={{
-        // Lower = heavier/weightier feel, higher = snappier. 1.1–1.3 is a
-        // common "premium" feel without being sluggish.
-        lerp: isTouchDevice ? 1 : 0.1,
-        duration: isTouchDevice ? 0 : 1.2,
-        smoothWheel: !isTouchDevice,
-        syncTouch: false,
+        lerp: 0.1,
+        duration: 1.2,
+        smoothWheel: true,
       }}
     >
       <LenisFrameSync />

@@ -62,17 +62,18 @@ function StackCard({
   const segments = Math.max(total - 1, 1);
   const start = index === 0 ? 0 : (index - 1) / segments;
   const end = index === 0 ? 0 : index / segments;
+  const flyInDistance = variant === "mobile" ? 680 : 920;
 
   const y = useTransform(
     scrollYProgress,
     index === 0 ? [0, 1] : [start, end],
-    index === 0 ? [0, 0] : [920, index * PEEK_OFFSET]
+    index === 0 ? [0, 0] : [flyInDistance, index * PEEK_OFFSET]
   );
 
   return (
     <motion.div
       style={{ y, opacity: 1, zIndex: index + 1 }}
-      className="absolute inset-x-0 top-0"
+      className="absolute inset-x-0 top-0 will-change-transform transform-gpu"
     >
       {variant === "desktop" ? (
         <div className="group relative w-full h-[300px] rounded-[24px] overflow-hidden border border-black/[.06] shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
