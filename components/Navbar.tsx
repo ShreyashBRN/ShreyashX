@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { PopupButton } from "react-calendly";
 import Container from "./Container";
-
 function NavLink({
   href,
   children,
@@ -26,25 +26,21 @@ function NavLink({
 }
 
 function TalkButton() {
-  return (
-    <a
-      href="#contact"
-      className="group relative hidden md:inline-block overflow-hidden rounded-full bg-black px-4 py-[11px] text-sm font-medium text-white"
-    >
-      {/* Reserves layout space; actual text is rendered by the two absolutely
-          positioned layers below so the swap has no visible seam. */}
-      <span className="invisible">Let&apos;s Talk</span>
+  const [rootEl, setRootEl] = useState<HTMLElement | null>(null);
 
-      <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 ease-out group-hover:-translate-y-full">
-        Let&apos;s Talk
-      </span>
-      <span
-        aria-hidden="true"
-        className="absolute inset-0 flex translate-y-full items-center justify-center transition-transform duration-300 ease-out group-hover:translate-y-0"
-      >
-        Let&apos;s Talk
-      </span>
-    </a>
+  useEffect(() => {
+    setRootEl(document.body);
+  }, []);
+
+  if (!rootEl) return null;
+
+  return (
+    <PopupButton
+      url="https://calendly.com/shreyashbagade-work/30min"
+      rootElement={rootEl}
+      text="Let's Talk"
+      className="group relative hidden md:inline-block cursor-pointer overflow-hidden rounded-full bg-black px-4 py-[11px] text-sm font-medium text-white"
+    />
   );
 }
 
