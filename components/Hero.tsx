@@ -8,7 +8,7 @@ import { FaLongArrowAltRight } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { PopupModal } from "react-calendly";
 
-const CALENDLY_URL = "https://calendly.com/shreyashbagade-work/30min"; // 👈 replace with your real Calendly link
+const CALENDLY_URL = "https://calendly.com/shreyashbagade-work/30min";
 
 export default function Hero() {
   const words = [

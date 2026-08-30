@@ -57,7 +57,6 @@ export default function Collaborate() {
           </button>
         </div>
       </div>
-
       {rootEl && (
         <PopupModal
           url={CALENDLY_URL}
