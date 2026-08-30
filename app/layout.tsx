@@ -16,13 +16,18 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yourdomain.com"),
+  metadataBase: new URL("https://shreyashtech.me"),
   title: {
     default: "Shreyash Bagade - Full Stack Web & App Developer",
     template: "%s | Shreyash Bagade",
   },
   description:
     "Shreyash Bagade is a full stack developer building websites, MVPs, and mobile apps for startups and founders.",
+    icons: {
+      icon: "/favicon.ico",
+      shortcut: "/favicon.ico",
+      apple: "/favicon.ico",
+    },
   keywords: [
     "full stack developer",
     "web developer India",
@@ -38,7 +43,7 @@ export const metadata: Metadata = {
     title: "Shreyash Bagade - Full Stack Web & App Developer",
     description:
       "Full stack developer building websites, MVPs, and mobile apps for startups and founders.",
-    url: "https://yourdomain.com",
+    url: "https://shreyashtech.me",
     siteName: "Shreyash Bagade",
     images: [
       {
