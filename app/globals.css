@@ -148,10 +148,14 @@ body {
   }
 
   .projects-pin {
-    height: 818px !important;
+    height: 870px !important;
   }
 
   .projects-runway {
-    height: 2975px !important;
+    height: 3100px !important;
+  }
+
+  .collaborate-wrap {
+    top: 640px !important;
   }
 }
