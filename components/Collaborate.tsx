@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { PopupModal } from "react-calendly";
 import Container from "./Container";
 
-const CALENDLY_URL = "https://calendly.com/shreyashbagade-work/30min"; // 👈 replace with your real Calendly link
+const CALENDLY_URL = "https://calendly.com/shreyashbagade-work/30min";
 
 export default function Collaborate() {
   const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
