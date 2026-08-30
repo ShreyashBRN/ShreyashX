@@ -5,9 +5,12 @@
   --background-elevated: #fffcf7;
 
   /* Centered content layout — adjust these to change width and side padding */
-  --container-max: 75rem; /* 1200px — decrease (e.g. 72rem) for narrower, increase for wider */
-  --container-padding: 1.5rem; /* 24px mobile gutter */
-  --container-padding-sm: 2rem; /* 32px tablet+ gutter */
+  --container-max: 75rem;
+  /* 1200px — decrease (e.g. 72rem) for narrower, increase for wider */
+  --container-padding: 1.5rem;
+  /* 24px mobile gutter */
+  --container-padding-sm: 2rem;
+  /* 32px tablet+ gutter */
 }
 
 @theme inline {
@@ -44,6 +47,7 @@ body {
 }
 
 @keyframes highlightSweep {
+
   /* Start: hidden */
   0% {
     left: 0;
@@ -74,6 +78,7 @@ body {
 }
 
 @keyframes lineSweep {
+
   /* Start: no width */
   0% {
     left: 0;
@@ -105,32 +110,24 @@ body {
 
 /* Horizontal scroll tracks that align with Container content on all screen sizes */
 .container-scroll-track {
-  scroll-padding-inline-start: max(
-    var(--container-padding),
-    calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding))
-  );
+  scroll-padding-inline-start: max(var(--container-padding),
+      calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding)));
 }
 
-.container-scroll-track > div {
-  padding-inline-start: max(
-    var(--container-padding),
-    calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding))
-  );
+.container-scroll-track>div {
+  padding-inline-start: max(var(--container-padding),
+      calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding)));
 }
 
 @media (min-width: 40rem) {
   .container-scroll-track {
-    scroll-padding-inline-start: max(
-      var(--container-padding-sm),
-      calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding-sm))
-    );
+    scroll-padding-inline-start: max(var(--container-padding-sm),
+        calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding-sm)));
   }
 
-  .container-scroll-track > div {
-    padding-inline-start: max(
-      var(--container-padding-sm),
-      calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding-sm))
-    );
+  .container-scroll-track>div {
+    padding-inline-start: max(var(--container-padding-sm),
+        calc((100vw - min(100vw, var(--container-max))) / 2 + var(--container-padding-sm)));
   }
 }
 

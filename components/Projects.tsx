@@ -63,20 +63,24 @@ function StackCard({
   const start = index === 0 ? 0 : (index - 1) / segments;
   const end = index === 0 ? 0 : index / segments;
 
-  // Use a smaller fly-in distance on mobile so the animation covers less
-  // ground relative to the viewport — feels much smoother on touch.
-  const flyInDistance = variant === "mobile" ? 500 : 920;
+  const flyInDistance = 1000;
 
   const y = useTransform(
     scrollYProgress,
     index === 0 ? [0, 1] : [start, end],
     index === 0 ? [0, 0] : [flyInDistance, index * PEEK_OFFSET]
   );
-  const opacity = useTransform(scrollYProgress, [start, start + 0.05], [0, 1]);
+  const opacity = useTransform(
+    scrollYProgress,
+    index === 0
+      ? [0, 1]
+      : [start, Math.min(1, start + Math.max(0.04, (end - start) * 0.25))],
+    index === 0 ? [1, 1] : [0, 1]
+  );
 
   return (
     <motion.div
-      style={{ y, opacity: 1, zIndex: index + 1 }}
+      style={{ y, opacity, zIndex: index + 1 }}
       className="absolute inset-x-0 top-0"
     >
       {variant === "desktop" ? (
