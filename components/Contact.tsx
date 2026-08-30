@@ -2,9 +2,6 @@
 import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 import Container from "./Container";
-
-// Same EmailJS service/template used on your previous portfolio.
-// Swap these if you'd rather send this site's messages to a different template.
 const EMAILJS_SERVICE_ID = "service_xr877hu";
 const EMAILJS_TEMPLATE_ID = "template_vjoiodm";
 const EMAILJS_PUBLIC_KEY = "qp7ma87qFelAFUUkf";
