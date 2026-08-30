@@ -63,10 +63,14 @@ function StackCard({
   const start = index === 0 ? 0 : (index - 1) / segments;
   const end = index === 0 ? 0 : index / segments;
 
+  // Use a smaller fly-in distance on mobile so the animation covers less
+  // ground relative to the viewport — feels much smoother on touch.
+  const flyInDistance = variant === "mobile" ? 500 : 920;
+
   const y = useTransform(
     scrollYProgress,
     index === 0 ? [0, 1] : [start, end],
-    index === 0 ? [0, 0] : [920, index * PEEK_OFFSET]
+    index === 0 ? [0, 0] : [flyInDistance, index * PEEK_OFFSET]
   );
   const opacity = useTransform(scrollYProgress, [start, start + 0.05], [0, 1]);
 
@@ -190,7 +194,7 @@ export default function Projects() {
             Projects.
           </h2>
           <p className="hidden md:block mt-1 max-w-[560px] text-[15px] sm:text-[16px] text-[#4a4a4a] leading-[1.7]">
-          Selected work across websites, landing pages, and mobile<br /> apps. Scroll the gallery to explore each build.
+            Selected work across websites, landing pages, and mobile<br /> apps. Scroll the gallery to explore each build.
           </p>
         </Container>
 
@@ -233,9 +237,8 @@ export default function Projects() {
               {projects.map((_, i) => (
                 <span
                   key={i}
-                  className={`h-[3px] w-6 rounded-full transition-colors duration-300 ${
-                    i === activeIndex ? "bg-[#0d7d86]" : "bg-[#d6d6d6]"
-                  }`}
+                  className={`h-[3px] w-6 rounded-full transition-colors duration-300 ${i === activeIndex ? "bg-[#0d7d86]" : "bg-[#d6d6d6]"
+                    }`}
                 />
               ))}
             </div>
@@ -256,50 +259,50 @@ export default function Projects() {
           </div>
         </Container>
 
-       
-        <Container className="md:hidden relative flex-1 min-h-0 mt-6 flex items-center justify-center">
-  <div className="relative w-full h-[420px]">
-    {/* indicator now FIRST, no z-index, so cards stack above it */}
-    <motion.div
-      className="absolute inset-0 flex pt-[200px] flex-col items-center justify-center gap-2 pointer-events-none"
-      style={{
-        opacity: useTransform(scrollYProgress, [0, 0.03], [1, 0]),
-      }}
-    >
-      <div className="flex flex-col items-center gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <ChevronStep key={i} step={i} />
-        ))}
-      </div>
-      <span className="text-[11px] font-semibold text-[#4a4a4a] uppercase tracking-[0.08em] mt-1">
-        Scroll down
-      </span>
-    </motion.div>
 
-    {projects.map((project, i) => (
-      <StackCard
-        key={project.id}
-        project={project}
-        index={i}
-        total={total}
-        scrollYProgress={scrollYProgress}
-        variant="mobile"
-      />
-    ))}
-  </div>
-</Container>
+        <Container className="md:hidden relative flex-1 min-h-0 mt-4">
+          <div className="relative w-full h-[420px]">
+            {/* indicator now FIRST, no z-index, so cards stack above it */}
+            <motion.div
+              className="absolute inset-0 flex pt-[200px] flex-col items-center justify-center gap-2 pointer-events-none"
+              style={{
+                opacity: useTransform(scrollYProgress, [0, 0.03], [1, 0]),
+              }}
+            >
+              <div className="flex flex-col items-center gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <ChevronStep key={i} step={i} />
+                ))}
+              </div>
+              <span className="text-[11px] font-semibold text-[#4a4a4a] uppercase tracking-[0.08em] mt-1">
+                Scroll down
+              </span>
+            </motion.div>
 
-<motion.div
-  className="absolute inset-x-0 z-30 -bottom-5  md:top-[580px] md:bottom-auto"
-  style={{
-    y: useTransform(scrollYProgress, [(total - 1) / total, 1], [200, 0]),
-    opacity: useTransform(scrollYProgress, [(total - 1) / total, 1], [0, 1]),
-  }}
->
-  <Container>
-    <Collaborate />
-  </Container>
-</motion.div>
+            {projects.map((project, i) => (
+              <StackCard
+                key={project.id}
+                project={project}
+                index={i}
+                total={total}
+                scrollYProgress={scrollYProgress}
+                variant="mobile"
+              />
+            ))}
+          </div>
+        </Container>
+
+        <motion.div
+          className="absolute inset-x-0 z-30 bottom-0 pb-2 md:pb-0 md:bottom-auto md:top-[580px]"
+          style={{
+            y: useTransform(scrollYProgress, [(total - 1) / total, 1], [200, 0]),
+            opacity: useTransform(scrollYProgress, [(total - 1) / total, 1], [0, 1]),
+          }}
+        >
+          <Container>
+            <Collaborate />
+          </Container>
+        </motion.div>
       </div>
     </section>
   );
