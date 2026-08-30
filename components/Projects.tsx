@@ -288,7 +288,7 @@ export default function Projects() {
         </Container>
 
         <motion.div
-          className="collaborate-wrap absolute inset-x-0 z-30 bottom-0 pb-2 md:pb-0 md:bottom-auto md:top-[580px]"
+          className="collaborate-wrap absolute inset-x-0 z-30 -bottom-8 md:bottom-auto md:top-[580px]"
           style={{
             y: useTransform(scrollYProgress, [(total - 1) / total, 1], [200, 0]),
             opacity: useTransform(scrollYProgress, [(total - 1) / total, 1], [0, 1]),
