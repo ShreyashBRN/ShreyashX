@@ -15,6 +15,16 @@ export type Project = {
     {
       id: "project-1",
       category: "Web",
+      title: "Fox Care",
+      description:
+        "Australia's healthcare shift-matching platform connecting nurses and care workers with aged-care employers — automated award-rate pay, AHPRA/NDIS compliance verification, and weekly GST-ready invoicing.",
+      tags: ["Next.js", "React", "Node.js", "PostgreSQL", "Compliance Verification", "Automated Payroll"],
+      image: "/foxcare.png",
+      links: [{ label: "Visit Site", url: "https://www.foxcare.com.au" }],
+    },
+    {
+      id: "project-2",
+      category: "Web",
       title: "ZnapWatch",
       description:
        "A luxury watch marketplace where dealers list products via WhatsApp and everything is managed through an integrated Odoo backend — with buyer subscriptions and built-in analytics.",
@@ -23,7 +33,7 @@ export type Project = {
       links: [{ label: "Visit Site", url: "https://www.znapwatch.com" }],
     },
     {
-      id: "project-2",
+      id: "project-3",
       category: "Web",
       title: "Feriendeals.ch",
       description:
@@ -31,13 +41,11 @@ export type Project = {
       tags: ["Figma", "HTML Email", "SendGrid", "Bootstrap", "Responsive Design", "Localization"],
       image: "/project-2.png",
       links: [
-        // { label: "Play Store", url: "https://play.google.com" },
-        // { label: "App Store", url: "https://apps.apple.com" },
         { label: "Visit Site", url: "https://www.feriendeals.ch" },
       ],
     },
     {
-        id: "project-3",
+        id: "project-4",
         category: "App",
         title: "ShopBiz - Mini ERP System",
         description:
@@ -65,7 +73,7 @@ export type Project = {
       {
         id: "project-5",
         category: "App",
-        title: "4. BusTune - Bus Tracking",
+        title: "BusTune - Bus Tracking",
         description:
           "A real-time GPS bus tracking and UPI ticketing app for Kerala's private transit network, built with Flutter and Google Maps/Transit APIs.",
         tags: ["Flutter", "Firebase Auth", "Google Maps API", "Node.js", "Android", "iOS"],
