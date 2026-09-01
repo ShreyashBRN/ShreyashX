@@ -57,19 +57,6 @@ export type Project = {
           { label: "App Store", url: "https://apps.apple.com/us/app/shopbiz/id6740432305" },
         ],
       },
-      // {
-      //   id: "projgvect-4",
-      //   category: "App",
-      //   title: "Project 4",
-      //   description:
-      //     "Short one to two sentence description of what you built and the problem it solved.",
-      //   tags: ["React Native", "Firebase"],
-      //   image: "/image copy 3.png",
-      //   links: [
-      //     { label: "Play Store", url: "https://play.google.com" },
-      //     { label: "App Store", url: "https://apps.apple.com" },
-      //   ],
-      // },
       {
         id: "project-5",
         category: "App",
