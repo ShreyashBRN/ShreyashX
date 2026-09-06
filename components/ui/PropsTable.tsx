@@ -11,31 +11,31 @@ import { PropDefinition } from "@/data/components";
 
 export function PropsTable({ props }: { props: PropDefinition[] }) {
   return (
-    <div className="min-w-0 max-w-full overflow-x-auto rounded-xl border border-neutral-200">
+    <div className="min-w-0 max-w-full overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
       <table className="w-full min-w-[560px] border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b border-neutral-200 bg-neutral-50">
-            <th className="whitespace-nowrap px-4 py-3 font-mono text-xs uppercase tracking-wide text-neutral-500">
+          <tr className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900">
+            <th className="whitespace-nowrap px-4 py-3 font-mono text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
               Property
             </th>
-            <th className="whitespace-nowrap px-4 py-3 font-mono text-xs uppercase tracking-wide text-neutral-500">
+            <th className="whitespace-nowrap px-4 py-3 font-mono text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
               Type
             </th>
-            <th className="whitespace-nowrap px-4 py-3 font-mono text-xs uppercase tracking-wide text-neutral-500">
+            <th className="whitespace-nowrap px-4 py-3 font-mono text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
               Default
             </th>
-            <th className="px-4 py-3 font-mono text-xs uppercase tracking-wide text-neutral-500">
+            <th className="px-4 py-3 font-mono text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
               Description
             </th>
           </tr>
         </thead>
         <tbody>
           {props.map((prop, i) => (
-            <tr key={prop.property} className={i !== props.length - 1 ? "border-b border-neutral-200" : ""}>
-              <td className="whitespace-nowrap px-4 py-4 font-mono text-neutral-800">{prop.property}</td>
-              <td className="whitespace-nowrap px-4 py-4 font-mono text-sky-500">{prop.type}</td>
-              <td className="whitespace-nowrap px-4 py-4 font-mono text-neutral-400">{prop.default ?? "-"}</td>
-              <td className="px-4 py-4 text-neutral-600">{prop.description}</td>
+            <tr key={prop.property} className={i !== props.length - 1 ? "border-b border-neutral-200 dark:border-neutral-800" : ""}>
+              <td className="whitespace-nowrap px-4 py-4 font-mono text-neutral-800 dark:text-neutral-200">{prop.property}</td>
+              <td className="whitespace-nowrap px-4 py-4 font-mono text-sky-500 dark:text-sky-400">{prop.type}</td>
+              <td className="whitespace-nowrap px-4 py-4 font-mono text-neutral-400 dark:text-neutral-500">{prop.default ?? "-"}</td>
+              <td className="px-4 py-4 text-neutral-600 dark:text-neutral-400">{prop.description}</td>
             </tr>
           ))}
         </tbody>

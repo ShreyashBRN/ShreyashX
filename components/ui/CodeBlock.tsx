@@ -29,12 +29,12 @@ interface CodeBlockProps {
 
 // Token categories -> Tailwind classes, tuned to match your screenshots
 const CLASS = {
-  keyword: "text-purple-500",       // import, from, const, function, return
-  string: "text-emerald-600",       // "use client", 'react', etc.
-  comment: "text-neutral-400 italic",
-  component: "text-amber-600",      // Capitalized JSX tags / component names
-  type: "text-sky-500",             // Array, string, number, boolean
-  punctuation: "text-neutral-400",
+  keyword: "text-purple-500 dark:text-purple-400",       // import, from, const, function, return
+  string: "text-emerald-600 dark:text-emerald-400",       // "use client", 'react', etc.
+  comment: "text-neutral-400 italic dark:text-neutral-500",
+  component: "text-amber-600 dark:text-amber-400",      // Capitalized JSX tags / component names
+  type: "text-sky-500 dark:text-sky-400",             // Array, string, number, boolean
+  punctuation: "text-neutral-400 dark:text-neutral-500",
   plain: "text-neutral-800 dark:text-neutral-200",
 };
 
@@ -120,14 +120,14 @@ export function CodeBlock({ code, className = "" }: CodeBlockProps) {
   return (
     // min-w-0 is load-bearing here: without it, this box refuses to
     // shrink below its content width inside any flex/grid ancestor.
-    <div className={`relative min-w-0 max-w-full rounded-xl border border-neutral-200 bg-neutral-50 ${className}`}>
+    <div className={`relative min-w-0 max-w-full rounded-xl border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 ${className}`}>
       <button
         onClick={handleCopy}
         aria-label="Copy code"
-        className="absolute right-3 top-3 z-10 rounded-lg border border-neutral-200 bg-white p-1.5 text-neutral-500 shadow-sm hover:text-[#0d7d86]"
+        className="absolute right-3 top-3 z-10 rounded-lg border border-neutral-200 bg-white p-1.5 text-neutral-500 shadow-sm hover:text-[#0d7d86] dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-[#2dd4bf]"
       >
         {copied ? (
-          <span className="block h-4 w-4 text-[10px] leading-4 text-[#0d7d86]">✓</span>
+          <span className="block h-4 w-4 text-[10px] leading-4 text-[#0d7d86] dark:text-[#2dd4bf]">✓</span>
         ) : (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="9" y="9" width="13" height="13" rx="2" />

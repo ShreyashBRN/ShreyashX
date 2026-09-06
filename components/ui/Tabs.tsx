@@ -31,7 +31,7 @@ export function Tabs({ tabs, defaultTabId, variant = "underline", rightSlot }: T
 
   return (
     <div className="min-w-0 max-w-full">
-      <div className="flex min-w-0 max-w-full flex-wrap items-center justify-between gap-2 border-b border-neutral-200 px-2">
+      <div className="flex min-w-0 max-w-full flex-wrap items-center justify-between gap-2 border-b border-neutral-200 px-2 dark:border-neutral-800">
         <div className="flex flex-wrap gap-1">
           {tabs.map((tab) => (
             <button
@@ -41,13 +41,13 @@ export function Tabs({ tabs, defaultTabId, variant = "underline", rightSlot }: T
                 variant === "underline"
                   ? `px-3 py-3 text-sm font-medium ${
                       activeId === tab.id
-                        ? "border-b-2 border-[#0d7d86] text-neutral-900"
-                        : "border-b-2 border-transparent text-neutral-400 hover:text-neutral-600"
+                        ? "border-b-2 border-[#0d7d86] text-neutral-900 dark:border-[#2dd4bf] dark:text-neutral-100"
+                        : "border-b-2 border-transparent text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
                     }`
                   : `rounded-lg px-3 py-1.5 text-sm font-mono ${
                       activeId === tab.id
-                        ? "bg-white text-neutral-900 shadow-sm"
-                        : "text-neutral-400 hover:text-neutral-600"
+                        ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-100"
+                        : "text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
                     }`
               }
             >
@@ -69,15 +69,15 @@ export function PillTabGroup({ tabs, defaultTabId }: { tabs: Tab[]; defaultTabId
 
   return (
     <div className="min-w-0 max-w-full">
-      <div className="mb-4 inline-flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
+      <div className="mb-4 inline-flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveId(tab.id)}
             className={
               activeId === tab.id
-                ? "rounded-lg bg-white px-4 py-1.5 font-mono text-sm text-neutral-900 shadow-sm"
-                : "rounded-lg px-4 py-1.5 font-mono text-sm text-neutral-400 hover:text-neutral-600"
+                ? "rounded-lg bg-white px-4 py-1.5 font-mono text-sm text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-100"
+                : "rounded-lg px-4 py-1.5 font-mono text-sm text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
             }
           >
             {tab.label}

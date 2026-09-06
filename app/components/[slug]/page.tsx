@@ -8,7 +8,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Maximize2 } from "lucide-react";
 import Container from "@/components/Container";
-import Navbar from "@/components/Navbar";
+import ComponentsNavbar from "@/components/ComponentsNavbar";
 import Footer from "@/components/Footer";
 import { components, getComponentBySlug } from "@/data/components";
 import { Tabs, PillTabGroup } from "@/components/ui/Tabs";
@@ -46,31 +46,31 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
   if (!entry) notFound();
 
   return (
-    <main className="overflow-x-clip pt-14">
-      <Navbar />
+    <main className="overflow-x-clip bg-white pt-14 transition-colors dark:bg-neutral-950">
+      <ComponentsNavbar />
       <Container>
-      <div className="mx-auto min-w-0 max-w-3xl py-10 sm:py-14 lg:py-20">
+        <div className="mx-auto min-w-0 max-w-3xl py-10 sm:py-14 lg:py-20">
         <Link
           href="/components"
-          className="inline-flex items-center gap-2 font-mono text-sm text-neutral-500 hover:text-[#0d7d86]"
+          className="inline-flex items-center gap-2 font-mono text-sm text-neutral-500 hover:text-[#0d7d86] dark:text-neutral-400 dark:hover:text-[#2dd4bf]"
         >
           <ArrowLeft size={16} />
           Back to Components
         </Link>
 
-        <h1 className="mt-6 text-3xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
+        <h1 className="mt-6 text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-5xl">
           {entry.name}
         </h1>
-        <p className="mt-3 max-w-2xl text-base text-neutral-500 sm:text-lg">
+        <p className="mt-3 max-w-2xl text-base text-neutral-500 dark:text-neutral-400 sm:text-lg">
           {entry.fullDescription}
         </p>
 
         {/* PREVIEW */}
         <SectionLabel>Preview</SectionLabel>
-        <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50/50">
+        <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-900/50">
           <Tabs
             variant="underline"
-            rightSlot={<Maximize2 size={16} className="text-neutral-400" />}
+            rightSlot={<Maximize2 size={16} className="text-neutral-400 dark:text-neutral-500" />}
             tabs={[
               {
                 id: "preview",
@@ -78,7 +78,7 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
                 content: (
                   <div className="flex min-h-[280px] min-w-0 max-w-full items-center justify-center overflow-x-auto py-12">
                     {/* Live rendered component goes here, e.g. <FilterSelector /> */}
-                    <span className="text-sm text-neutral-400">Live preview renders here</span>
+                    <span className="text-sm text-neutral-400 dark:text-neutral-500">Live preview renders here</span>
                   </div>
                 ),
               },
@@ -100,7 +100,7 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
               label: "CLI",
               content: (
                 <div className="min-w-0 max-w-full">
-                  <p className="mb-3 text-sm text-neutral-500">Install the component using the CLI.</p>
+                  <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">Install the component using the CLI.</p>
                   <PillTabGroup
                     tabs={PACKAGE_MANAGERS.map((pm) => ({
                       id: pm,
@@ -117,7 +117,7 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
               id: "manual",
               label: "Manual",
               content: (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
                   Copy the source from the Code tab above into your components folder.
                 </p>
               ),
@@ -127,9 +127,9 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
 
         {/* USAGE */}
         <SectionLabel>Usage</SectionLabel>
-        <p className="mb-3 text-sm text-neutral-500">Import the component:</p>
+        <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">Import the component:</p>
         <CodeBlock code={entry.importStatement} className="mb-6" />
-        <p className="mb-3 text-sm text-neutral-500">Use it in your code:</p>
+        <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">Use it in your code:</p>
         <CodeBlock code={entry.usageJsx} />
 
         {/* PROPS */}
@@ -144,7 +144,7 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-4 mt-12 font-mono text-xs uppercase tracking-wide text-neutral-400">
+    <h2 className="mb-4 mt-12 font-mono text-xs uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
       {children}
     </h2>
   );

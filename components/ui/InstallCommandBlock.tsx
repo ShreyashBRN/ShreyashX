@@ -21,19 +21,19 @@ export function InstallCommandBlock({ command }: { command: string }) {
   }
 
   return (
-    <div className="flex min-w-0 max-w-full items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+    <div className="flex min-w-0 max-w-full items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-900">
       {/* overflow-x-auto scoped to the <code> only, so a long URL scrolls
           sideways inside this pill instead of widening the whole page —
           this is the exact fix for the cut-off command in image 6. */}
-      <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-sm text-neutral-800">
+      <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-sm text-neutral-800 dark:text-neutral-200">
         {command}
       </code>
       <button
         aria-label="Copy install command"
         onClick={handleCopy}
-        className="shrink-0 rounded-lg border border-neutral-200 bg-white p-1.5 text-neutral-500 hover:text-[#0d7d86]"
+        className="shrink-0 rounded-lg border border-neutral-200 bg-white p-1.5 text-neutral-500 hover:text-[#0d7d86] dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-[#2dd4bf]"
       >
-        {copied ? <span className="block h-3.5 w-3.5 text-[10px] leading-[14px] text-[#0d7d86]">✓</span> : <Copy size={14} />}
+        {copied ? <span className="block h-3.5 w-3.5 text-[10px] leading-[14px] text-[#0d7d86] dark:text-[#2dd4bf]">✓</span> : <Copy size={14} />}
       </button>
     </div>
   );
