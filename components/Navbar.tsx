@@ -60,10 +60,10 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <nav className="hidden items-center gap-8 text-[15px] font-medium md:flex">
-            <NavLink href="#projects">Projects</NavLink>
-            <NavLink href="/blog">Blog</NavLink>
-            <NavLink href="#contact">Contact</NavLink>
-          </nav>
+  <NavLink href="/">Home</NavLink>
+  <NavLink href="/blog">Blog</NavLink>
+  <NavLink href="/components">Components</NavLink>
+</nav>
 
           <TalkButton />
 
@@ -97,16 +97,16 @@ export default function Navbar() {
           </Container>
 
           <nav className="flex flex-1 flex-col items-center justify-center gap-16 text-3xl font-semibold text-[#141816]">
-            <a href="#projects" onClick={() => setIsOpen(false)}>
-              Projects
-            </a>
-            <a href="/blog" onClick={() => setIsOpen(false)}>
-              Blog
-            </a>
-            <a href="#contact" onClick={() => setIsOpen(false)}>
-              Contact
-            </a>
-          </nav>
+  <a href="/" onClick={() => setIsOpen(false)}>
+    Home
+  </a>
+  <a href="/blog" onClick={() => setIsOpen(false)}>
+    Blog
+  </a>
+  <a href="/components" onClick={() => setIsOpen(false)}>
+    Components
+  </a>
+</nav>
         </div>
       )}
     </>
