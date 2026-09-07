@@ -15,6 +15,7 @@ import { Tabs, PillTabGroup } from "@/components/ui/Tabs";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { PropsTable } from "@/components/ui/PropsTable";
 import { InstallCommandBlock } from "@/components/ui/InstallCommandBlock";
+import { ComponentPreview } from "@/components/ComponentPreview";
 
 export function generateStaticParams() {
   return components.map((c) => ({ slug: c.slug }));
@@ -78,7 +79,8 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
                 content: (
                   <div className="flex min-h-[280px] min-w-0 max-w-full items-center justify-center overflow-x-auto py-12">
                     {/* Live rendered component goes here, e.g. <FilterSelector /> */}
-                    <span className="text-sm text-neutral-400 dark:text-neutral-500">Live preview renders here</span>
+                    <ComponentPreview slug={entry.slug} />
+                    {/* <span className="text-sm text-neutral-400 dark:text-neutral-500">Live preview renders here</span> */}
                   </div>
                 ),
               },
