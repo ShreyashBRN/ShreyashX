@@ -24,7 +24,7 @@ const CHECKLIST = ["Copy & Paste", "Tailwind CSS", "Accessible"];
 
 export default function ComponentsPage() {
   return (
-    <main className="overflow-x-clip bg-white pt-14 transition-colors dark:bg-neutral-950">
+    <main className="overflow-x-clip bg-[#f6f4ef] pt-14 transition-colors dark:bg-neutral-950">
       <ComponentsNavbar />
       <Container>
         <div className="mx-auto min-w-0 max-w-3xl py-10 sm:py-14 lg:py-20">
