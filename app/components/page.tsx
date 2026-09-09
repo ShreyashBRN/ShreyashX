@@ -16,8 +16,8 @@ export default function ComponentsPage() {
     <main className="min-h-screen overflow-x-clip bg-[#f6f4ef] pt-14 transition-colors dark:bg-neutral-950">
       <ComponentsNavbar />
 
-      <section className="w-full pt-8 pb-20 lg:pt-14 lg:pb-28">
-        <Container>
+      <Container>
+        <div className="mx-auto min-w-0 max-w-3xl py-10 sm:py-14 lg:py-20">
           <span className="inline-flex flex-col text-[13px] font-semibold text-[#0d7d86] tracking-[0.08em] uppercase dark:text-[#2dd4bf]">
             <span>UI Components</span>
             <span className="relative h-[2px] w-full overflow-hidden">
@@ -38,8 +38,8 @@ export default function ComponentsPage() {
               <ComponentCard key={entry.slug} entry={entry} />
             ))}
           </div>
-        </Container>
-      </section>
+        </div>
+      </Container>
 
       <Footer />
     </main>
