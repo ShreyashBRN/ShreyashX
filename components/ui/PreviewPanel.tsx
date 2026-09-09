@@ -58,9 +58,8 @@ export function PreviewPanel({ slug, code }: { slug: string; code: string }) {
             {
               id: "code",
               label: "Code",
-              // maxHeight caps it — long files scroll inside this box
-              // instead of stretching the whole page.
-              content: <CodeBlock code={code} maxHeight="420px" />,
+              // borderless blends code directly into the preview panel without an inner card
+              content: <CodeBlock code={code} borderless maxHeight="420px" />,
             },
           ]}
         />
