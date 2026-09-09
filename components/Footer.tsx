@@ -1,29 +1,102 @@
-"use client";
+// components/Footer.tsx
 
-export default function Footer() {
+import Link from "next/link";
+import { Mail } from "lucide-react";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
+import Container from "./Container";
+
+export interface FooterProps {
+  className?: string;
+  contentClassName?: string;
+  maxWidth?: "default" | "3xl" | "720" | "full";
+}
+
+export default function Footer({
+  className = "",
+  contentClassName = "",
+  maxWidth = "default",
+}: FooterProps) {
   const year = new Date().getFullYear();
 
-  const handleBackToTop = (e: React.MouseEvent) => {
-    e.preventDefault();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const maxWidthClass =
+    maxWidth === "3xl"
+      ? "max-w-3xl mx-auto"
+      : maxWidth === "720"
+      ? "max-w-[720px] mx-auto"
+      : "w-full";
 
   return (
-    <footer className="w-full bg-[#f6f4ef]">
-      <div className="max-w-[1200px] mx-auto px-6 lg:px-10">
-        <div className="border-t border-black/[.08] pt-6 pb-8 flex items-center justify-between">
-          <p className="text-[14px] text-[#6a6a6a]">
-            &copy; {year} Shreyash Bagade
-          </p>
-          <a
-            href="#top"
-            onClick={handleBackToTop}
-            className="text-[14px] text-[#6a6a6a] transition-colors duration-200 hover:text-[#111111]"
-          >
-            Back to top
-          </a>
+    <footer
+      className={`w-full border-t border-neutral-200/80 bg-[#f6f4ef] py-9 transition-colors dark:border-neutral-800 dark:bg-neutral-950 sm:py-10 ${className}`}
+    >
+      <Container>
+        <div
+          className={`flex flex-col items-center justify-between gap-5 sm:flex-row sm:gap-6 ${maxWidthClass} ${contentClassName}`}
+        >
+          {/* Left: Copyright | Navigation Links */}
+          <div className="flex flex-wrap items-center justify-center gap-3.5 text-[14px] text-neutral-500 sm:justify-start sm:gap-4 sm:text-[15px] dark:text-neutral-400">
+            <span className="font-medium">&copy; {year} Shreyash.</span>
+
+            <span className="text-neutral-300 select-none dark:text-neutral-700">|</span>
+
+            <nav className="flex flex-wrap items-center justify-center gap-4 sm:gap-5">
+              <Link
+                href="/"
+                className="text-neutral-600 transition-colors hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+              >
+                Portfolio
+              </Link>
+              <Link
+                href="/blog"
+                className="text-neutral-600 transition-colors hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+              >
+                Blog
+              </Link>
+              <Link
+                href="/components"
+                className="text-neutral-600 transition-colors hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+              >
+                Components
+              </Link>
+              <Link
+                href="/#contact"
+                className="text-neutral-600 transition-colors hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+              >
+                Contact
+              </Link>
+            </nav>
+          </div>
+
+          {/* Right: Social Media Logos (Mail, LinkedIn, GitHub) */}
+          <div className="flex items-center gap-5 text-neutral-600 dark:text-neutral-400">
+            <a
+              href="mailto:shreyashbagade.work@gmail.com"
+              aria-label="Email"
+              className="transition-colors hover:text-neutral-900 dark:hover:text-white"
+            >
+              <Mail size={20} strokeWidth={1.8} />
+            </a>
+            <a
+              href="https://www.linkedin.com/in/shreyash-b-949033432/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="transition-colors hover:text-neutral-900 dark:hover:text-white"
+            >
+              <FaLinkedin size={19} />
+            </a>
+            <a
+              href="https://github.com/ShreyashBRN"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              className="transition-colors hover:text-neutral-900 dark:hover:text-white"
+            >
+              <FaGithub size={19} />
+            </a>
+          </div>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }
