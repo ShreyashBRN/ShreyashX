@@ -39,18 +39,18 @@ export default function ComponentsPage() {
             A curated collection of modern, reusable React components. Built with performance and accessibility in mind. Copy, paste, and customize.
           </p>
 
-          {/* Feature Checkmarks Row */}
-          <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-neutral-600 dark:text-neutral-400">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-neutral-400 dark:text-neutral-500" strokeWidth={2} />
+          {/* Feature Checkmarks Row — strictly single line on all screen sizes */}
+          <div className="mt-6 flex flex-nowrap items-center gap-3.5 text-[12px] whitespace-nowrap text-neutral-600 dark:text-neutral-400 sm:gap-6 sm:text-sm">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <CheckCircle2 size={15} className="text-neutral-400 dark:text-neutral-500" strokeWidth={2} />
               <span>Copy & Paste</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-neutral-400 dark:text-neutral-500" strokeWidth={2} />
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <CheckCircle2 size={15} className="text-neutral-400 dark:text-neutral-500" strokeWidth={2} />
               <span>Tailwind CSS</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-neutral-400 dark:text-neutral-500" strokeWidth={2} />
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <CheckCircle2 size={15} className="text-neutral-400 dark:text-neutral-500" strokeWidth={2} />
               <span>Accessible</span>
             </div>
           </div>

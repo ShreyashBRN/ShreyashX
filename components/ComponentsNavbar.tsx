@@ -19,11 +19,10 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 export default function ComponentsNavbar() {
   return (
     <header className="fixed top-0 z-50 w-full border-b border-black/5 bg-[#f6f4ef]/80 backdrop-blur-md dark:border-white/10 dark:bg-neutral-950/80">
-      <Container className="h-16">
-        {/* Explicit w-full + justify-between here, independent of how
-            Container merges its own className — this is what pins the
-            links to the left edge and the toggle to the right edge. */}
-        <div className="flex h-16 w-full items-center justify-between">
+      <Container>
+        {/* max-w-3xl aligns the navbar links and toggle with the exact same
+            centered content column used across /components and /components/[slug] */}
+        <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between">
           <nav className="flex items-center gap-6 sm:gap-8">
             <NavLink href="/">Home</NavLink>
             <NavLink href="/blog">Blog</NavLink>
