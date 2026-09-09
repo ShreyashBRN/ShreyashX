@@ -3,7 +3,7 @@
 import { CheckCircle2 } from "lucide-react";
 import Container from "@/components/Container";
 import ComponentsNavbar from "@/components/ComponentsNavbar";
-import Footer from "@/components/Footer";
+import ComponentsFooter from "@/components/ComponentsFooter";
 import { ComponentCard } from "@/components/ComponentCard";
 import { components } from "@/data/components";
 
@@ -64,7 +64,7 @@ export default function ComponentsPage() {
         </div>
       </Container>
 
-      <Footer />
+      <ComponentsFooter />
     </main>
   );
 }

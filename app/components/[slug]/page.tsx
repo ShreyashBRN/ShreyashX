@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Container from "@/components/Container";
 import ComponentsNavbar from "@/components/ComponentsNavbar";
-import Footer from "@/components/Footer";
+import ComponentsFooter from "@/components/ComponentsFooter";
 import { components, getComponentBySlug } from "@/data/components";
 import { PillTabGroup } from "@/components/ui/Tabs";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -113,7 +113,7 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
           <PropsTable props={entry.props} />
         </div>
       </Container>
-      <Footer />
+      <ComponentsFooter />
     </main>
   );
 }
