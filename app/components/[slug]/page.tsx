@@ -64,7 +64,7 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
 
           {/* PREVIEW */}
           <SectionLabel>Preview</SectionLabel>
-          <PreviewPanel slug={entry.slug} code={entry.sourceCode} />
+          <PreviewPanel slug={entry.slug} code={entry.previewCode} />
 
           {/* INSTALLATION */}
           <SectionLabel>Installation</SectionLabel>
