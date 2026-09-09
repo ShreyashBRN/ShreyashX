@@ -1,83 +1,129 @@
-// app/components/page.tsx
-//
-// Mirrors app/blog/page.tsx's pattern: import the data array, render a
-// header block, then map over entries. Uses ComponentsNavbar (not the site
-// Navbar) so dark mode + always-visible links only apply to this section.
-// Your real <Footer /> is still used as-is — it has no dark: styling since
-// I haven't seen its source, so it'll stay light even when this page is
-// toggled dark until you share it for an update.
+// app/components/[slug]/page.tsx
 
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import Container from "@/components/Container";
 import ComponentsNavbar from "@/components/ComponentsNavbar";
 import Footer from "@/components/Footer";
-import { components } from "@/data/components";
-import { ComponentCard } from "@/components/ComponentCard";
-import { CheckCircle } from "lucide-react";
+import { components, getComponentBySlug } from "@/data/components";
+import { PillTabGroup } from "@/components/ui/Tabs";
+import { CodeBlock } from "@/components/ui/CodeBlock";
+import { PropsTable } from "@/components/ui/PropsTable";
+import { InstallCommandBlock } from "@/components/ui/InstallCommandBlock";
+import { PreviewPanel } from "@/components/ui/PreviewPanel";
 
-export const metadata = {
-  title: "Components",
-  description:
-    "A curated collection of modern, reusable React components. Built with performance and accessibility in mind. Copy, paste, and customize.",
-};
+export function generateStaticParams() {
+  return components.map((c) => ({ slug: c.slug }));
+}
 
-const CHECKLIST = ["Copy & Paste", "Tailwind CSS", "Accessible"];
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const entry = getComponentBySlug(slug);
+  if (!entry) return {};
+  return { title: entry.name, description: entry.fullDescription };
+}
 
-export default function ComponentsPage() {
+const PACKAGE_MANAGERS = ["npm", "pnpm", "yarn", "bun"] as const;
+
+function installCommandFor(pm: string, entry: ReturnType<typeof getComponentBySlug>) {
+  if (!entry) return "";
+  const runner: Record<string, string> = {
+    npm: "npx",
+    pnpm: "pnpm dlx",
+    yarn: "yarn dlx",
+    bun: "bunx",
+  };
+  return entry.installCommand.replace(/^npx/, runner[pm]);
+}
+
+export default async function ComponentDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const entry = getComponentBySlug(slug);
+  if (!entry) notFound();
+
   return (
     <main className="overflow-x-clip bg-[#f6f4ef] pt-14 transition-colors dark:bg-neutral-950">
       <ComponentsNavbar />
       <Container>
         <div className="mx-auto min-w-0 max-w-3xl py-10 sm:py-14 lg:py-20">
-          {/* Badges */}
-          <div className="mb-6 flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-              {components.length} Components
-            </span>
-            <span className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 dark:border-neutral-800 dark:text-neutral-300">
-              Open Source
-            </span>
-          </div>
+          <Link
+            href="/components"
+            className="inline-flex items-center gap-2 font-mono text-sm text-neutral-500 hover:text-[#0d7d86] dark:text-neutral-400 dark:hover:text-[#2dd4bf]"
+          >
+            <ArrowLeft size={16} />
+            Back to Components
+          </Link>
 
-          {/* Title */}
-          <h1 className="text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-5xl">
-            Components
+          {/* Title/description — shrunk from text-3xl/5xl to text-xl/2xl */}
+          <h1 className="mt-4 text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-2xl">
+            {entry.name}
           </h1>
-          <p className="mt-4 max-w-2xl text-base text-neutral-500 dark:text-neutral-400 sm:text-lg">
-            A curated collection of modern, reusable React components. Built with
-            performance and accessibility in mind. Copy, paste, and customize.
+          <p className="mt-2 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400 sm:text-base">
+            {entry.fullDescription}
           </p>
 
-          {/* Checklist row — wraps on narrow phones instead of overflowing */}
-          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
-            {CHECKLIST.map((item) => (
-              <div key={item} className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-                <CheckCircle size={16} className="shrink-0 text-neutral-400 dark:text-neutral-500" />
-                {item}
-              </div>
-            ))}
-          </div>
+          {/* PREVIEW — now handled entirely by PreviewPanel: tabs,
+              scrollable code, and the fullscreen modal all live there */}
+          <SectionLabel>Preview</SectionLabel>
+          <PreviewPanel slug={entry.slug} code={entry.sourceCode} />
 
-          {/* Grid: 1 col mobile, 2 col tablet+ (content column is capped at max-w-3xl) */}
-          <div className="mt-10 grid min-w-0 max-w-full grid-cols-1 gap-4 sm:grid-cols-2">
-            {components.map((entry) => (
-              <ComponentCard key={entry.slug} entry={entry} />
-            ))}
-          </div>
+          {/* INSTALLATION */}
+          <SectionLabel>Installation</SectionLabel>
+          <PillTabGroup
+            tabs={[
+              {
+                id: "cli",
+                label: "CLI",
+                content: (
+                  <div className="min-w-0 max-w-full">
+                    <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">Install the component using the CLI.</p>
+                    <PillTabGroup
+                      tabs={PACKAGE_MANAGERS.map((pm) => ({
+                        id: pm,
+                        label: pm,
+                        content: <InstallCommandBlock command={installCommandFor(pm, entry)} />,
+                      }))}
+                    />
+                  </div>
+                ),
+              },
+              {
+                id: "manual",
+                label: "Manual",
+                content: (
+                  <div className="min-w-0 max-w-full">
+                    <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">
+                      Copy and paste the code into your project.
+                    </p>
+                    <CodeBlock code={entry.sourceCode} filename={`${entry.slug}.jsx`} />
+                  </div>
+                ),
+              },
+            ]}
+          />
 
-          {/* Credit footer block */}
-          <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-neutral-200 pt-8 dark:border-neutral-800 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-800" />
-              <div>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">siddz-ui</p>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500">Built by Siddharth Meena</p>
-              </div>
-            </div>
-            <p className="text-sm text-neutral-400 dark:text-neutral-500">more components soon :)</p>
-          </div>
+          {/* USAGE */}
+          <SectionLabel>Usage</SectionLabel>
+          <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">Import the component:</p>
+          <CodeBlock code={entry.importStatement} className="mb-6" />
+          <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">Use it in your code:</p>
+          <CodeBlock code={entry.usageJsx} />
+
+          {/* PROPS */}
+          <SectionLabel>Props</SectionLabel>
+          <PropsTable props={entry.props} />
         </div>
       </Container>
       <Footer />
     </main>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mb-4 mt-12 font-mono text-xs uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+      {children}
+    </h2>
   );
 }
