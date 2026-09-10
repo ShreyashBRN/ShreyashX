@@ -94,7 +94,7 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
                     <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">
                       Copy and paste the code into your project.
                     </p>
-                    <CodeBlock code={entry.sourceCode} filename={`${entry.slug}.jsx`} />
+                    <CodeBlock code={entry.sourceCode} filename={`${entry.slug}.tsx`} />
                   </div>
                 ),
               },
