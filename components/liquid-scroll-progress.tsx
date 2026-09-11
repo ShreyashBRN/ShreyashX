@@ -119,37 +119,14 @@ export function LiquidScrollProgress({
       <style>{`
         .lsp-glass {
           border: 1px solid rgba(148,163,184,0.35);
-          /* Opaque enough that nothing behind it (the connector) can
-             ghost through, while keeping a soft frosted look. This is
-             what actually fixes the dark smudge — not the geometry. */
+          /* Shared pipe casing: the main vertical pipe and empty
+             connector track use this exact same visual treatment. */
           background: rgba(255,255,255,0.6);
           backdrop-filter: blur(8px);
           box-shadow:
             inset 1px 0 1px rgba(255,255,255,0.9),
             inset -1px 0 1px rgba(15,23,42,0.08),
             0 1px 3px rgba(15,23,42,0.08);
-        }
-        .lsp-connector-track {
-          /* Empty tube: a subtle but genuinely visible neutral track,
-             distinct from (and dimmer than) the liquid fill layer that
-             scales in on top of it. Tuned separately for light and dark
-             backgrounds below so it never blends into either — it should
-             read as "present but empty," never as invisible. */
-          background: rgba(100,116,139,0.16);
-          border: 1px solid rgba(100,116,139,0.32);
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.35);
-        }
-        @media (prefers-color-scheme: dark) {
-          .lsp-connector-track {
-            background: rgba(148,163,184,0.22);
-            border-color: rgba(203,213,225,0.38);
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.06);
-          }
-        }
-        .dark .lsp-connector-track {
-          background: rgba(148,163,184,0.22);
-          border-color: rgba(203,213,225,0.38);
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.06);
         }
         .lsp-liquid-h {
           /* Same water as the vertical pipe/card, just re-oriented to
@@ -250,8 +227,9 @@ export function LiquidScrollProgress({
                   and fully behind the card on the right (z-5 < card's
                   z-20), so both joints stay seamless. Two stacked
                   layers: an always-visible neutral "empty tube"
-                  (.lsp-connector-track, tuned for both light and dark
-                  backgrounds) underneath, and the liquid fill on top
+                  (the same .lsp-glass pipe casing used by the main vertical pipe,
+                  tuned for both light and dark backgrounds) underneath,
+                  and the liquid fill on top
                   that scales in from the left as this section's scroll
                   progress advances — so the connector is never fully
                   invisible, and the liquid stays visually distinct
@@ -264,7 +242,7 @@ export function LiquidScrollProgress({
                   width: GAP - PIPE_LEFT + TUCK_INTO_CARD,
                 }}
               >
-                <div aria-hidden="true" className="lsp-connector-track absolute inset-0 rounded-full" />
+                <div aria-hidden="true" className="lsp-glass absolute inset-0 rounded-full" />
                 <div
                   ref={(node) => {
                     connectorLiquidRefs.current[index] = node
