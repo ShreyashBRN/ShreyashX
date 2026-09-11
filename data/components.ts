@@ -176,17 +176,17 @@ export default DragDropReorder;
     slug: "liquid-scroll-progress",
     name: "Liquid Scroll Progress",
     cardDescription:
-      "A vertical pipe and stacked cards that fill with liquid in sync with page scroll position.",
+      "A fixed liquid progress indicator — the component never moves, wheel/touch input drives the fill.",
     fullDescription:
-      "A scroll-driven progress indicator: a vertical pipe fills as the page scrolls, and each connected card fills in sequence, glass-morphism style, with animated bubbles and a shimmer sweep.",
+      "A self-contained progress indicator: the component stays visually fixed in place while wheel or touch input drives a virtual progress value — filling the pipe, connectors, and stacked cards in sequence, with glass-morphism styling and animated bubbles.",
     icon: "Droplets",
     status: "new",
     installCommand: "npx shadcn@latest add https://shreyashtech.me/r/liquid-scroll-progress.json",
     importStatement: `import { LiquidScrollProgress } from "@/components/liquid-scroll-progress"`,
     usageJsx: "<LiquidScrollProgress />",
     props: [
-      { property: "sections", type: "LiquidScrollProgressSection[]", default: "DEFAULT_SECTIONS", description: "Array of { number, title, description, icon } — one per card, filled in order." },
-      { property: "liquidColor", type: "string", default: `"#159cff"`, description: "CSS color used for the liquid fill (pipe + cards)." },
+      { property: "sections", type: "LiquidScrollProgressSection[]", default: "DEFAULT_SECTIONS", description: "Array of { title } — one per card, filled in order as progress advances." },
+      { property: "liquidColor", type: "string", default: `"#159cff"`, description: "CSS color used for the liquid fill (pipe, connectors, and cards)." },
       { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer section." },
     ],
     previewCode: `import { LiquidScrollProgress } from "@/components/liquid-scroll-progress";
@@ -200,10 +200,7 @@ export default function LiquidScrollProgressPreview() {
 import * as React from "react";
 
 type LiquidScrollProgressSection = {
-  number: string;
   title: string;
-  description: string;
-  icon?: React.ReactNode;
 };
 
 type LiquidScrollProgressProps = {
@@ -213,18 +210,28 @@ type LiquidScrollProgressProps = {
 };
 
 const DEFAULT_SECTIONS: LiquidScrollProgressSection[] = [
-  { number: "01", title: "Build Better Interfaces", description: "Beautiful, accessible, and customizable components to speed up your development.", icon: "✦" },
-  { number: "02", title: "Designed for Developers", description: "Copy, customize, and ship. Fully open source and built with modern tools.", icon: "</>" },
-  { number: "03", title: "Works With Your Stack", description: "Built with modern tools and designed to fit naturally into your existing projects.", icon: "◈" },
-  { number: "04", title: "Open Source", description: "Free to use, modify, and contribute. Let's build a better web together.", icon: "♡" },
+  { title: "Introduction" },
+  { title: "Implementation" },
+  { title: "Customization" },
+  { title: "Usage" },
 ];
 
-const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
+const clamp = (value: number, min = 0, max = 1) =>
+  Math.min(Math.max(value, min), max);
 
-const PIPE_LEFT = 8;
-const PIPE_W = 12;
-const GAP = 56;
-const TUCK_INTO_CARD = 10;
+const PIPE_LEFT = 4;
+const PIPE_W = 6;
+const GAP = 22;
+const TUCK_INTO_CARD = 4;
+
+/**
+ * How much wheel/touch travel (in px-equivalent units) corresponds to
+ * going from 0% to 100% progress. Lower = more sensitive (reaches full
+ * faster per notch of scroll); higher = less sensitive. Purely a feel
+ * knob — not tied to any real scrollable height, since nothing here
+ * actually scrolls.
+ */
+const VIRTUAL_SCROLL_RANGE = 600;
 
 export function LiquidScrollProgress({
   sections = DEFAULT_SECTIONS,
@@ -232,25 +239,42 @@ export function LiquidScrollProgress({
   className = "",
 }: LiquidScrollProgressProps) {
   const pipeLiquidRef = React.useRef<HTMLDivElement | null>(null);
+  const connectorLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([]);
   const cardLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([]);
   const contentRefs = React.useRef<Array<HTMLDivElement | null>>([]);
 
+  // The fixed, non-scrolling "capture" box. It never scrolls — it only
+  // listens for wheel/touch input and turns that into a virtual
+  // progress value below. The component's own DOM never moves.
+  const captureRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Virtual progress, 0–1. This replaces \`window.scrollY\` /
+  // \`container.scrollTop\` entirely — there is no real scroll position
+  // anywhere in this component anymore, just this one number that wheel
+  // and touch input nudge up or down.
+  const progressRef = React.useRef(0);
+
+  connectorLiquidRefs.current = [];
   cardLiquidRefs.current = [];
   contentRefs.current = [];
 
   React.useEffect(() => {
     if (sections.length === 0) return;
 
+    const capture = captureRef.current;
+    if (!capture) return;
+
     let frame = 0;
     const total = sections.length;
 
-    const update = () => {
+    // Paints the DOM from whatever progressRef.current currently is.
+    // Same fill formulas as before — only the source of \`overall\`
+    // changed (a plain number we control, not a scroll measurement).
+    const paint = () => {
       if (frame) cancelAnimationFrame(frame);
 
       frame = requestAnimationFrame(() => {
-        const doc = document.documentElement;
-        const scrollable = doc.scrollHeight - window.innerHeight;
-        const overall = scrollable > 0 ? clamp(window.scrollY / scrollable) : 0;
+        const overall = progressRef.current;
 
         if (pipeLiquidRef.current) {
           pipeLiquidRef.current.style.transform = \`scaleY(\${overall})\`;
@@ -260,8 +284,12 @@ export function LiquidScrollProgress({
           const start = i / total;
           const end = (i + 1) / total;
           const raw = clamp((overall - start) / (end - start));
+          const connectorFill = clamp(raw / 0.35);
           const cardFill = clamp((raw - 0.1) / 0.9);
           const isFilled = cardFill >= 0.45;
+
+          const connectorEl = connectorLiquidRefs.current[i];
+          if (connectorEl) connectorEl.style.transform = \`scaleX(\${connectorFill})\`;
 
           const cardEl = cardLiquidRefs.current[i];
           if (cardEl) cardEl.style.transform = \`scaleY(\${cardFill})\`;
@@ -272,215 +300,243 @@ export function LiquidScrollProgress({
       });
     };
 
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+    // Wheel: the primary input. preventDefault + stopPropagation stop
+    // both the native page scroll AND any smooth-scroll library (e.g.
+    // Lenis) upstream from ever seeing this event — nothing scrolls,
+    // anywhere, as a result of this gesture.
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      progressRef.current = clamp(progressRef.current + e.deltaY / VIRTUAL_SCROLL_RANGE);
+      paint();
+    };
+
+    // Touch: same idea, tracked manually since there's no native scroll
+    // to read a position from.
+    let touchY = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      touchY = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const currentY = e.touches[0].clientY;
+      const deltaY = touchY - currentY;
+      touchY = currentY;
+      progressRef.current = clamp(progressRef.current + deltaY / VIRTUAL_SCROLL_RANGE);
+      paint();
+    };
+
+    paint(); // initial paint at progress = 0
+
+    capture.addEventListener("wheel", onWheel, { passive: false });
+    capture.addEventListener("touchstart", onTouchStart, { passive: true });
+    capture.addEventListener("touchmove", onTouchMove, { passive: false });
 
     return () => {
       if (frame) cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      capture.removeEventListener("wheel", onWheel);
+      capture.removeEventListener("touchstart", onTouchStart);
+      capture.removeEventListener("touchmove", onTouchMove);
     };
   }, [sections.length]);
 
   if (sections.length === 0) return null;
 
   return (
-    <section
-      aria-label="Scroll progress"
-      className={\`relative mx-auto w-full max-w-3xl px-4 py-14 sm:px-6 \${className}\`}
+    // Fixed viewport / input capture area. \`overflow: hidden\` with no
+    // scrollable content inside means there is nothing to scroll and
+    // therefore nothing that can ever show a scrollbar. \`touchAction:
+    // "none"\` stops the browser's own touch-scroll gesture from
+    // starting before our touchmove handler even runs. \`data-lenis-
+    // prevent\` is a second line of defense for the Lenis smooth-scroll
+    // library specifically, on top of the stopPropagation() above.
+    <div
+      ref={captureRef}
+      data-lenis-prevent
+      className="flex h-full w-full items-center justify-center"
+      style={{
+        overflow: "hidden",
+        touchAction: "none",
+        userSelect: "none",
+      }}
     >
-      <style>{\`
-        .lsp-glass {
-          border: 1px solid rgba(148,163,184,0.35);
-          background: rgba(255,255,255,0.6);
-          backdrop-filter: blur(10px);
-          box-shadow:
-            inset 1px 0 2px rgba(255,255,255,0.9),
-            inset -1px 0 2px rgba(15,23,42,0.08),
-            0 1px 4px rgba(15,23,42,0.08);
-        }
-        .lsp-pipe-connector {
-          background: linear-gradient(180deg, #334155 0%, #1e293b 55%, #0f172a 100%);
-          box-shadow:
-            inset 0 1px 1px rgba(255,255,255,0.15),
-            inset 0 -1px 2px rgba(0,0,0,0.45);
-          border: 1px solid rgba(15,23,42,0.6);
-        }
-        .lsp-liquid {
-          background: linear-gradient(
-            180deg,
-            rgba(255,255,255,0.65) 0%,
-            color-mix(in srgb, var(--lsp-color) 50%, white 50%) 22%,
-            color-mix(in srgb, var(--lsp-color) 68%, white 32%) 100%
-          );
-          box-shadow:
-            0 0 8px color-mix(in srgb, var(--lsp-color) 35%, transparent),
-            inset 1px 0 2px rgba(255,255,255,0.6);
-        }
-        .lsp-content { color: #0f172a; transition: color 300ms ease; }
-        .lsp-content.is-filled { color: #fff; }
-        .lsp-num { color: #64748b; transition: color 300ms ease; }
-        .lsp-content.is-filled .lsp-num { color: rgba(255,255,255,0.75); }
-        .lsp-desc { color: #64748b; transition: color 300ms ease; }
-        .lsp-content.is-filled .lsp-desc { color: rgba(255,255,255,0.85); }
-        .lsp-icon {
-          border-color: rgba(255,255,255,0.7);
-          background: rgba(255,255,255,0.4);
-          color: #2563eb;
-          transition: border-color 300ms ease, background-color 300ms ease, color 300ms ease;
-        }
-        .lsp-content.is-filled .lsp-icon {
-          border-color: rgba(255,255,255,0.25);
-          background: rgba(255,255,255,0.1);
-          color: #fff;
-        }
-        @keyframes liquid-scroll-bubble {
-          0%   { transform: translate3d(0, 6px, 0) scale(0.7); opacity: 0; }
-          15%  { opacity: 0.7; }
-          70%  { opacity: 0.45; }
-          100% { transform: translate3d(var(--bubble-drift, 0px), -90px, 0) scale(1); opacity: 0; }
-        }
-        @keyframes liquid-scroll-wave {
-          0%, 100% { transform: translateX(-2%) scaleX(1); }
-          50%      { transform: translateX(2%) scaleX(1.03); }
-        }
-        @keyframes liquid-scroll-shimmer {
-          0%   { transform: translateX(-120%); }
-          100% { transform: translateX(120%); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .liquid-scroll-motion { animation: none !important; }
-        }
-      \`}</style>
-
-      <div
-        className="relative w-full"
-        style={{ paddingLeft: GAP, "--lsp-color": liquidColor } as React.CSSProperties}
+      <section
+        aria-label="Scroll progress"
+        className={\`relative mx-auto w-full max-w-xs px-2 py-4 sm:px-3 \${className}\`}
       >
-        <div
-          aria-hidden="true"
-          className="absolute bottom-3 top-3 z-20"
-          style={{ left: PIPE_LEFT, width: PIPE_W }}
-        >
-          <div className="lsp-glass absolute inset-0 rounded-full" />
+        <style>{\`
+          .lsp-glass {
+            border: 1px solid rgba(148,163,184,0.35);
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(8px);
+            box-shadow:
+              inset 1px 0 1px rgba(255,255,255,0.9),
+              inset -1px 0 1px rgba(15,23,42,0.08),
+              0 1px 3px rgba(15,23,42,0.08);
+          }
+          .lsp-liquid-h {
+            background: linear-gradient(
+              90deg,
+              color-mix(in srgb, var(--lsp-color) 68%, white 32%) 0%,
+              color-mix(in srgb, var(--lsp-color) 58%, white 42%) 65%,
+              rgba(255,255,255,0.7) 100%
+            );
+            box-shadow:
+              0 0 4px color-mix(in srgb, var(--lsp-color) 35%, transparent),
+              inset 0 1px 1px rgba(255,255,255,0.5);
+          }
+          .lsp-liquid {
+            background: linear-gradient(
+              180deg,
+              rgba(255,255,255,0.65) 0%,
+              color-mix(in srgb, var(--lsp-color) 50%, white 50%) 22%,
+              color-mix(in srgb, var(--lsp-color) 68%, white 32%) 100%
+            );
+            box-shadow:
+              0 0 5px color-mix(in srgb, var(--lsp-color) 35%, transparent),
+              inset 1px 0 1px rgba(255,255,255,0.6);
+          }
+          .lsp-content { color: #0f172a; transition: color 300ms ease; }
+          .lsp-content.is-filled { color: #fff; }
+          .lsp-title {
+            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            line-height: 1;
+          }
+          @keyframes liquid-scroll-bubble-mini {
+            0%   { transform: translate3d(0, 3px, 0) scale(0.7); opacity: 0; }
+            15%  { opacity: 0.7; }
+            70%  { opacity: 0.45; }
+            100% { transform: translate3d(var(--bubble-drift, 0px), -34px, 0) scale(1); opacity: 0; }
+          }
+          @keyframes liquid-scroll-wave {
+            0%, 100% { transform: translateX(-2%) scaleX(1); }
+            50%      { transform: translateX(2%) scaleX(1.03); }
+          }
+          @keyframes liquid-scroll-shimmer {
+            0%   { transform: translateX(-120%); }
+            100% { transform: translateX(120%); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .liquid-scroll-motion { animation: none !important; }
+          }
+        \`}</style>
 
-          <div className="absolute inset-[3px] overflow-hidden rounded-full">
-            <div
-              ref={pipeLiquidRef}
-              className="lsp-liquid absolute inset-0 origin-top will-change-transform"
-              style={{ transform: "scaleY(0)" }}
-            >
-              <LiquidBubbles compact />
-              <div className="liquid-scroll-motion absolute -left-full top-0 h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent blur-[2px] motion-safe:animate-[liquid-scroll-shimmer_2.8s_ease-in-out_infinite]" />
+        <div
+          className="relative w-full"
+          style={{ paddingLeft: GAP, "--lsp-color": liquidColor } as React.CSSProperties}
+        >
+          <div
+            aria-hidden="true"
+            className="absolute bottom-0 top-0 z-20"
+            style={{ left: PIPE_LEFT, width: PIPE_W }}
+          >
+            <div className="lsp-glass absolute inset-0 rounded-full" />
+
+            <div className="absolute inset-[1.5px] overflow-hidden rounded-full">
+              <div
+                ref={pipeLiquidRef}
+                className="lsp-liquid absolute inset-0 origin-top will-change-transform"
+                style={{ transform: "scaleY(0)" }}
+              >
+                <LiquidBubbles compact />
+                <div className="liquid-scroll-motion absolute -left-full top-0 h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent blur-[1px] motion-safe:animate-[liquid-scroll-shimmer_2.8s_ease-in-out_infinite]" />
+              </div>
             </div>
           </div>
 
-          <div className="absolute -left-[9px] -top-[8px] z-30 h-[16px] w-[30px] rounded-[6px] border border-slate-700/90 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-950 shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_1px_rgba(255,255,255,0.15)]">
-            <div className="absolute bottom-[3px] left-[5px] right-[5px] h-[2px] rounded-full bg-black/70" />
-          </div>
-
-          <div className="absolute -bottom-[5px] -left-[6px] z-30 h-[11px] w-[24px] rounded-b-[6px] border border-slate-700/90 bg-gradient-to-b from-slate-700 to-slate-950 shadow-[0_3px_6px_rgba(0,0,0,0.25),inset_0_1px_rgba(255,255,255,0.12)]" />
-        </div>
-
-        <div className="flex flex-col gap-10 sm:gap-12">
-          {sections.map((section, index) => (
-            <article
-              key={\`\${section.number}-\${section.title}\`}
-              className="relative min-h-[132px] w-full sm:min-h-[144px]"
-            >
-              <div
-                aria-hidden="true"
-                className="lsp-pipe-connector absolute top-1/2 z-[5] h-[14px] -translate-y-1/2 rounded-full"
-                style={{
-                  left: -(GAP - PIPE_LEFT),
-                  width: GAP - PIPE_LEFT + TUCK_INTO_CARD,
-                }}
-              />
-
-              <div className="relative z-20 min-h-[132px] overflow-hidden rounded-2xl border border-slate-300/40 bg-white/[0.7] shadow-[0_10px_28px_rgba(20,40,60,0.08),inset_0_1px_rgba(255,255,255,0.9)] backdrop-blur-xl sm:min-h-[144px]">
+          <div className="flex flex-col gap-4">
+            {sections.map((section, index) => (
+              <article key={section.title} className="relative w-full">
                 <div
-                  ref={(node) => {
-                    cardLiquidRefs.current[index] = node;
+                  className="absolute top-1/2 z-[5] h-[7px] -translate-y-1/2 overflow-hidden rounded-full"
+                  style={{
+                    left: -(GAP - PIPE_LEFT),
+                    width: GAP - PIPE_LEFT + TUCK_INTO_CARD,
                   }}
-                  aria-hidden="true"
-                  className="lsp-liquid absolute inset-x-0 bottom-0 top-0 origin-bottom overflow-hidden will-change-transform"
-                  style={{ transform: "scaleY(0)" }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-sky-200/40 via-transparent to-sky-400/20" />
-                  <div className="liquid-scroll-motion absolute -left-[5%] -top-[5px] h-3 w-[110%] rounded-[50%] bg-white/35 blur-[2px] motion-safe:animate-[liquid-scroll-wave_2.8s_ease-in-out_infinite]" />
-                  <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white/15 to-transparent" />
-                  <LiquidBubbles />
-                  <div className="liquid-scroll-motion absolute -left-full top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-md motion-safe:animate-[liquid-scroll-shimmer_3.5s_ease-in-out_infinite]" />
+                  <div aria-hidden="true" className="lsp-glass absolute inset-0 rounded-full" />
+                  <div
+                    ref={(node) => {
+                      connectorLiquidRefs.current[index] = node;
+                    }}
+                    aria-hidden="true"
+                    className="lsp-liquid-h absolute inset-y-0 left-0 w-full origin-left will-change-transform"
+                    style={{ transform: "scaleX(0)" }}
+                  />
                 </div>
 
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 rounded-2xl border border-white/60 shadow-[inset_0_1px_rgba(255,255,255,0.85),inset_0_-1px_rgba(15,23,42,0.04)]"
-                />
-
-                <div
-                  ref={(node) => {
-                    contentRefs.current[index] = node;
-                  }}
-                  className="lsp-content relative z-10 grid min-h-[132px] grid-cols-[32px_minmax(0,1fr)_44px] items-center gap-3 px-4 py-5 sm:min-h-[144px] sm:grid-cols-[36px_minmax(0,1fr)_48px] sm:px-5"
-                >
-                  <div className="lsp-num self-start pt-1 text-[11px] font-semibold tracking-wide sm:text-xs">
-                    {section.number}
+                <div className="relative z-20 w-[180px] max-w-full h-[48px] overflow-hidden rounded-none border border-slate-300/40 bg-white/[0.7] shadow-[0_4px_10px_rgba(20,40,60,0.08),inset_0_1px_rgba(255,255,255,0.9)] backdrop-blur-xl">
+                  <div
+                    ref={(node) => {
+                      cardLiquidRefs.current[index] = node;
+                    }}
+                    aria-hidden="true"
+                    className="lsp-liquid absolute inset-x-0 bottom-0 top-0 origin-bottom overflow-hidden will-change-transform"
+                    style={{ transform: "scaleY(0)" }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-b from-sky-200/40 via-transparent to-sky-400/20" />
+                    <div className="liquid-scroll-motion absolute -left-[5%] -top-[2px] h-1.5 w-[110%] rounded-[50%] bg-white/35 blur-[1px] motion-safe:animate-[liquid-scroll-wave_2.8s_ease-in-out_infinite]" />
+                    <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-white/15 to-transparent" />
+                    <LiquidBubbles />
+                    <div className="liquid-scroll-motion absolute -left-full top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-sm motion-safe:animate-[liquid-scroll-shimmer_3.5s_ease-in-out_infinite]" />
                   </div>
 
-                  <div className="min-w-0">
-                    <h2 className="mb-1.5 text-base font-semibold tracking-[-0.02em] sm:text-lg">
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 rounded-none border border-white/60 shadow-[inset_0_1px_rgba(255,255,255,0.85),inset_0_-1px_rgba(15,23,42,0.04)]"
+                  />
+
+                  <div
+                    ref={(node) => {
+                      contentRefs.current[index] = node;
+                    }}
+                    className="lsp-content relative z-10 flex h-full w-full items-center justify-center px-3 text-center"
+                  >
+                    <span className="lsp-title truncate uppercase text-[14px] font-medium">
                       {section.title}
-                    </h2>
-                    <p className="lsp-desc max-w-lg text-[13px] leading-relaxed sm:text-sm">
-                      {section.description}
-                    </p>
+                    </span>
                   </div>
-
-                  {section.icon && (
-                    <div className="lsp-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-sm sm:h-10 sm:w-10">
-                      {section.icon}
-                    </div>
-                  )}
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
 
 function LiquidBubbles({ compact = false }: { compact?: boolean }) {
   const bubbles = compact
     ? [
-        { left: "30%", size: 2, duration: "2.4s", delay: "0s", drift: "-1px" },
-        { left: "55%", size: 2, duration: "3s", delay: "0.6s", drift: "1px" },
-        { left: "75%", size: 2, duration: "2.7s", delay: "1.2s", drift: "-1px" },
+        { left: "35%", size: 1, duration: "2.4s", delay: "0s", drift: "-1px" },
+        { left: "65%", size: 1, duration: "3s", delay: "0.6s", drift: "1px" },
       ]
     : [
-        { left: "14%", size: 3, duration: "2.6s", delay: "0s", drift: "-2px" },
-        { left: "29%", size: 4, duration: "3.2s", delay: "0.7s", drift: "2px" },
-        { left: "48%", size: 3, duration: "2.9s", delay: "1.3s", drift: "-1px" },
-        { left: "67%", size: 4, duration: "3.4s", delay: "0.35s", drift: "3px" },
-        { left: "82%", size: 3, duration: "2.8s", delay: "1.8s", drift: "-2px" },
+        { left: "20%", size: 1.5, duration: "2.6s", delay: "0s", drift: "-1px" },
+        { left: "50%", size: 2, duration: "3.2s", delay: "0.7s", drift: "1px" },
+        { left: "78%", size: 1.5, duration: "2.9s", delay: "1.3s", drift: "-1px" },
       ];
 
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+    >
       {bubbles.map((bubble, index) => (
         <span
           key={index}
-          className="liquid-scroll-motion absolute bottom-0 rounded-full bg-white/60 shadow-[0_0_4px_rgba(255,255,255,0.65)]"
+          className="liquid-scroll-motion absolute bottom-0 rounded-full bg-white/60 shadow-[0_0_3px_rgba(255,255,255,0.65)]"
           style={
             {
               left: bubble.left,
               width: \`\${bubble.size}px\`,
               height: \`\${bubble.size}px\`,
               "--bubble-drift": bubble.drift,
-              animation: \`liquid-scroll-bubble \${bubble.duration} ease-in \${bubble.delay} infinite\`,
+              animation: \`liquid-scroll-bubble-mini \${bubble.duration} ease-in \${bubble.delay} infinite\`,
             } as React.CSSProperties
           }
         />

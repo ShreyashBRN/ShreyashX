@@ -18,6 +18,19 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "liquid-scroll-progress",
+      "type": "registry:component",
+      "title": "Liquid Scroll Progress",
+      "description": "A fixed liquid progress indicator that fills the pipe, connectors, and cards in response to wheel or touch input.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/default/liquid-scroll-progress/liquid-scroll-progress.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }
