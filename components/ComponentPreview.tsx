@@ -27,13 +27,11 @@
 "use client";
 
 import DragDropReorderPreview from "@/components/drag-drop-reorder-preview";
+import LiquidScrollProgressPreview from "@/components/liquid-scroll-progress-preview";
 
-// Add one line here each time you wire up a new component's live preview.
-// Each entry should point to that component's dedicated -preview.tsx file,
-// not the raw component itself, so the docs page can add wrapper/theme
-// logic without touching the distributed source.
 const previewMap: Record<string, React.ReactNode> = {
   "drag-drop-reorder": <DragDropReorderPreview />,
+  "liquid-scroll-progress": <LiquidScrollProgressPreview />,
 };
 
 export function ComponentPreview({ slug }: { slug: string }) {
