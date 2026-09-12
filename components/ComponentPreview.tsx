@@ -28,10 +28,12 @@
 
 import DragDropReorderPreview from "@/components/drag-drop-reorder-preview";
 import LiquidScrollProgressPreview from "@/components/liquid-scroll-progress-preview";
+import JellyToolbarPreview from "@/components/jelly-toolbar-preview";
 
 const previewMap: Record<string, React.ReactNode> = {
   "drag-drop-reorder": <DragDropReorderPreview />,
   "liquid-scroll-progress": <LiquidScrollProgressPreview />,
+  "jelly-toolbar": <JellyToolbarPreview />,
 };
 
 export function ComponentPreview({ slug }: { slug: string }) {

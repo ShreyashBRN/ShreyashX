@@ -548,6 +548,37 @@ function LiquidBubbles({ compact = false }: { compact?: boolean }) {
 export default LiquidScrollProgress;
 `,
   },
+
+
+  {
+    slug: "jelly-toolbar",
+    name: "Jelly Toolbar",
+    cardDescription:
+      "A floating toolbar with a solid jelly/slime blob that stretches and morphs between items as you move your cursor.",
+    fullDescription:
+      "A clean, minimal floating toolbar containing a physical jelly/slime element — not a glass blob or hover highlight. The jelly tracks the cursor continuously, stretching and squashing with spring physics as it travels, and settles into pill-curved edges on the first/last items or a rounded square in the middle.",
+    icon: "Sparkles",
+    status: "new",
+    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/jelly-toolbar.json",
+    importStatement: `import { JellyToolbar } from "@/components/jelly-toolbar"`,
+    usageJsx: "<JellyToolbar />",
+    props: [
+      { property: "items", type: "JellyToolbarItem[]", default: "6 default items", description: "Array of { label, icon, shortcut?, onSelect? }." },
+      { property: "jellyColor", type: "string", default: `"#c4b5fd"`, description: "Jelly color in light mode." },
+      { property: "jellyColorDark", type: "string", default: "jellyColor", description: "Jelly color in dark mode. Defaults to jellyColor if omitted." },
+      { property: "stiffness", type: "number", default: "380", description: "Spring stiffness for jelly movement — higher is snappier." },
+      { property: "damping", type: "number", default: "28", description: "Spring damping — higher reduces overshoot." },
+      { property: "enableShortcuts", type: "boolean", default: "true", description: "Whether pressing an item's shortcut key activates it globally." },
+      { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer wrapper." },
+    ],
+    previewCode: `import { JellyToolbar } from "@/components/jelly-toolbar";
+  
+  export default function JellyToolbarPreview() {
+    return <JellyToolbar />;
+  }
+  `,
+    sourceCode: `<PASTE THE FULL components/jelly-toolbar.tsx CONTENT HERE>`,
+  },
 ];
 
 export function getComponentBySlug(slug: string): ComponentEntry | undefined {
