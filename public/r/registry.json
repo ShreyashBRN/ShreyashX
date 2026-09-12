@@ -31,6 +31,22 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "jelly-toolbar",
+      "type": "registry:component",
+      "title": "Jelly Toolbar",
+      "description": "A floating toolbar with a solid jelly/slime blob that stretches and morphs between items as you move your cursor.",
+      "dependencies": [
+        "framer-motion",
+        "lucide-react"
+      ],
+      "files": [
+        {
+          "path": "registry/default/jelly-toolbar/jelly-toolbar.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }
