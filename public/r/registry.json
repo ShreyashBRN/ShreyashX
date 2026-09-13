@@ -61,6 +61,23 @@
           "type": "registry:component"
         }
       ]
+    },
+
+    {
+      "name": "otp-input",
+      "type": "registry:component",
+      "title": "OTP Input",
+      "description": "Four OTP input styles — Classic, Underline, Pill, Filled — each with a spring-driven focus indicator that glides to the exact measured position of the active slot.",
+      "dependencies": [
+        "framer-motion",
+        "lucide-react"
+      ],
+      "files": [
+        {
+          "path": "registry/default/otp-input/otp-input.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }
