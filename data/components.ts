@@ -1729,6 +1729,817 @@ export default function Pagination({
 }
 `,
   },
+
+
+
+
+
+
+
+
+
+
+  {
+    slug: "otp-input",
+    name: "OTP Input",
+    cardDescription:
+      "Four OTP input styles — Classic, Underline, Pill, Filled — each with a spring-driven jelly/slime focus indicator that squashes and stretches as it travels between slots.",
+    fullDescription:
+      "A self-contained OTP/verification-code input with four visual variants, each independently functional and stateful. A physical jelly indicator tracks the active slot using Framer Motion springs, with squash, stretch, and skew derived from travel velocity. Supports paste-to-fill, arrow-key navigation, backspace-to-previous, controlled/uncontrolled value, and light/dark/system theming. Render all four stacked via the default OtpShowcase demo, or a single variant via the variant prop on OtpInput.",
+    icon: "KeyRound",
+    status: "new",
+    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/otp-input.json",
+    importStatement: `import OtpShowcase, { OtpInput } from "@/components/otp-input"`,
+    usageJsx: `<OtpInput length={6} variant="classic" />`,
+    props: [
+      { property: "length", type: "number", default: "6", description: "Number of OTP digits/slots." },
+      { property: "variant", type: `"classic" | "underline" | "pill" | "filled"`, default: "all four", description: "Render only this single variant instead of the full four-card demo." },
+      { property: "value", type: "string", default: "-", description: "Controlled value. Pass with onChange to control the input externally." },
+      { property: "onChange", type: "function", default: "-", description: "Called with the joined digit string whenever any slot changes." },
+      { property: "onComplete", type: "function", default: "-", description: "Called once with the full code when every slot is filled." },
+      { property: "disabled", type: "boolean", default: "false", description: "Disable every slot." },
+      { property: "autoFocus", type: "boolean", default: "true", description: "Focus the first slot on mount." },
+      { property: "theme", type: `"light" | "dark" | "system"`, default: "system", description: "Color theme for the jelly indicator and slots." },
+      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
+    ],
+    previewCode: `import OtpShowcase from "@/components/otp-input";
+
+export default function OtpInputPreview() {
+  return <OtpShowcase />;
+}
+`,
+    sourceCode: `"use client";
+
+/**
+ * OtpInput — a premium OTP input built around a physical jelly/slime
+ * focus indicator that travels between slots with spring-driven
+ * squash & stretch.
+ *
+ * Dependencies (install in your project):
+ *   framer-motion
+ *   lucide-react   (only used by the default OtpShowcase demo's theme toggle)
+ *   tailwindcss
+ *
+ * Exports:
+ *   - OtpInput   (named)  → the reusable component. <OtpInput variant="classic" />
+ *                           renders one functional OTP. <OtpInput /> (no variant)
+ *                           renders all four variants side by side, each with
+ *                           fully independent state.
+ *   - OtpShowcase (default) → a styled demo shell (background, theme toggle,
+ *                              2x2 / 1-col responsive grid) wrapping OtpInput.
+ */
+
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { motion, useSpring, useTransform, useVelocity } from "framer-motion";
+import { Moon, Sun } from "lucide-react";
+
+/* ------------------------------------------------------------------ */
+/*  utils                                                              */
+/* ------------------------------------------------------------------ */
+
+function cn(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
+
+type ThemeMode = "light" | "dark";
+type OtpVariant = "classic" | "underline" | "pill" | "filled";
+
+function useResolvedTheme(theme: ThemeMode | "system" = "system"): ThemeMode {
+  const [resolved, setResolved] = useState<ThemeMode>("light");
+
+  useEffect(() => {
+    if (theme !== "system") {
+      setResolved(theme);
+      return;
+    }
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = () => setResolved(mq.matches ? "dark" : "light");
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, [theme]);
+
+  return resolved;
+}
+
+/* ------------------------------------------------------------------ */
+/*  jelly physics tracker                                              */
+/* ------------------------------------------------------------------ */
+
+interface JellyRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+const SPRING = { stiffness: 380, damping: 30, mass: 0.9 } as const;
+
+function defaultTransform(slot: DOMRect, container: DOMRect): JellyRect {
+  return {
+    left: slot.left - container.left,
+    top: slot.top - container.top,
+    width: slot.width,
+    height: slot.height,
+  };
+}
+
+function useJellyTracker(opts: {
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  getSlotEl: (index: number) => HTMLElement | null;
+  activeIndex: number;
+  length: number;
+  transform?: (slot: DOMRect, container: DOMRect) => JellyRect;
+}) {
+  const { containerRef, getSlotEl, activeIndex, length, transform } = opts;
+
+  const left = useSpring(0, SPRING);
+  const top = useSpring(0, SPRING);
+  const width = useSpring(0, SPRING);
+  const height = useSpring(0, SPRING);
+
+  const measure = useCallback(() => {
+    const container = containerRef.current;
+    const slotEl = getSlotEl(activeIndex);
+    if (!container || !slotEl) return;
+    const c = container.getBoundingClientRect();
+    const s = slotEl.getBoundingClientRect();
+    const rect = (transform ?? defaultTransform)(s, c);
+    left.set(rect.left);
+    top.set(rect.top);
+    width.set(rect.width);
+    height.set(rect.height);
+  }, [containerRef, getSlotEl, activeIndex, transform, left, top, width, height]);
+
+  useLayoutEffect(() => {
+    measure();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex, length]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(container);
+    window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measure);
+    };
+  }, [measure]);
+
+  const velocityX = useVelocity(left);
+  const stretch = useTransform(velocityX, (v) => {
+    const abs = Math.min(Math.abs(v), 1500);
+    return 1 + (abs / 1500) * 0.42;
+  });
+  const squash = useTransform(stretch, (s) => Math.max(0.72, 1 - (s - 1) * 0.6));
+  const skew = useTransform(velocityX, (v) => Math.max(-6, Math.min(6, v / 160)));
+
+  return { left, top, width, height, stretch, squash, skew };
+}
+
+/* ------------------------------------------------------------------ */
+/*  visual tokens                                                      */
+/* ------------------------------------------------------------------ */
+
+function jellyStyle(theme: ThemeMode): React.CSSProperties {
+  return theme === "dark"
+    ? {
+        background: "linear-gradient(155deg, #b7a7ff 0%, #8b5cf6 45%, #6d28d9 100%)",
+        boxShadow:
+          "0 10px 28px -8px rgba(139,92,246,0.65), 0 0 0 1px rgba(255,255,255,0.10) inset, 0 1px 1px rgba(255,255,255,0.30) inset",
+      }
+    : {
+        background: "linear-gradient(155deg, #ac9bff 0%, #7c5cf0 45%, #5b34d6 100%)",
+        boxShadow:
+          "0 10px 22px -8px rgba(91,52,214,0.45), 0 0 0 1px rgba(255,255,255,0.35) inset, 0 1px 1px rgba(255,255,255,0.55) inset",
+      };
+}
+
+function slotStyle(theme: ThemeMode, tinted: boolean): React.CSSProperties {
+  if (theme === "dark") {
+    return tinted
+      ? {
+          background: "rgba(139,92,246,0.10)",
+          border: "1px solid rgba(139,92,246,0.22)",
+          color: "#ede9fe",
+        }
+      : {
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.09)",
+          color: "#ede9fe",
+        };
+  }
+  return tinted
+    ? {
+        background: "rgba(124,92,240,0.06)",
+        border: "1px solid rgba(124,92,240,0.16)",
+        color: "#241b3d",
+      }
+    : {
+        background: "#ffffff",
+        border: "1px solid rgba(15,23,42,0.08)",
+        color: "#241b3d",
+        boxShadow: "0 1px 2px rgba(15,23,42,0.05)",
+      };
+}
+
+function pillContainerStyle(theme: ThemeMode): React.CSSProperties {
+  return theme === "dark"
+    ? { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.09)" }
+    : {
+        background: "#ffffff",
+        border: "1px solid rgba(15,23,42,0.08)",
+        boxShadow: "0 1px 2px rgba(15,23,42,0.05)",
+      };
+}
+
+function underlineColor(theme: ThemeMode, active: boolean) {
+  if (theme === "dark") return active ? "#b7a7ff" : "rgba(255,255,255,0.16)";
+  return active ? "#7c5cf0" : "rgba(91,52,214,0.18)";
+}
+
+function cardSurfaceStyle(theme: ThemeMode): React.CSSProperties {
+  return theme === "dark"
+    ? { background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }
+    : {
+        background: "rgba(255,255,255,0.85)",
+        border: "1px solid rgba(15,23,42,0.05)",
+        boxShadow: "0 12px 30px -18px rgba(30,20,60,0.25)",
+      };
+}
+
+/* ------------------------------------------------------------------ */
+/*  shared input factory                                               */
+/* ------------------------------------------------------------------ */
+
+interface SlotInputProps {
+  index: number;
+  length: number;
+  digits: string[];
+  disabled?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  onFocusSlot: (i: number) => void;
+  onChangeDigit: (i: number, raw: string) => void;
+  onKeyDownSlot: (i: number, e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onPasteSlot: (i: number, e: React.ClipboardEvent<HTMLInputElement>) => void;
+  setRef: (i: number, el: HTMLInputElement | null) => void;
+}
+
+function SlotInput({
+  index,
+  length,
+  digits,
+  disabled,
+  className,
+  style,
+  onFocusSlot,
+  onChangeDigit,
+  onKeyDownSlot,
+  onPasteSlot,
+  setRef,
+}: SlotInputProps) {
+  return (
+    <input
+      ref={(el) => setRef(index, el)}
+      value={digits[index] ?? ""}
+      disabled={disabled}
+      inputMode="numeric"
+      pattern="[0-9]*"
+      autoComplete="one-time-code"
+      maxLength={length}
+      aria-label={\`Digit \${index + 1} of \${length}\`}
+      className={className}
+      style={style}
+      onFocus={(e) => {
+        onFocusSlot(index);
+        e.currentTarget.select();
+      }}
+      onClick={() => onFocusSlot(index)}
+      onChange={(e) => onChangeDigit(index, e.target.value)}
+      onKeyDown={(e) => onKeyDownSlot(index, e)}
+      onPaste={(e) => onPasteSlot(index, e)}
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  core (single, fully functional variant)                            */
+/* ------------------------------------------------------------------ */
+
+interface OtpCoreProps {
+  length: number;
+  variant: OtpVariant;
+  value?: string;
+  onChange?: (value: string) => void;
+  onComplete?: (value: string) => void;
+  disabled?: boolean;
+  autoFocus?: boolean;
+  themeMode: ThemeMode;
+}
+
+function OtpCore({
+  length,
+  variant,
+  value,
+  onChange,
+  onComplete,
+  disabled = false,
+  autoFocus = false,
+  themeMode,
+}: OtpCoreProps) {
+  const isControlled = value !== undefined;
+
+  const [innerDigits, setInnerDigits] = useState<string[]>(() =>
+    Array.from({ length }, (_, i) => value?.[i] ?? "")
+  );
+
+  const digits = isControlled
+    ? Array.from({ length }, (_, i) => value?.[i] ?? "")
+    : innerDigits;
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const setRef = useCallback((i: number, el: HTMLInputElement | null) => {
+    inputRefs.current[i] = el;
+  }, []);
+
+  const commit = useCallback(
+    (next: string[]) => {
+      if (!isControlled) setInnerDigits(next);
+      const joined = next.join("");
+      onChange?.(joined);
+      if (next.every(Boolean) && joined.length === length) {
+        onComplete?.(joined);
+      }
+    },
+    [isControlled, onChange, onComplete, length]
+  );
+
+  const focusAt = useCallback(
+    (idx: number) => {
+      const clamped = Math.max(0, Math.min(length - 1, idx));
+      inputRefs.current[clamped]?.focus();
+    },
+    [length]
+  );
+
+  const handleChange = useCallback(
+    (idx: number, raw: string) => {
+      const clean = raw.replace(/\\D/g, "");
+      if (!clean) {
+        const next = [...digits];
+        next[idx] = "";
+        commit(next);
+        return;
+      }
+      if (clean.length === 1) {
+        const next = [...digits];
+        next[idx] = clean;
+        commit(next);
+        focusAt(idx + 1);
+        return;
+      }
+      const chars = clean.split("");
+      const next = [...digits];
+      let cursor = idx;
+      for (const ch of chars) {
+        if (cursor >= length) break;
+        next[cursor] = ch;
+        cursor++;
+      }
+      commit(next);
+      focusAt(Math.min(cursor, length - 1));
+    },
+    [digits, commit, focusAt, length]
+  );
+
+  const handlePaste = useCallback(
+    (idx: number, e: React.ClipboardEvent<HTMLInputElement>) => {
+      const text = e.clipboardData.getData("text").replace(/\\D/g, "");
+      if (!text) return;
+      e.preventDefault();
+      const chars = text.split("").slice(0, length);
+      const next = Array.from({ length }, (_, i) => chars[i] ?? digits[i] ?? "");
+      commit(next);
+      const lastIndex = Math.min(chars.length, length) - 1;
+      focusAt(lastIndex < 0 ? idx : lastIndex);
+    },
+    [digits, commit, focusAt, length]
+  );
+
+  const handleKeyDown = useCallback(
+    (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        if (digits[idx]) {
+          const next = [...digits];
+          next[idx] = "";
+          commit(next);
+        } else if (idx > 0) {
+          const next = [...digits];
+          next[idx - 1] = "";
+          commit(next);
+          focusAt(idx - 1);
+        }
+      } else if (e.key === "Delete") {
+        e.preventDefault();
+        const next = [...digits];
+        next[idx] = "";
+        commit(next);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        focusAt(idx - 1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        focusAt(idx + 1);
+      }
+    },
+    [digits, commit, focusAt]
+  );
+
+  useEffect(() => {
+    if (!autoFocus) return;
+    const t = setTimeout(() => inputRefs.current[0]?.focus(), 40);
+    return () => clearTimeout(t);
+  }, [autoFocus]);
+
+  const getSlotEl = useCallback((i: number) => inputRefs.current[i], []);
+
+  const underlineTransform = useCallback((slot: DOMRect, container: DOMRect): JellyRect => {
+    const w = slot.width * 0.66;
+    const h = Math.min(28, slot.height * 0.46);
+    return {
+      left: slot.left - container.left + (slot.width - w) / 2,
+      top: slot.bottom - container.top - h + 6,
+      width: w,
+      height: h,
+    };
+  }, []);
+
+  const pillTransform = useCallback((slot: DOMRect, container: DOMRect): JellyRect => {
+    const pad = 4;
+    return {
+      left: slot.left - container.left + pad,
+      top: slot.top - container.top + pad,
+      width: slot.width - pad * 2,
+      height: slot.height - pad * 2,
+    };
+  }, []);
+
+  const jelly = useJellyTracker({
+    containerRef,
+    getSlotEl,
+    activeIndex,
+    length,
+    transform:
+      variant === "underline" ? underlineTransform : variant === "pill" ? pillTransform : undefined,
+  });
+
+  const jellyBaseStyle: React.CSSProperties = {
+    position: "absolute",
+    pointerEvents: "none",
+    ...jellyStyle(themeMode),
+  };
+
+  const sizeGap = "gap-[clamp(6px,2vw,10px)]";
+  const slotHeight = "h-[clamp(42px,12vw,56px)]";
+  const fontSize = "text-[clamp(16px,4.4vw,20px)]";
+
+  const commonInputBase =
+    "flex-1 min-w-0 rounded-2xl text-center font-semibold tracking-wide outline-none transition-colors duration-300 relative z-10 caret-current disabled:opacity-40";
+
+  if (variant === "classic") {
+    return (
+      <div ref={containerRef} className={cn("relative flex w-full", sizeGap)}>
+        <motion.div
+          className="rounded-2xl"
+          style={{
+            ...jellyBaseStyle,
+            left: jelly.left,
+            top: jelly.top,
+            width: jelly.width,
+            height: jelly.height,
+            scaleX: jelly.stretch,
+            scaleY: jelly.squash,
+            skewX: jelly.skew,
+            zIndex: 5,
+          }}
+        />
+        {Array.from({ length }).map((_, i) => {
+          const active = i === activeIndex;
+          return (
+            <SlotInput
+              key={i}
+              index={i}
+              length={length}
+              digits={digits}
+              disabled={disabled}
+              setRef={setRef}
+              onFocusSlot={setActiveIndex}
+              onChangeDigit={handleChange}
+              onKeyDownSlot={handleKeyDown}
+              onPasteSlot={handlePaste}
+              className={cn(commonInputBase, slotHeight, fontSize, "z-10")}
+              style={{
+                ...slotStyle(themeMode, false),
+                color: active ? "#ffffff" : slotStyle(themeMode, false).color,
+                background: active ? "transparent" : slotStyle(themeMode, false).background,
+                borderColor: active ? "transparent" : (slotStyle(themeMode, false) as any).border,
+              }}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (variant === "underline") {
+    return (
+      <div ref={containerRef} className={cn("relative flex w-full", sizeGap)}>
+        <motion.div
+          style={{
+            ...jellyBaseStyle,
+            left: jelly.left,
+            top: jelly.top,
+            width: jelly.width,
+            height: jelly.height,
+            scaleX: jelly.stretch,
+            scaleY: jelly.squash,
+            skewX: jelly.skew,
+            borderRadius: "60% 60% 45% 45%",
+            zIndex: 0,
+          }}
+        />
+        {Array.from({ length }).map((_, i) => {
+          const active = i === activeIndex;
+          return (
+            <div key={i} className="relative flex-1 min-w-0 flex flex-col items-center">
+              <SlotInput
+                index={i}
+                length={length}
+                digits={digits}
+                disabled={disabled}
+                setRef={setRef}
+                onFocusSlot={setActiveIndex}
+                onChangeDigit={handleChange}
+                onKeyDownSlot={handleKeyDown}
+                onPasteSlot={handlePaste}
+                className={cn(
+                  "w-full bg-transparent text-center font-semibold outline-none transition-colors duration-300 relative z-10 pb-2 disabled:opacity-40",
+                  slotHeight,
+                  fontSize
+                )}
+                style={{
+                  color: active ? underlineColor(themeMode, true) : slotStyle(themeMode, false).color,
+                }}
+              />
+              <span
+                className="absolute bottom-0 h-[3px] w-[70%] rounded-full transition-colors duration-300"
+                style={{ background: underlineColor(themeMode, active) }}
+              />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (variant === "pill") {
+    return (
+      <div
+        ref={containerRef}
+        className="relative flex w-full rounded-full p-1"
+        style={pillContainerStyle(themeMode)}
+      >
+        <motion.div
+          className="rounded-2xl"
+          style={{
+            ...jellyBaseStyle,
+            left: jelly.left,
+            top: jelly.top,
+            width: jelly.width,
+            height: jelly.height,
+            scaleX: jelly.stretch,
+            scaleY: jelly.squash,
+            skewX: jelly.skew,
+            zIndex: 5,
+          }}
+        />
+        {Array.from({ length }).map((_, i) => {
+          const active = i === activeIndex;
+          return (
+            <SlotInput
+              key={i}
+              index={i}
+              length={length}
+              digits={digits}
+              disabled={disabled}
+              setRef={setRef}
+              onFocusSlot={setActiveIndex}
+              onChangeDigit={handleChange}
+              onKeyDownSlot={handleKeyDown}
+              onPasteSlot={handlePaste}
+              className={cn(
+                "flex-1 min-w-0 rounded-2xl bg-transparent text-center font-semibold outline-none transition-colors duration-300 relative z-10 disabled:opacity-40",
+                slotHeight,
+                fontSize
+              )}
+              style={{
+                color: active ? "#ffffff" : themeMode === "dark" ? "#ede9fe" : "#241b3d",
+              }}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className={cn("relative flex w-full", sizeGap)}>
+      <motion.div
+        className="rounded-2xl"
+        style={{
+          ...jellyBaseStyle,
+          left: jelly.left,
+          top: jelly.top,
+          width: jelly.width,
+          height: jelly.height,
+          scaleX: jelly.stretch,
+          scaleY: jelly.squash,
+          skewX: jelly.skew,
+          zIndex: 5,
+        }}
+      />
+      {Array.from({ length }).map((_, i) => {
+        const active = i === activeIndex;
+        const base = slotStyle(themeMode, true);
+        return (
+          <SlotInput
+            key={i}
+            index={i}
+            length={length}
+            digits={digits}
+            disabled={disabled}
+            setRef={setRef}
+            onFocusSlot={setActiveIndex}
+            onChangeDigit={handleChange}
+            onKeyDownSlot={handleKeyDown}
+            onPasteSlot={handlePaste}
+            className={cn(commonInputBase, slotHeight, fontSize, "z-10")}
+            style={{
+              ...base,
+              color: active ? "#ffffff" : base.color,
+              background: active ? "transparent" : base.background,
+              borderColor: active ? "transparent" : (base as any).border,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  public API                                                          */
+/* ------------------------------------------------------------------ */
+
+export interface OtpInputProps {
+  length?: number;
+  variant?: OtpVariant;
+  value?: string;
+  onChange?: (value: string) => void;
+  onComplete?: (value: string) => void;
+  disabled?: boolean;
+  autoFocus?: boolean;
+  className?: string;
+  theme?: ThemeMode | "system";
+}
+
+export function OtpInput({
+  length = 6,
+  variant,
+  value,
+  onChange,
+  onComplete,
+  disabled = false,
+  autoFocus = true,
+  className,
+  theme = "system",
+}: OtpInputProps) {
+  const resolvedTheme = useResolvedTheme(theme);
+
+  if (variant) {
+    return (
+      <div className={className}>
+        <OtpCore
+          length={length}
+          variant={variant}
+          value={value}
+          onChange={onChange}
+          onComplete={onComplete}
+          disabled={disabled}
+          autoFocus={autoFocus}
+          themeMode={resolvedTheme}
+        />
+      </div>
+    );
+  }
+
+  const variants: OtpVariant[] = ["classic", "underline", "pill", "filled"];
+
+  return (
+    <div className={cn("grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-5", className)}>
+      {variants.map((v) => (
+        <div
+          key={v}
+          className="flex items-center justify-center rounded-3xl p-5 md:p-6"
+          style={cardSurfaceStyle(resolvedTheme)}
+        >
+          <OtpCore
+            length={length}
+            variant={v}
+            disabled={disabled}
+            autoFocus={false}
+            themeMode={resolvedTheme}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  demo shell                                                          */
+/* ------------------------------------------------------------------ */
+
+export default function OtpShowcase() {
+  const [theme, setTheme] = useState<ThemeMode>("light");
+  const isDark = theme === "dark";
+
+  return (
+    <div
+      className={cn(
+        "relative flex w-full items-center justify-center overflow-hidden p-4 transition-colors duration-500 md:p-8",
+        isDark ? "bg-[#0a0a12]" : "bg-[#f8f7fc]"
+      )}
+      style={{ minHeight: 620 }}
+    >
+      <div
+        className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-40 blur-3xl"
+        style={{
+          background: isDark
+            ? "radial-gradient(circle, #4c1d95, transparent 70%)"
+            : "radial-gradient(circle, #c4b5fd, transparent 70%)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full opacity-40 blur-3xl"
+        style={{
+          background: isDark
+            ? "radial-gradient(circle, #1e3a8a, transparent 70%)"
+            : "radial-gradient(circle, #bfdbfe, transparent 70%)",
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
+        aria-label="Toggle color theme"
+        className={cn(
+          "absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full transition-colors md:right-6 md:top-6",
+          isDark ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/5 text-slate-700 hover:bg-black/10"
+        )}
+      >
+        {isDark ? <Sun size={16} /> : <Moon size={16} />}
+      </button>
+
+      <div
+        className={cn(
+          "relative z-10 w-full max-w-[900px] rounded-[32px] border p-4 transition-colors duration-500 md:p-6",
+          isDark ? "border-white/10 bg-white/[0.03]" : "border-black/5 bg-white/60 shadow-xl shadow-slate-200/60"
+        )}
+      >
+        <OtpInput length={6} theme={theme} />
+      </div>
+    </div>
+  );
+}
+`,
+  },
 ];
 
 export function getComponentBySlug(slug: string): ComponentEntry | undefined {

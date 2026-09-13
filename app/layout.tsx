@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Bricolage_Grotesque } from "next/font/google";
 import SmoothScroll from "@/components/SmoothScroll";
 import DesktopSiteViewport from "@/components/DesktopSiteViewport";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const inter = Inter({
@@ -77,6 +78,7 @@ export default function RootLayout({
       <body className="font-inter antialiased">
         <DesktopSiteViewport />
         <SmoothScroll>{children}</SmoothScroll>
+        <Analytics />
       </body>
     </html>
   );
