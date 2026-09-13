@@ -47,6 +47,20 @@
           "type": "registry:component"
         }
       ]
+    },
+
+    {
+      "name": "pagination",
+      "type": "registry:component",
+      "title": "Pagination",
+      "description": "Four pagination styles — Pills, Outline, Compact, With Input — each independently functional, with a shared Framer Motion sliding active-page indicator.",
+      "dependencies": ["framer-motion"],
+      "files": [
+        {
+          "path": "registry/default/pagination/pagination.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }

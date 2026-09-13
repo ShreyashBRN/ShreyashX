@@ -953,6 +953,782 @@ export default LiquidScrollProgress;
   export default JellyToolbar;
   `,
   },
+
+
+
+
+
+
+  {
+    slug: "pagination",
+    name: "Pagination",
+    cardDescription:
+      "Four pagination styles — Pills, Outline, Compact, With Input — sharing one page state with a sliding active-page indicator.",
+    fullDescription:
+      "A self-contained pagination component with four visual variants, each independently functional. Every variant smoothly animates its active-page highlight with Framer Motion. Render all four stacked, or a single variant via the variant prop.",
+    icon: "ChevronsRightLeft",
+    status: "new",
+    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/pagination.json",
+    importStatement: `import Pagination from "@/components/pagination"`,
+    usageJsx: "<Pagination />",
+    props: [
+      { property: "totalPages", type: "number", default: "40", description: "Total number of pages." },
+      { property: "page", type: "number", default: "-", description: "Controlled current page (1-indexed). Pass with onPageChange." },
+      { property: "defaultPage", type: "number", default: "1", description: "Uncontrolled initial page. Ignored if page is provided." },
+      { property: "onPageChange", type: "function", default: "-", description: "Called whenever the page changes, from any variant." },
+      { property: "variant", type: `"pills" | "outline" | "compact" | "input"`, default: "all four", description: "Render only this single variant instead of the full four-row demo." },
+      { property: "showInput", type: "boolean", default: "true", description: "Show the \"Go to page\" input on the input variant." },
+      { property: "disabled", type: "boolean", default: "false", description: "Disable every control in every rendered variant." },
+      { property: "siblingCount", type: "number", default: "2", description: "How many pages to show on each side of the current page." },
+      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
+    ],
+    previewCode: `import Pagination from "@/components/pagination";
+
+export default function PaginationPreview() {
+  return <Pagination />;
+}
+`,
+    sourceCode: `"use client"
+
+import * as React from "react"
+import { motion, LayoutGroup, type Transition } from "framer-motion"
+
+const h = React.createElement
+
+function cn(...classes: Array<string | false | null | undefined>): string {
+  return classes.filter(Boolean).join(" ")
+}
+
+export type PaginationVariant = "pills" | "outline" | "compact" | "input"
+
+export interface PaginationProps {
+  totalPages?: number
+  page?: number
+  defaultPage?: number
+  initialPage?: number
+  onPageChange?: (page: number) => void
+  variant?: PaginationVariant
+  showInput?: boolean
+  disabled?: boolean
+  siblingCount?: number
+  className?: string
+}
+
+type PageItem = number | "ellipsis"
+
+function getPageRange(
+  current: number,
+  total: number,
+  siblingCount: number,
+  boundaryCount: number
+): PageItem[] {
+  const safeTotal = Math.max(1, Math.floor(total))
+  const safeCurrent = Math.min(Math.max(1, Math.floor(current)), safeTotal)
+  const safeSiblingCount = Math.max(0, Math.floor(siblingCount))
+  const safeBoundaryCount = Math.max(0, Math.floor(boundaryCount))
+  const clamp = (n: number) => Math.min(Math.max(n, 1), safeTotal)
+
+  const visible = new Set<number>()
+  for (let i = 1; i <= Math.min(safeBoundaryCount, safeTotal); i++) visible.add(i)
+  for (let i = Math.max(safeTotal - safeBoundaryCount + 1, 1); i <= safeTotal; i++) visible.add(i)
+  for (let i = clamp(safeCurrent - safeSiblingCount); i <= clamp(safeCurrent + safeSiblingCount); i++) {
+    visible.add(i)
+  }
+  visible.add(1)
+  visible.add(safeTotal)
+
+  const sorted = Array.from(visible).sort((a, b) => a - b)
+  const items: PageItem[] = []
+
+  sorted.forEach((num, idx) => {
+    if (idx > 0) {
+      const prev = sorted[idx - 1]
+      const gap = num - prev
+      if (gap === 2) {
+        items.push(prev + 1)
+      } else if (gap > 2) {
+        items.push("ellipsis")
+      }
+    }
+    items.push(num)
+  })
+
+  return items
+}
+
+function usePageWindow(
+  page: number,
+  totalPages: number,
+  siblingCount: number,
+  isCompact: boolean
+): PageItem[] {
+  const effectiveSibling = isCompact ? Math.min(siblingCount, 1) : siblingCount
+  return React.useMemo(
+    () => getPageRange(page, totalPages, effectiveSibling, 1),
+    [page, totalPages, effectiveSibling]
+  )
+}
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = React.useState(false)
+
+  React.useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setReduced(query.matches)
+    const listener = (event: MediaQueryListEvent) => setReduced(event.matches)
+    query.addEventListener("change", listener)
+    return () => query.removeEventListener("change", listener)
+  }, [])
+
+  return reduced
+}
+
+function useIsCompactViewport(breakpointPx = 480): boolean {
+  const [isCompact, setIsCompact] = React.useState(false)
+
+  React.useEffect(() => {
+    const query = window.matchMedia(\`(max-width: \${breakpointPx}px)\`)
+    setIsCompact(query.matches)
+    const listener = (event: MediaQueryListEvent) => setIsCompact(event.matches)
+    query.addEventListener("change", listener)
+    return () => query.removeEventListener("change", listener)
+  }, [breakpointPx])
+
+  return isCompact
+}
+
+function useIndicatorTransition(): Transition {
+  const reducedMotion = usePrefersReducedMotion()
+  if (reducedMotion) return { duration: 0 }
+  return { type: "spring", stiffness: 500, damping: 40, mass: 0.8 }
+}
+
+function usePaginationState({
+  totalPages,
+  page: controlledPage,
+  defaultPage,
+  onPageChange,
+}: {
+  totalPages: number
+  page?: number
+  defaultPage?: number
+  onPageChange?: (page: number) => void
+}) {
+  const isControlled = controlledPage !== undefined
+  const [internalPage, setInternalPage] = React.useState(defaultPage ?? 1)
+  const page = isControlled ? (controlledPage as number) : internalPage
+
+  const setPage = React.useCallback(
+    (next: number) => {
+      const clamped = Math.min(Math.max(next, 1), Math.max(1, totalPages))
+      if (!isControlled) setInternalPage(clamped)
+      onPageChange?.(clamped)
+    },
+    [isControlled, totalPages, onPageChange]
+  )
+
+  return [page, setPage] as const
+}
+
+function ChevronLeftIcon(props: React.SVGProps<SVGSVGElement>) {
+  return h(
+    "svg",
+    { viewBox: "0 0 24 24", fill: "none", "aria-hidden": "true", ...props },
+    h("path", {
+      d: "M15 6l-6 6 6 6",
+      stroke: "currentColor",
+      strokeWidth: 2,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+    })
+  )
+}
+
+function ChevronRightIcon(props: React.SVGProps<SVGSVGElement>) {
+  return h(
+    "svg",
+    { viewBox: "0 0 24 24", fill: "none", "aria-hidden": "true", ...props },
+    h("path", {
+      d: "M9 6l6 6-6 6",
+      stroke: "currentColor",
+      strokeWidth: 2,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+    })
+  )
+}
+
+interface VariantProps {
+  page: number
+  totalPages: number
+  onChange: (page: number) => void
+  disabled?: boolean
+  siblingCount: number
+}
+
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900"
+
+const interactiveCursor = "cursor-pointer disabled:cursor-not-allowed"
+
+function renderEllipsis(tag: "li" | "span", key: string, className: string) {
+  return h(tag, { key, className }, "\\u2026")
+}
+
+function PillsPagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
+  const transition = useIndicatorTransition()
+  const isCompact = useIsCompactViewport()
+  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
+
+  const prevButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Previous page",
+      disabled: disabled || page <= 1,
+      onClick: () => onChange(page - 1),
+      className: cn(
+        "grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-neutral-500 shadow-sm ring-1 ring-black/5 transition-colors",
+        "max-[480px]:h-9 max-[480px]:w-9",
+        "hover:text-neutral-900 disabled:opacity-40 disabled:hover:text-neutral-500",
+        "dark:bg-neutral-800 dark:text-neutral-400 dark:ring-white/10 dark:hover:text-white",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronLeftIcon, { className: "h-4 w-4" })
+  )
+
+  const nextButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Next page",
+      disabled: disabled || page >= totalPages,
+      onClick: () => onChange(page + 1),
+      className: cn(
+        "grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-neutral-500 shadow-sm ring-1 ring-black/5 transition-colors",
+        "max-[480px]:h-9 max-[480px]:w-9",
+        "hover:text-neutral-900 disabled:opacity-40 disabled:hover:text-neutral-500",
+        "dark:bg-neutral-800 dark:text-neutral-400 dark:ring-white/10 dark:hover:text-white",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronRightIcon, { className: "h-4 w-4" })
+  )
+
+  const numberItems = items.map((item, index) => {
+    if (item === "ellipsis") {
+      return renderEllipsis(
+        "li",
+        \`ellipsis-\${index}\`,
+        "grid h-9 w-5 shrink-0 place-items-center text-sm text-neutral-400 max-[480px]:h-8 max-[480px]:w-4 max-[480px]:text-xs dark:text-neutral-500"
+      )
+    }
+    const isActive = item === page
+    return h(
+      "li",
+      { key: item, className: "shrink-0" },
+      h(
+        "button",
+        {
+          type: "button",
+          disabled: disabled,
+          "aria-current": isActive ? "page" : undefined,
+          "aria-label": \`Go to page \${item}\`,
+          onClick: () => onChange(item),
+          className: cn(
+            "relative grid h-9 w-9 place-items-center rounded-full text-sm font-medium transition-colors max-[480px]:h-8 max-[480px]:w-8 max-[480px]:text-xs",
+            isActive ? "text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700/60",
+            interactiveCursor,
+            focusRing
+          ),
+        },
+        isActive &&
+          h(motion.span, {
+            layoutId: "pills-active",
+            transition,
+            className: "absolute inset-0 rounded-full bg-indigo-600",
+          }),
+        h("span", { className: "relative z-10" }, item)
+      )
+    )
+  })
+
+  const numbersList = h(
+    "ul",
+    {
+      className:
+        "flex shrink-0 items-center gap-1 overflow-hidden rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-black/5 max-[480px]:gap-0.5 max-[480px]:px-2 max-[480px]:py-1 dark:bg-neutral-800 dark:ring-white/10",
+    },
+    numberItems
+  )
+
+  const group = h(
+    "div",
+    { className: "inline-flex max-w-full items-center gap-3 max-[480px]:gap-1.5" },
+    prevButton,
+    numbersList,
+    nextButton
+  )
+
+  return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, group)
+}
+
+function OutlinePagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
+  const transition = useIndicatorTransition()
+  const isCompact = useIsCompactViewport()
+  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
+
+  const prevButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Previous page",
+      disabled: disabled || page <= 1,
+      onClick: () => onChange(page - 1),
+      className: cn(
+        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-indigo-600 transition-colors max-[480px]:h-7 max-[480px]:w-7",
+        "hover:bg-indigo-50 disabled:opacity-30 disabled:hover:bg-transparent",
+        "dark:text-indigo-400 dark:hover:bg-indigo-500/10",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronLeftIcon, { className: "h-4 w-4" })
+  )
+
+  const nextButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Next page",
+      disabled: disabled || page >= totalPages,
+      onClick: () => onChange(page + 1),
+      className: cn(
+        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-indigo-600 transition-colors max-[480px]:h-7 max-[480px]:w-7",
+        "hover:bg-indigo-50 disabled:opacity-30 disabled:hover:bg-transparent",
+        "dark:text-indigo-400 dark:hover:bg-indigo-500/10",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronRightIcon, { className: "h-4 w-4" })
+  )
+
+  const numberItems = items.map((item, index) => {
+    if (item === "ellipsis") {
+      return renderEllipsis(
+        "span",
+        \`ellipsis-\${index}\`,
+        "grid h-8 w-5 shrink-0 place-items-center text-sm text-neutral-400 max-[480px]:h-7 max-[480px]:w-4 max-[480px]:text-xs dark:text-neutral-500"
+      )
+    }
+    const isActive = item === page
+    return h(
+      "button",
+      {
+        key: item,
+        type: "button",
+        disabled: disabled,
+        "aria-current": isActive ? "page" : undefined,
+        "aria-label": \`Go to page \${item}\`,
+        onClick: () => onChange(item),
+        className: cn(
+          "relative grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-medium transition-colors max-[480px]:h-7 max-[480px]:w-7 max-[480px]:text-xs",
+          isActive
+            ? "text-indigo-600 dark:text-indigo-400"
+            : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
+          interactiveCursor,
+          focusRing
+        ),
+      },
+      isActive &&
+        h(motion.span, {
+          layoutId: "outline-active",
+          transition,
+          className: "absolute inset-0 rounded-lg ring-2 ring-indigo-600 dark:ring-indigo-400",
+        }),
+      h("span", { className: "relative z-10" }, item)
+    )
+  })
+
+  const numbersRow = h("div", { className: "flex shrink-0 items-center gap-1 py-0.5" }, numberItems)
+
+  const box = h(
+    "div",
+    {
+      className: cn(
+        "box-border inline-flex max-w-full items-center gap-5 rounded-2xl border border-neutral-200 bg-white px-8 py-2 shadow-sm",
+        "max-[480px]:gap-1 max-[480px]:px-2 max-[480px]:py-2",
+        "dark:border-neutral-800 dark:bg-neutral-900"
+      ),
+    },
+    prevButton,
+    numbersRow,
+    nextButton
+  )
+
+  return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, box)
+}
+
+function CompactPagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
+  const transition = useIndicatorTransition()
+  const isCompact = useIsCompactViewport()
+  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
+
+  const numberItems = items.map((item, index) => {
+    if (item === "ellipsis") {
+      return renderEllipsis(
+        "li",
+        \`ellipsis-\${index}\`,
+        "grid h-7 w-4 shrink-0 place-items-center text-xs text-neutral-400 dark:text-neutral-500"
+      )
+    }
+    const isActive = item === page
+    return h(
+      "li",
+      { key: item, className: "shrink-0" },
+      h(
+        "button",
+        {
+          type: "button",
+          disabled: disabled,
+          "aria-current": isActive ? "page" : undefined,
+          "aria-label": \`Go to page \${item}\`,
+          onClick: () => onChange(item),
+          className: cn(
+            "relative grid h-7 w-7 place-items-center rounded-md text-xs font-medium transition-colors max-[480px]:h-6 max-[480px]:w-6",
+            isActive ? "text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
+            interactiveCursor,
+            focusRing
+          ),
+        },
+        isActive &&
+          h(motion.span, {
+            layoutId: "compact-active",
+            transition,
+            className: "absolute inset-0 rounded-md bg-indigo-600",
+          }),
+        h("span", { className: "relative z-10" }, item)
+      )
+    )
+  })
+
+  const numbersList = h("ul", { className: "flex shrink-0 items-center gap-1" }, numberItems)
+
+  const prevButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Previous page",
+      disabled: disabled || page <= 1,
+      onClick: () => onChange(page - 1),
+      className: cn(
+        "grid h-7 w-7 place-items-center rounded-md bg-neutral-100 text-neutral-500 transition-colors max-[480px]:h-6 max-[480px]:w-6",
+        "hover:text-neutral-900 disabled:opacity-40 disabled:hover:text-neutral-500",
+        "dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-white",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronLeftIcon, { className: "h-3.5 w-3.5" })
+  )
+
+  const nextButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Next page",
+      disabled: disabled || page >= totalPages,
+      onClick: () => onChange(page + 1),
+      className: cn(
+        "grid h-7 w-7 place-items-center rounded-md bg-indigo-600 text-white transition-colors max-[480px]:h-6 max-[480px]:w-6",
+        "hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronRightIcon, { className: "h-3.5 w-3.5" })
+  )
+
+  const controls = h("div", { className: "flex shrink-0 items-center gap-1" }, prevButton, nextButton)
+
+  const box = h(
+    "div",
+    {
+      className: cn(
+        "box-border inline-flex max-w-full items-center gap-5 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-sm",
+        "max-[480px]:gap-3 max-[480px]:px-2 max-[480px]:py-1.5",
+        "dark:border-neutral-800 dark:bg-neutral-900"
+      ),
+    },
+    numbersList,
+    controls
+  )
+
+  return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, box)
+}
+
+function InputPagination({
+  page,
+  totalPages,
+  onChange,
+  disabled,
+  siblingCount,
+  showInput = true,
+}: VariantProps & { showInput?: boolean }) {
+  const transition = useIndicatorTransition()
+  const isCompact = useIsCompactViewport()
+  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
+  const [inputValue, setInputValue] = React.useState("")
+  const inputId = React.useId()
+
+  const submitGoTo = () => {
+    const parsed = Number.parseInt(inputValue, 10)
+    if (Number.isNaN(parsed)) {
+      setInputValue("")
+      return
+    }
+    const clamped = Math.min(Math.max(parsed, 1), totalPages)
+    onChange(clamped)
+    setInputValue("")
+  }
+
+  const prevButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Previous page",
+      disabled: disabled || page <= 1,
+      onClick: () => onChange(page - 1),
+      className: cn(
+        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors",
+        "hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent",
+        "dark:text-neutral-400 dark:hover:bg-neutral-800",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronLeftIcon, { className: "h-4 w-4" })
+  )
+
+  const nextButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Next page",
+      disabled: disabled || page >= totalPages,
+      onClick: () => onChange(page + 1),
+      className: cn(
+        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors",
+        "hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent",
+        "dark:text-neutral-400 dark:hover:bg-neutral-800",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronRightIcon, { className: "h-4 w-4" })
+  )
+
+  const numberItems = items.map((item, index) => {
+    if (item === "ellipsis") {
+      return renderEllipsis(
+        "li",
+        \`ellipsis-\${index}\`,
+        "grid h-8 w-4 shrink-0 place-items-center text-sm text-neutral-400 max-[480px]:h-7 max-[480px]:text-xs dark:text-neutral-500"
+      )
+    }
+    const isActive = item === page
+    return h(
+      "li",
+      { key: item, className: "shrink-0" },
+      h(
+        "button",
+        {
+          type: "button",
+          disabled: disabled,
+          "aria-current": isActive ? "page" : undefined,
+          "aria-label": \`Go to page \${item}\`,
+          onClick: () => onChange(item),
+          className: cn(
+            "relative grid h-8 w-8 place-items-center rounded-lg text-sm font-medium transition-colors max-[480px]:h-7 max-[480px]:w-7 max-[480px]:text-xs",
+            isActive ? "text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
+            interactiveCursor,
+            focusRing
+          ),
+        },
+        isActive &&
+          h(motion.span, {
+            layoutId: "input-active",
+            layout: true,
+            transition,
+            style: { rotate: 45 },
+            className: "absolute inset-1 rounded-md bg-indigo-600",
+          }),
+        h("span", { className: "relative z-10" }, item)
+      )
+    )
+  })
+
+  const numbersList = h("ul", { className: "flex shrink-0 items-center gap-1 px-0.5" }, numberItems)
+
+  const nav = h(
+    "nav",
+    {
+      "aria-label": "Pagination",
+      className: "inline-flex shrink-0 items-center gap-1 max-[480px]:w-full max-[480px]:justify-center",
+    },
+    prevButton,
+    numbersList,
+    nextButton
+  )
+
+  const goToForm = showInput
+    ? h(
+        "form",
+        {
+          className: "inline-flex shrink-0 items-center gap-2 max-[480px]:w-full max-[480px]:justify-center",
+          onSubmit: (event: React.FormEvent) => {
+            event.preventDefault()
+            submitGoTo()
+          },
+        },
+        h(
+          "label",
+          {
+            htmlFor: inputId,
+            className: "whitespace-nowrap text-sm text-neutral-500 max-[480px]:text-xs dark:text-neutral-400",
+          },
+          "Go to page"
+        ),
+        h("input", {
+          id: inputId,
+          type: "text",
+          inputMode: "numeric",
+          disabled: disabled,
+          value: inputValue,
+          onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
+            setInputValue(event.target.value.replace(/[^0-9]/g, "")),
+          placeholder: String(page),
+          className: cn(
+            "h-8 w-14 shrink-0 rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm text-neutral-800 transition-colors max-[480px]:h-7 max-[480px]:w-11 max-[480px]:text-xs",
+            "placeholder:text-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100",
+            focusRing
+          ),
+        }),
+        h(
+          "button",
+          {
+            type: "submit",
+            disabled: disabled || inputValue === "",
+            className: cn(
+              "flex h-8 shrink-0 items-center gap-1 rounded-lg bg-indigo-600 px-3 text-sm font-medium text-white transition-colors max-[480px]:h-7 max-[480px]:px-2 max-[480px]:text-xs",
+              "hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600",
+              interactiveCursor,
+              focusRing
+            ),
+          },
+          "Go",
+          h(ChevronRightIcon, { className: "h-3.5 w-3.5" })
+        )
+      )
+    : null
+
+  const box = h(
+    "div",
+    {
+      className: cn(
+        "box-border flex max-w-full flex-col items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm",
+        "min-[481px]:w-fit min-[481px]:flex-row min-[481px]:gap-4 min-[481px]:rounded-full min-[481px]:py-2",
+        "max-[480px]:w-full",
+        "dark:border-neutral-800 dark:bg-neutral-900"
+      ),
+    },
+    nav,
+    goToForm
+  )
+
+  return h("div", { className: "flex w-full items-center justify-center" }, box)
+}
+
+function PaginationInstance({
+  variant,
+  totalPages,
+  initialPage,
+  siblingCount,
+  disabled,
+  showInput,
+}: {
+  variant: PaginationVariant
+  totalPages: number
+  initialPage: number
+  siblingCount: number
+  disabled?: boolean
+  showInput?: boolean
+}) {
+  const groupId = React.useId()
+  const [page, setPage] = usePaginationState({ totalPages, defaultPage: initialPage })
+  const shared: VariantProps = { page, totalPages, onChange: setPage, disabled, siblingCount }
+
+  let content: React.ReactNode = null
+  if (variant === "pills") content = h(PillsPagination, shared)
+  else if (variant === "outline") content = h(OutlinePagination, shared)
+  else if (variant === "compact") content = h(CompactPagination, shared)
+  else if (variant === "input") content = h(InputPagination, { ...shared, showInput: showInput ?? true })
+
+  return h(LayoutGroup, { id: \`pagination-\${variant}-\${groupId}\` }, content)
+}
+
+export default function Pagination({
+  totalPages = 40,
+  page,
+  defaultPage,
+  initialPage,
+  onPageChange,
+  variant,
+  showInput = true,
+  disabled = false,
+  siblingCount = 2,
+  className,
+}: PaginationProps) {
+  const singleGroupId = React.useId()
+  const [singlePage, setSinglePage] = usePaginationState({
+    totalPages,
+    page,
+    defaultPage: defaultPage ?? initialPage ?? 1,
+    onPageChange,
+  })
+
+  if (variant) {
+    const shared: VariantProps = { page: singlePage, totalPages, onChange: setSinglePage, disabled, siblingCount }
+    let content: React.ReactNode = null
+    if (variant === "pills") content = h(PillsPagination, shared)
+    else if (variant === "outline") content = h(OutlinePagination, shared)
+    else if (variant === "compact") content = h(CompactPagination, shared)
+    else if (variant === "input") content = h(InputPagination, { ...shared, showInput })
+
+    return h(
+      LayoutGroup,
+      { id: \`pagination-\${variant}-\${singleGroupId}\` },
+      h("div", { className: cn("w-full", className) }, content)
+    )
+  }
+
+  const seed = defaultPage ?? initialPage ?? 3
+
+  return h(
+    "div",
+    { className: cn("mx-auto flex w-full max-w-[860px] flex-col gap-7", className) },
+    h(PaginationInstance, { variant: "pills", totalPages, initialPage: seed, siblingCount, disabled }),
+    h(PaginationInstance, { variant: "outline", totalPages, initialPage: seed, siblingCount, disabled }),
+    h(PaginationInstance, { variant: "compact", totalPages, initialPage: seed, siblingCount, disabled }),
+    h(PaginationInstance, { variant: "input", totalPages, initialPage: seed, siblingCount, disabled, showInput })
+  )
+}
+`,
+  },
 ];
 
 export function getComponentBySlug(slug: string): ComponentEntry | undefined {
