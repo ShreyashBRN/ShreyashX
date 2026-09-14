@@ -2597,6 +2597,522 @@ export default function OtpShowcase() {
 }
 `,
   },
+
+
+
+  {
+    slug: "buttons",
+    name: "Buttons",
+    cardDescription:
+      "Four animated button interactions — Staggered Letter Lift, Single Liquid Bubble, Magnetic, Press/Squish — monochrome, independently stateful, and built on identical geometry.",
+    fullDescription:
+      "A self-contained set of four animated button interactions, each fully independent. Per-letter clip/lift typography, a single deformable liquid blob, cursor-following magnetic pull, and a tactile press/squish — all sharing the same button geometry so no animation ever resizes the layout.",
+    icon: "MousePointerClick",
+    status: "new",
+    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/buttons.json",
+    importStatement: `import ButtonsShowcase, { AnimatedButton } from "@/components/buttons"`,
+    usageJsx: `<AnimatedButton variant="magnetic" />`,
+    props: [
+      { property: "variant", type: `"letters" | "liquid" | "magnetic" | "press"`, default: "-", description: "Which single interaction to render." },
+      { property: "label", type: "string", default: `"HELLO"`, description: "Button text." },
+      { property: "onClick", type: "function", default: "-", description: "Called on click/activation." },
+      { property: "theme", type: `"light" | "dark" | "system"`, default: "system", description: "Color theme for the button surface, text, and effects." },
+      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost element." },
+    ],
+    previewCode: `import ButtonsShowcase from "@/components/buttons";
+
+export default function ButtonsPreview() {
+  return <ButtonsShowcase />;
+}
+`,
+    sourceCode: `"use client";
+
+/**
+ * Buttons — four independently-stateful animated button interactions:
+ * Staggered Letter Lift, Single Liquid Bubble, Magnetic, and Press/Squish.
+ *
+ * Dependencies: framer-motion, tailwindcss
+ *
+ * Exports:
+ *   - AnimatedButton (named) → a single variant. <AnimatedButton variant="magnetic" />
+ *   - ButtonsShowcase (default) → the 2x2 / stacked demo grid with all four,
+ *                                  each with its name below it.
+ */
+
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  useTransform,
+  type MotionStyle,
+} from "framer-motion";
+
+/* ------------------------------------------------------------------ */
+/*  utils                                                              */
+/* ------------------------------------------------------------------ */
+
+function cn(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
+
+type ThemeMode = "light" | "dark";
+
+/** Tracks the site's class-based dark-mode toggle (Tailwind darkMode:'class'
+ *  on <html>/<body>), falling back to the OS-level media query. */
+function useResolvedTheme(theme: ThemeMode | "system" = "system"): ThemeMode {
+  const [resolved, setResolved] = useState<ThemeMode>("light");
+
+  useEffect(() => {
+    if (theme !== "system") {
+      setResolved(theme);
+      return;
+    }
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
+    const hasDarkClass = () =>
+      document.documentElement.classList.contains("dark") || document.body.classList.contains("dark");
+
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    const update = () => setResolved(hasDarkClass() ? "dark" : mq?.matches ? "dark" : "light");
+
+    update();
+
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    mq?.addEventListener("change", update);
+
+    return () => {
+      observer.disconnect();
+      mq?.removeEventListener("change", update);
+    };
+  }, [theme]);
+
+  return resolved;
+}
+
+/** True only for devices that can genuinely hover with a fine pointer
+ *  (mouse/trackpad) — used to keep the magnetic effect off touchscreens. */
+function useCanHover(): boolean {
+  const [canHover, setCanHover] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setCanHover(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  return canHover;
+}
+
+/* ------------------------------------------------------------------ */
+/*  shared geometry + color tokens                                     */
+/* ------------------------------------------------------------------ */
+
+// Every variant shares this exact box so no animation can ever change the
+// layout: same width, height, radius, and type scale across all four.
+const SHELL_SIZE = "w-[clamp(152px,40vw,190px)] h-[clamp(48px,13vw,56px)]";
+const SHELL_TEXT = "text-[clamp(14px,3.6vw,16px)]";
+const SHELL_BASE = cn(
+  "group relative inline-flex select-none items-center justify-center overflow-hidden",
+  "rounded-full font-medium tracking-wide outline-none",
+  "cursor-pointer transition-shadow duration-300",
+  "focus-visible:ring-2 focus-visible:ring-black/50 dark:focus-visible:ring-white/60"
+);
+
+interface ThemeColors {
+  bg: string;
+  text: string;
+  liquidFill: string;
+  idleShadow: string;
+  hoverShadow: string;
+  pressedShadow: string;
+}
+
+function colorsFor(theme: ThemeMode): ThemeColors {
+  if (theme === "dark") {
+    return {
+      bg: "#f2f2f2",
+      text: "#111111",
+      liquidFill: "rgba(0,0,0,0.09)",
+      idleShadow: "0 1px 1px rgba(0,0,0,0.5), 0 10px 26px -12px rgba(0,0,0,0.7)",
+      hoverShadow: "0 1px 1px rgba(0,0,0,0.5), 0 14px 30px -12px rgba(0,0,0,0.75)",
+      pressedShadow: "0 1px 1px rgba(0,0,0,0.4), 0 4px 10px -4px rgba(0,0,0,0.6)",
+    };
+  }
+  return {
+    bg: "#121212",
+    text: "#fafafa",
+    liquidFill: "rgba(255,255,255,0.14)",
+    idleShadow: "0 1px 1px rgba(0,0,0,0.05), 0 10px 22px -10px rgba(0,0,0,0.35)",
+    hoverShadow: "0 1px 1px rgba(0,0,0,0.06), 0 16px 28px -10px rgba(0,0,0,0.4)",
+    pressedShadow: "0 1px 1px rgba(0,0,0,0.08), 0 4px 8px -4px rgba(0,0,0,0.3)",
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Variant 1 — Staggered Letter Lift                                   */
+/* ------------------------------------------------------------------ */
+/* Pure CSS per-letter flip, driven by :hover via the shared "group"     */
+/* class on the button. Each letter sits in its own fixed-height,        */
+/* overflow-hidden window; hovering translates every letter up and out   */
+/* of that window, staggered left-to-right by transition-delay. Because  */
+/* transition-delay applies symmetrically, leaving reverses in the same  */
+/* left-to-right order — exactly the "H first, both ways" behavior the   */
+/* spec calls for — with no extra JS needed.                             */
+
+function LetterLiftContent({ label, reduceMotion }: { label: string; reduceMotion: boolean }) {
+  const letters = Array.from(label);
+  return (
+    <span className="relative z-10 flex leading-none">
+      {letters.map((ch, i) => (
+        <span key={i} className="relative block h-[1.15em] overflow-hidden">
+          <span
+            className={cn(
+              "block will-change-transform ease-[cubic-bezier(0.65,0,0.35,1)]",
+              reduceMotion ? "" : "duration-500 group-hover:-translate-y-full"
+            )}
+            style={reduceMotion ? undefined : { transitionDelay: \`\${i * 45}ms\`, transitionProperty: "transform" }}
+          >
+            {ch === " " ? "\\u00A0" : ch}
+          </span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Variant 2 — Single Liquid Bubble                                    */
+/* ------------------------------------------------------------------ */
+/* One deformable blob (a single element) that originates from whichever */
+/* edge the pointer entered from, expands to that boundary, then follows */
+/* the pointer with elastic spring physics — stretching along its travel */
+/* direction so it reads as fluid rather than a rigid circle. Clipped by */
+/* the button's own overflow-hidden, so it can never escape the shape.   */
+
+function LiquidBubbleContent({
+  label,
+  fill,
+  reduceMotion,
+}: {
+  label: string;
+  fill: string;
+  reduceMotion: boolean;
+}) {
+  const rectRef = useRef<DOMRect | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const stretch = useMotionValue(1);
+
+  const springX = useSpring(x, { stiffness: 240, damping: 24, mass: 0.6 });
+  const springY = useSpring(y, { stiffness: 240, damping: 24, mass: 0.6 });
+  const springScale = useSpring(visible ? 1 : 0.15, { stiffness: 260, damping: 22 });
+  const springStretch = useSpring(stretch, { stiffness: 200, damping: 18 });
+
+  const lastX = useRef(0);
+
+  const scaleX = useTransform([springScale, springStretch], ([s, st]: number[]) => s * st);
+  const scaleY = useTransform([springScale, springStretch], ([s, st]: number[]) => s * (2 - st));
+
+  const sideFromEvent = useCallback((e: React.PointerEvent<HTMLButtonElement>, rect: DOMRect) => {
+    const relX = e.clientX - rect.left;
+    return relX < rect.width / 2 ? "left" : "right";
+  }, []);
+
+  const handleEnter = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (reduceMotion) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      rectRef.current = rect;
+      const side = sideFromEvent(e, rect);
+      lastX.current = e.clientX - rect.left;
+      // Originate just off the entry edge, then expand toward that boundary.
+      x.set(side === "left" ? rect.width * -0.15 : rect.width * 1.15);
+      y.set(e.clientY - rect.top);
+      setVisible(true);
+      requestAnimationFrame(() => {
+        x.set(side === "left" ? rect.width * 0.1 : rect.width * 0.9);
+      });
+    },
+    [reduceMotion, sideFromEvent, x, y]
+  );
+
+  const handleMove = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (reduceMotion || !visible) return;
+      const rect = rectRef.current ?? e.currentTarget.getBoundingClientRect();
+      const nextX = e.clientX - rect.left;
+      const velocity = nextX - lastX.current;
+      lastX.current = nextX;
+      const normalized = Math.max(-1, Math.min(1, velocity / 18));
+      stretch.set(1 + Math.abs(normalized) * 0.35);
+      x.set(nextX);
+      y.set(e.clientY - rect.top);
+    },
+    [reduceMotion, visible, stretch, x, y]
+  );
+
+  const handleLeave = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (reduceMotion) {
+        setVisible(false);
+        return;
+      }
+      const rect = rectRef.current ?? e.currentTarget.getBoundingClientRect();
+      const side = sideFromEvent(e, rect);
+      x.set(side === "left" ? rect.width * -0.15 : rect.width * 1.15);
+      stretch.set(1);
+      setVisible(false);
+    },
+    [reduceMotion, sideFromEvent, x]
+  );
+
+  return (
+    <>
+      {/* Invisible full-size hit layer that owns all pointer tracking. */}
+      <span
+        className="absolute inset-0 z-20"
+        onPointerEnter={handleEnter}
+        onPointerMove={handleMove}
+        onPointerLeave={handleLeave}
+      />
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute rounded-full blur-[7px]"
+        style={{
+          width: "62%",
+          height: "220%",
+          left: 0,
+          top: "-60%",
+          translateX: "-50%",
+          x: springX,
+          y: springY,
+          scaleX,
+          scaleY,
+          background: fill,
+        }}
+      />
+      <span className="relative z-10">{label}</span>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Variant 3 — Magnetic                                                */
+/* ------------------------------------------------------------------ */
+/* The whole button eases a few pixels toward the pointer, clamped to a  */
+/* small max offset, with an extremely subtle rotation for physicality. */
+/* Disabled on touch/coarse-pointer devices. Only this button's motion   */
+/* values change — the grid and its siblings are never touched.         */
+
+function useMagneticTransform(enabled: boolean) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 300, damping: 22, mass: 0.5 });
+  const springY = useSpring(y, { stiffness: 300, damping: 22, mass: 0.5 });
+  const rotate = useTransform(springX, [-14, 14], [-2.5, 2.5]);
+
+  const MAX_OFFSET = 12;
+  const PULL = 0.35;
+
+  const handleMove = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (!enabled) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const relX = e.clientX - rect.left - rect.width / 2;
+      const relY = e.clientY - rect.top - rect.height / 2;
+      x.set(Math.max(-MAX_OFFSET, Math.min(MAX_OFFSET, relX * PULL)));
+      y.set(Math.max(-MAX_OFFSET, Math.min(MAX_OFFSET, relY * PULL)));
+    },
+    [enabled, x, y]
+  );
+
+  const handleLeave = useCallback(() => {
+    x.set(0);
+    y.set(0);
+  }, [x, y]);
+
+  return { springX, springY, rotate, handleMove, handleLeave };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Variant 4 — Press / Squish                                          */
+/* ------------------------------------------------------------------ */
+/* Idle → a small hover lift → a visible compression on press/hold that  */
+/* also flattens the shadow, then a smooth spring release. Pointer AND   */
+/* keyboard (Space/Enter) both drive the same pressed state.             */
+
+function usePressSquish() {
+  const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
+
+  const onPointerEnter = useCallback(() => setHovered(true), []);
+  const onPointerLeave = useCallback(() => {
+    setHovered(false);
+    setPressed(false);
+  }, []);
+  const onPointerDown = useCallback(() => setPressed(true), []);
+  const onPointerUp = useCallback(() => setPressed(false), []);
+  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "Enter" || e.key === " ") setPressed(true);
+  }, []);
+  const onKeyUp = useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "Enter" || e.key === " ") setPressed(false);
+  }, []);
+
+  return { hovered, pressed, onPointerEnter, onPointerLeave, onPointerDown, onPointerUp, onKeyDown, onKeyUp };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Public API                                                          */
+/* ------------------------------------------------------------------ */
+
+export type ButtonVariant = "letters" | "liquid" | "magnetic" | "press";
+
+export interface AnimatedButtonProps {
+  /** Which single interaction to render. */
+  variant: ButtonVariant;
+  /** Button label. Defaults to "HELLO". */
+  label?: string;
+  /** Called on click/activation. */
+  onClick?: () => void;
+  /** Force a theme instead of following the site's toggle. */
+  theme?: ThemeMode | "system";
+  /** Extra classes on the outermost element. */
+  className?: string;
+}
+
+export function AnimatedButton({
+  variant,
+  label = "HELLO",
+  onClick,
+  theme = "system",
+  className,
+}: AnimatedButtonProps) {
+  const resolvedTheme = useResolvedTheme(theme);
+  const colors = colorsFor(resolvedTheme);
+  const reduceMotion = useReducedMotion() ?? false;
+  const canHover = useCanHover();
+
+  const magnetic = useMagneticTransform(variant === "magnetic" && canHover && !reduceMotion);
+  const press = usePressSquish();
+
+  const shellStyle: React.CSSProperties = {
+    backgroundColor: colors.bg,
+    color: colors.text,
+  };
+
+  if (variant === "letters") {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(SHELL_BASE, SHELL_SIZE, SHELL_TEXT, className)}
+        style={{ ...shellStyle, boxShadow: colors.idleShadow }}
+      >
+        <LetterLiftContent label={label} reduceMotion={reduceMotion} />
+      </button>
+    );
+  }
+
+  if (variant === "liquid") {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(SHELL_BASE, SHELL_SIZE, SHELL_TEXT, className)}
+        style={{ ...shellStyle, boxShadow: colors.idleShadow }}
+      >
+        <LiquidBubbleContent label={label} fill={colors.liquidFill} reduceMotion={reduceMotion} />
+      </button>
+    );
+  }
+
+  if (variant === "magnetic") {
+    const motionStyle: MotionStyle = {
+      ...shellStyle,
+      boxShadow: colors.idleShadow,
+      x: magnetic.springX,
+      y: magnetic.springY,
+      rotate: canHover && !reduceMotion ? magnetic.rotate : 0,
+    };
+    return (
+      <motion.button
+        type="button"
+        onClick={onClick}
+        onPointerMove={magnetic.handleMove}
+        onPointerLeave={magnetic.handleLeave}
+        className={cn(SHELL_BASE, SHELL_SIZE, SHELL_TEXT, className)}
+        style={motionStyle}
+      >
+        <span className="relative z-10">{label}</span>
+      </motion.button>
+    );
+  }
+
+  // variant === "press"
+  const targetShadow = press.pressed ? colors.pressedShadow : press.hovered ? colors.hoverShadow : colors.idleShadow;
+  const targetY = reduceMotion ? 0 : press.pressed ? 1 : press.hovered ? -2 : 0;
+  const targetScale = reduceMotion ? 1 : press.pressed ? 0.94 : 1;
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      onPointerEnter={press.onPointerEnter}
+      onPointerLeave={press.onPointerLeave}
+      onPointerDown={press.onPointerDown}
+      onPointerUp={press.onPointerUp}
+      onKeyDown={press.onKeyDown}
+      onKeyUp={press.onKeyUp}
+      className={cn(SHELL_BASE, SHELL_SIZE, SHELL_TEXT, className)}
+      style={shellStyle}
+      animate={{ y: targetY, scale: targetScale, boxShadow: targetShadow }}
+      transition={{ type: "spring", stiffness: 500, damping: 28, mass: 0.6 }}
+    >
+      <span className="relative z-10">{label}</span>
+    </motion.button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Demo showcase                                                       */
+/* ------------------------------------------------------------------ */
+
+const VARIANTS: Array<{ variant: ButtonVariant; name: string }> = [
+  { variant: "letters", name: "Staggered Letter Lift" },
+  { variant: "liquid", name: "Single Liquid Bubble" },
+  { variant: "magnetic", name: "Magnetic" },
+  { variant: "press", name: "Press / Squish" },
+];
+
+export default function ButtonsShowcase() {
+  return (
+    <div className="grid w-full grid-cols-1 place-items-center gap-y-10 gap-x-10 sm:grid-cols-2 sm:gap-y-14">
+      {VARIANTS.map(({ variant, name }) => (
+        <div key={variant} className="flex flex-col items-center gap-3">
+          <AnimatedButton variant={variant} />
+          <span className="text-sm text-neutral-500 dark:text-neutral-400">{name}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+`,
+  },
 ];
 
 export function getComponentBySlug(slug: string): ComponentEntry | undefined {
