@@ -1739,7 +1739,7 @@ export default function Pagination({
     cardDescription:
       "Four OTP input styles — Classic, Underline, Pill, Filled — each with a spring-driven focus indicator that glides to the exact measured position of the active slot.",
     fullDescription:
-      "A self-contained OTP/verification-code input with four independently functional variants (bordered squares, underline, connected capsule, filled tiles). A Framer Motion spring drives the focus indicator between slots using real measured positions. Supports paste-to-fill, arrow-key navigation, backspace-to-previous, controlled/uncontrolled value, and light/dark/system theming.",
+      "A self-contained OTP/verification-code input with four independently functional variants (bordered squares, underline, connected capsule, filled tiles). A Framer Motion spring drives the focus indicator between slots using real measured positions.",
     icon: "KeyRound",
     status: "new",
     installCommand: "npx shadcn@latest add https://shreyashtech.me/r/otp-input.json",
