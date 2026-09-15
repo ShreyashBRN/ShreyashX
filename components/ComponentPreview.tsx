@@ -6,6 +6,7 @@ import JellyToolbarPreview from "@/components/jelly-toolbar-preview";
 import PaginationPreview from "@/components/pagination-preview";
 import OtpInputPreview from "@/components/otp-input-preview";
 import Buttons from "@/components/buttons-preview";
+import ElasticDropdownPreview from "@/components/elastic-dropdown-preview";
 
 const previewMap: Record<string, React.ReactNode> = {
   "drag-drop-reorder": <DragDropReorderPreview />,
@@ -13,7 +14,8 @@ const previewMap: Record<string, React.ReactNode> = {
   "jelly-toolbar": <JellyToolbarPreview />,
   "pagination": <PaginationPreview />,
   "otp-input": <OtpInputPreview />,
-  "buttons": <Buttons />
+  "buttons": <Buttons />,
+  "elastic-dropdown": <ElasticDropdownPreview />
 };
 
 export function ComponentPreview({ slug }: { slug: string }) {

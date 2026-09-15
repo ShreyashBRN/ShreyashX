@@ -3362,6 +3362,876 @@ export default function ButtonsShowcase() {
 export { ButtonsShowcase as Buttons };
 `,
   },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  {
+    slug: "elastic-dropdown",
+    name: "Elastic Dropdown",
+    cardDescription:
+      "A compact dropdown whose outer shape physically stretches open — one continuous spring-driven SVG surface that bows, overshoots, and settles back into the trigger, not a menu that fades or slides in.",
+    fullDescription:
+      "A single elastic dropdown whose outline itself deforms open and closed via a mass-spring simulation, with full keyboard, ARIA listbox, and click-outside support.",
+    icon: "ChevronsUpDown",
+    status: "new",
+    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/elastic-dropdown.json",
+    importStatement: `import ElasticDropdownShowcase, { ElasticDropdown } from "@/components/elastic-dropdown"`,
+    usageJsx: `<ElasticDropdown placeholder="Project" onChange={(value) => console.log(value)} />`,
+    props: [
+      { property: "options", type: "ElasticDropdownOption[]", default: "Personal / Work / Design / Development", description: "Selectable options, each with a value, label, and optional icon." },
+      { property: "value", type: "string", default: "-", description: "Controlled selected value. Pass with onChange to control the dropdown externally." },
+      { property: "defaultValue", type: "string", default: "-", description: "Initial selected value for uncontrolled use." },
+      { property: "onChange", type: "function", default: "-", description: "Called with the newly selected option's value." },
+      { property: "placeholder", type: "string", default: `"Select option"`, description: "Trigger text shown when nothing is selected." },
+      { property: "placeholderIcon", type: "IconComponent", default: "FolderIcon", description: "Icon shown next to the placeholder text." },
+      { property: "disabled", type: "boolean", default: "false", description: "Disable the trigger and prevent opening." },
+      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
+    ],
+    previewCode: `import ElasticDropdownShowcase from "@/components/elastic-dropdown";
+
+export default function ElasticDropdownPreview() {
+  return <ElasticDropdownShowcase />;
+}
+`,
+    sourceCode: `"use client"
+
+/**
+ * ElasticDropdown — a compact dropdown whose outer surface physically
+ * deforms open and closed: a single continuous SVG path stretches,
+ * slightly overshoots, and settles, rather than a menu that fades,
+ * slides, or scales in on top of a static trigger.
+ *
+ * Dependencies: none beyond react. No external icon library — a
+ * handful of small inline stroke icons are included below.
+ *
+ * Exports:
+ *   - ElasticDropdown          (named)   → the functional component,
+ *                                          fully controllable via props.
+ *   - ElasticDropdownShowcase  (default) → demo shell (background,
+ *                                          theme toggle, centered).
+ */
+
+import * as React from "react"
+
+/* ------------------------------------------------------------------ */
+/*  icons — small stroke-only line icons, no external dependency       */
+/* ------------------------------------------------------------------ */
+
+export type IconComponent = React.FC
+
+const iconProps = {
+  width: 16,
+  height: 16,
+  viewBox: "0 0 16 16",
+  fill: "none",
+  "aria-hidden": true,
+} as const
+
+export const FolderIcon: IconComponent = () => (
+  <svg {...iconProps}>
+    <path
+      d="M2.5 4.8c0-.72.58-1.3 1.3-1.3h2.6l1.2 1.3h4.6c.72 0 1.3.58 1.3 1.3v5.6c0 .72-.58 1.3-1.3 1.3H3.8c-.72 0-1.3-.58-1.3-1.3V4.8Z"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
+export const UserIcon: IconComponent = () => (
+  <svg {...iconProps}>
+    <circle cx="8" cy="5.6" r="2.3" stroke="currentColor" strokeWidth="1.4" />
+    <path
+      d="M3.4 13c.7-2.4 2.6-3.7 4.6-3.7s3.9 1.3 4.6 3.7"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+    />
+  </svg>
+)
+
+export const BriefcaseIcon: IconComponent = () => (
+  <svg {...iconProps}>
+    <rect x="2.3" y="5.6" width="11.4" height="7" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
+    <path
+      d="M6.2 5.6V4.3a1.8 1.8 0 0 1 1.8-1.8v0a1.8 1.8 0 0 1 1.8 1.8v1.3"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+    />
+    <path d="M2.3 9h11.4" stroke="currentColor" strokeWidth="1.4" />
+  </svg>
+)
+
+export const PaletteIcon: IconComponent = () => (
+  <svg {...iconProps}>
+    <path
+      d="M8 2.4a5.6 5.6 0 1 0 0 11.2c.8 0 1.3-.6 1.3-1.2 0-.27-.1-.5-.3-.7-.2-.2-.3-.45-.3-.7 0-.5.5-.9 1-.9h1.1A2.8 2.8 0 0 0 13.6 7c0-2.6-2.5-4.6-5.6-4.6Z"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinejoin="round"
+    />
+    <circle cx="5.4" cy="7.2" r=".6" fill="currentColor" />
+    <circle cx="6.7" cy="5" r=".6" fill="currentColor" />
+    <circle cx="9.4" cy="5" r=".6" fill="currentColor" />
+    <circle cx="10.6" cy="7.2" r=".6" fill="currentColor" />
+  </svg>
+)
+
+export const CodeIcon: IconComponent = () => (
+  <svg {...iconProps}>
+    <path
+      d="M5.6 4.4 2 8l3.6 3.6M10.4 4.4 14 8l-3.6 3.6"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
+/* ------------------------------------------------------------------ */
+/*  public option type + default content                               */
+/* ------------------------------------------------------------------ */
+
+export interface ElasticDropdownOption {
+  value: string
+  label: string
+  icon?: IconComponent
+}
+
+const DEFAULT_OPTIONS: ElasticDropdownOption[] = [
+  { value: "personal", label: "Personal", icon: UserIcon },
+  { value: "work", label: "Work", icon: BriefcaseIcon },
+  { value: "design", label: "Design", icon: PaletteIcon },
+  { value: "development", label: "Development", icon: CodeIcon },
+]
+
+/* ------------------------------------------------------------------ */
+/*  geometry                                                            */
+/* ------------------------------------------------------------------ */
+
+const CLOSED_HEIGHT = 52
+const CLOSED_RADIUS = CLOSED_HEIGHT / 2
+const OPEN_RADIUS = 18
+const BOW_MAX = 9 // px the side edges may bulge/pinch during over/undershoot
+const MIN_EXPANDED_HEIGHT = CLOSED_HEIGHT + 100
+
+// Tuned so opening reads as a fast response with a small overshoot and
+// a quick settle (~500-600ms total).
+const SPRING_STIFFNESS = 210
+const SPRING_DAMPING = 23
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+
+/** One continuous rounded silhouette whose left/right edges bow
+ *  outward (or pinch inward) by \`bow\` px at their vertical midpoint —
+ *  the actual outline changes shape, it isn't a scaled rectangle. */
+function buildShapePath(width: number, height: number, radius: number, bow: number) {
+  const w = Math.max(width, 1)
+  const h = Math.max(height, 1)
+  const r = Math.min(radius, h / 2, w / 2)
+  const midY = h / 2
+
+  return [
+    \`M \${r} 0\`,
+    \`H \${w - r}\`,
+    \`A \${r} \${r} 0 0 1 \${w} \${r}\`,
+    \`Q \${w + bow} \${midY} \${w} \${h - r}\`,
+    \`A \${r} \${r} 0 0 1 \${w - r} \${h}\`,
+    \`H \${r}\`,
+    \`A \${r} \${r} 0 0 1 0 \${h - r}\`,
+    \`Q \${-bow} \${midY} 0 \${r}\`,
+    \`A \${r} \${r} 0 0 1 \${r} 0\`,
+    "Z",
+  ].join(" ")
+}
+
+/* ------------------------------------------------------------------ */
+/*  component                                                           */
+/* ------------------------------------------------------------------ */
+
+export interface ElasticDropdownProps {
+  /** Selectable options. Defaults to Personal / Work / Design / Development. */
+  options?: ElasticDropdownOption[]
+  /** Controlled selected value — pass with onChange to control externally. */
+  value?: string
+  /** Initial selected value for uncontrolled use. */
+  defaultValue?: string
+  /** Called with the newly selected option's value. */
+  onChange?: (value: string) => void
+  /** Trigger text shown when nothing is selected. */
+  placeholder?: string
+  /** Icon shown next to the placeholder text. */
+  placeholderIcon?: IconComponent
+  disabled?: boolean
+  className?: string
+}
+
+export function ElasticDropdown({
+  options = DEFAULT_OPTIONS,
+  value,
+  defaultValue,
+  onChange,
+  placeholder = "Select option",
+  placeholderIcon: PlaceholderIcon = FolderIcon,
+  disabled = false,
+  className,
+}: ElasticDropdownProps) {
+  const reactId = React.useId()
+  const listboxId = \`\${reactId}-listbox\`
+  const optionId = (i: number) => \`\${reactId}-option-\${i}\`
+
+  const isControlled = value !== undefined
+  const [uncontrolledValue, setUncontrolledValue] = React.useState<string | undefined>(defaultValue)
+  const currentValue = isControlled ? value : uncontrolledValue
+  const selectedIndex = options.findIndex((o) => o.value === currentValue)
+  const selected = selectedIndex >= 0 ? options[selectedIndex] : null
+
+  const [open, setOpenState] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
+  const [activeIndex, setActiveIndex] = React.useState(0)
+  const [isFocused, setIsFocused] = React.useState(false)
+
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+  const buttonRef = React.useRef<HTMLButtonElement | null>(null)
+  const listRef = React.useRef<HTMLUListElement | null>(null)
+  const optionsMeasureRef = React.useRef<HTMLDivElement | null>(null)
+  const svgRef = React.useRef<SVGSVGElement | null>(null)
+  const pathRef = React.useRef<SVGPathElement | null>(null)
+  const chevronRef = React.useRef<SVGSVGElement | null>(null)
+  const optionsWrapRef = React.useRef<HTMLDivElement | null>(null)
+
+  // Animation state lives in refs, not React state — the spring runs
+  // every frame and writes directly to the DOM, so nothing re-renders
+  // on each tick and the shape never fights a CSS transition.
+  const posRef = React.useRef(0)
+  const velRef = React.useRef(0)
+  const targetRef = React.useRef(0)
+  const rafRef = React.useRef<number | null>(null)
+  const lastTimeRef = React.useRef<number | null>(null)
+  const widthRef = React.useRef(240)
+  const expandedHeightRef = React.useRef(MIN_EXPANDED_HEIGHT)
+  const openRef = React.useRef(false)
+  const reducedMotionRef = React.useRef(false)
+
+  const applyFrame = React.useCallback((pos: number) => {
+    const container = rootRef.current
+    const svg = svgRef.current
+    const path = pathRef.current
+    const chevron = chevronRef.current
+    const optionsWrap = optionsWrapRef.current
+    if (!container || !svg || !path) return
+
+    const width = widthRef.current
+    const expandedHeight = expandedHeightRef.current
+    const t = clamp(pos, 0, 1)
+
+    const height = clamp(lerp(CLOSED_HEIGHT, expandedHeight, pos), CLOSED_HEIGHT - 4, expandedHeight + 16)
+    const radius = lerp(CLOSED_RADIUS, OPEN_RADIUS, t)
+    const excess = pos - t // >0 opening overshoot, <0 closing undershoot
+    const bow = clamp(excess * 46, -BOW_MAX, BOW_MAX)
+
+    container.style.height = \`\${height}px\`
+    svg.setAttribute("viewBox", \`0 0 \${width} \${height}\`)
+    svg.setAttribute("width", \`\${width}\`)
+    svg.setAttribute("height", \`\${height}\`)
+    path.setAttribute("d", buildShapePath(width, height, radius, bow))
+
+    if (chevron) chevron.style.transform = \`rotate(\${t * 180}deg)\`
+
+    if (optionsWrap) {
+      const reveal = clamp((t - 0.32) / 0.68, 0, 1)
+      optionsWrap.style.opacity = \`\${reveal}\`
+      optionsWrap.style.transform = \`translateY(\${(1 - reveal) * 6}px)\`
+      optionsWrap.style.pointerEvents = t > 0.6 ? "auto" : "none"
+    }
+  }, [])
+
+  const tick = React.useCallback(
+    (now: number) => {
+      const last = lastTimeRef.current ?? now
+      const dt = Math.min((now - last) / 1000, 0.064)
+      lastTimeRef.current = now
+
+      const target = targetRef.current
+      const force = (target - posRef.current) * SPRING_STIFFNESS - velRef.current * SPRING_DAMPING
+      velRef.current += force * dt
+      posRef.current += velRef.current * dt
+
+      applyFrame(posRef.current)
+
+      const atRest = Math.abs(target - posRef.current) < 0.001 && Math.abs(velRef.current) < 0.001
+      if (!atRest) {
+        rafRef.current = requestAnimationFrame(tick)
+      } else {
+        posRef.current = target
+        velRef.current = 0
+        applyFrame(target)
+        rafRef.current = null
+        lastTimeRef.current = null
+        if (target === 0) setMounted(false)
+      }
+    },
+    [applyFrame]
+  )
+
+  const runSpring = React.useCallback(
+    (target: number) => {
+      targetRef.current = target
+
+      if (reducedMotionRef.current) {
+        posRef.current = target
+        velRef.current = 0
+        applyFrame(target)
+        if (target === 0) setMounted(false)
+        return
+      }
+
+      if (rafRef.current == null) {
+        lastTimeRef.current = null
+        rafRef.current = requestAnimationFrame(tick)
+      }
+    },
+    [applyFrame, tick]
+  )
+
+  const measure = React.useCallback(() => {
+    if (rootRef.current) {
+      widthRef.current = rootRef.current.getBoundingClientRect().width || widthRef.current
+    }
+    if (optionsMeasureRef.current) {
+      const optionsHeight = optionsMeasureRef.current.scrollHeight
+      expandedHeightRef.current = Math.max(CLOSED_HEIGHT + optionsHeight, MIN_EXPANDED_HEIGHT)
+    }
+  }, [])
+
+  const close = React.useCallback(() => {
+    setOpenState(false)
+    openRef.current = false
+    runSpring(0)
+    if (rootRef.current?.contains(document.activeElement)) {
+      buttonRef.current?.focus()
+    }
+  }, [runSpring])
+
+  const openMenu = React.useCallback(() => {
+    if (disabled) return
+    setMounted(true)
+    setOpenState(true)
+    openRef.current = true
+    setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0)
+    requestAnimationFrame(() => {
+      measure()
+      runSpring(1)
+      listRef.current?.focus()
+    })
+  }, [disabled, measure, runSpring, selectedIndex])
+
+  const toggle = React.useCallback(() => {
+    if (disabled) return
+    if (openRef.current) close()
+    else openMenu()
+  }, [close, disabled, openMenu])
+
+  const selectOption = React.useCallback(
+    (index: number) => {
+      const option = options[index]
+      if (!option) return
+      if (!isControlled) setUncontrolledValue(option.value)
+      onChange?.(option.value)
+      close()
+    },
+    [close, isControlled, onChange, options]
+  )
+
+  React.useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    reducedMotionRef.current = mq.matches
+    const handler = () => {
+      reducedMotionRef.current = mq.matches
+    }
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
+
+  React.useLayoutEffect(() => {
+    measure()
+    applyFrame(posRef.current)
+    const onResize = () => {
+      measure()
+      if (rafRef.current == null) applyFrame(posRef.current)
+    }
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [measure, applyFrame])
+
+  React.useEffect(() => {
+    if (mounted) measure()
+  }, [mounted, measure])
+
+  React.useEffect(() => {
+    if (!open) return
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) close()
+    }
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [open, close])
+
+  React.useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
+    }
+  }, [])
+
+  const handleButtonKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (open) return
+    if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
+      event.preventDefault()
+      openMenu()
+    }
+  }
+
+  const handleListKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault()
+        setActiveIndex((i) => Math.min(i + 1, options.length - 1))
+        break
+      case "ArrowUp":
+        event.preventDefault()
+        setActiveIndex((i) => Math.max(i - 1, 0))
+        break
+      case "Home":
+        event.preventDefault()
+        setActiveIndex(0)
+        break
+      case "End":
+        event.preventDefault()
+        setActiveIndex(options.length - 1)
+        break
+      case "Enter":
+      case " ":
+        event.preventDefault()
+        selectOption(activeIndex)
+        break
+      case "Escape":
+        event.preventDefault()
+        close()
+        break
+      case "Tab":
+        close()
+        break
+      default:
+        break
+    }
+  }
+
+  const TriggerIcon = selected?.icon ?? PlaceholderIcon
+  const triggerLabel = selected ? selected.label : placeholder
+
+  return (
+    <div
+      className={["elastic-dropdown-root", className].filter(Boolean).join(" ")}
+      style={{ width: "min(100%, 260px)" }}
+    >
+      <style>{\`
+        .elastic-dropdown-root {
+          --edd-surface: #ffffff;
+          --edd-border: rgba(15, 23, 42, 0.10);
+          --edd-text: #0f172a;
+          --edd-text-muted: #64748b;
+          --edd-highlight: rgba(15, 23, 42, 0.045);
+          --edd-highlight-strong: rgba(37, 99, 235, 0.10);
+          --edd-focus: #2563eb;
+          --edd-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05);
+          --edd-shadow-2: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+        @media (prefers-color-scheme: dark) {
+          .elastic-dropdown-root {
+            --edd-surface: #17191f;
+            --edd-border: rgba(255, 255, 255, 0.12);
+            --edd-text: #f1f5f9;
+            --edd-text-muted: #94a3b8;
+            --edd-highlight: rgba(255, 255, 255, 0.06);
+            --edd-highlight-strong: rgba(96, 165, 250, 0.16);
+            --edd-focus: #60a5fa;
+            --edd-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+            --edd-shadow-2: 0 14px 28px rgba(0, 0, 0, 0.45);
+          }
+        }
+        .dark .elastic-dropdown-root {
+          --edd-surface: #17191f;
+          --edd-border: rgba(255, 255, 255, 0.12);
+          --edd-text: #f1f5f9;
+          --edd-text-muted: #94a3b8;
+          --edd-highlight: rgba(255, 255, 255, 0.06);
+          --edd-highlight-strong: rgba(96, 165, 250, 0.16);
+          --edd-focus: #60a5fa;
+          --edd-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+          --edd-shadow-2: 0 14px 28px rgba(0, 0, 0, 0.45);
+        }
+        .edd-container {
+          position: relative;
+          width: 100%;
+          overflow: hidden;
+          border-radius: 26px;
+          transition: box-shadow 200ms ease, transform 200ms ease;
+        }
+        .edd-container.is-hover-ready:hover {
+          transform: translateY(-1px);
+        }
+        .edd-container.is-focused {
+          box-shadow: 0 0 0 2px var(--edd-surface), 0 0 0 4px var(--edd-focus);
+        }
+        .edd-container.is-disabled {
+          opacity: 0.5;
+        }
+        .edd-shape {
+          position: absolute;
+          inset: 0;
+          display: block;
+          filter: drop-shadow(var(--edd-shadow-1)) drop-shadow(var(--edd-shadow-2));
+        }
+        .edd-shape path {
+          fill: var(--edd-surface);
+          stroke: var(--edd-border);
+          stroke-width: 1px;
+        }
+        .edd-content {
+          position: relative;
+          z-index: 1;
+          height: 100%;
+        }
+        .edd-trigger {
+          all: unset;
+          box-sizing: border-box;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          height: \${CLOSED_HEIGHT}px;
+          padding: 0 18px;
+          cursor: pointer;
+          color: var(--edd-text);
+        }
+        .edd-trigger:disabled {
+          cursor: not-allowed;
+        }
+        .edd-icon {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 16px;
+          height: 16px;
+          color: var(--edd-text);
+        }
+        .edd-icon.is-placeholder {
+          color: var(--edd-text-muted);
+        }
+        .edd-value {
+          flex: 1;
+          min-width: 0;
+          text-align: left;
+          font-size: 14.5px;
+          font-weight: 500;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .edd-value.is-placeholder {
+          color: var(--edd-text-muted);
+        }
+        .edd-chevron {
+          flex-shrink: 0;
+          color: var(--edd-text-muted);
+          transition: color 150ms ease;
+        }
+        .edd-options-wrap {
+          padding: 4px 8px 10px;
+          opacity: 0;
+          will-change: opacity, transform;
+        }
+        .edd-list {
+          all: unset;
+          display: block;
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+        .edd-option {
+          box-sizing: border-box;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 10px;
+          margin: 0 2px;
+          border-radius: 12px;
+          font-size: 14px;
+          color: var(--edd-text);
+          cursor: pointer;
+          transition: background-color 120ms ease;
+        }
+        .edd-option .edd-icon {
+          color: var(--edd-text-muted);
+        }
+        .edd-option.is-active {
+          background: var(--edd-highlight);
+        }
+        .edd-option.is-selected {
+          background: var(--edd-highlight-strong);
+          font-weight: 600;
+        }
+        .edd-option.is-selected .edd-icon {
+          color: var(--edd-text);
+        }
+        .edd-options-measure {
+          position: absolute;
+          visibility: hidden;
+          pointer-events: none;
+          top: 0;
+          left: 0;
+          width: 100%;
+          z-index: -1;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .edd-container,
+          .edd-container.is-hover-ready:hover {
+            transition: box-shadow 120ms ease;
+            transform: none;
+          }
+        }
+      \`}</style>
+
+      <div
+        ref={rootRef}
+        className={\`edd-container is-hover-ready\${isFocused ? " is-focused" : ""}\${disabled ? " is-disabled" : ""}\`}
+        style={{ height: CLOSED_HEIGHT }}
+      >
+        <svg ref={svgRef} className="edd-shape" aria-hidden="true">
+          <path ref={pathRef} />
+        </svg>
+
+        <div className="edd-content">
+          <button
+            ref={buttonRef}
+            type="button"
+            className="edd-trigger"
+            disabled={disabled}
+            aria-haspopup="listbox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            onClick={toggle}
+            onKeyDown={handleButtonKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+          >
+            <span className={\`edd-icon\${selected ? "" : " is-placeholder"}\`}>
+              <TriggerIcon />
+            </span>
+            <span className={\`edd-value\${selected ? "" : " is-placeholder"}\`}>{triggerLabel}</span>
+            <svg
+              ref={chevronRef}
+              className="edd-chevron"
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+              style={{ transformOrigin: "50% 50%" }}
+            >
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          {mounted && (
+            <div ref={optionsWrapRef} className="edd-options-wrap">
+              <ul
+                ref={listRef}
+                id={listboxId}
+                role="listbox"
+                tabIndex={-1}
+                aria-activedescendant={optionId(activeIndex)}
+                className="edd-list"
+                onKeyDown={handleListKeyDown}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+              >
+                {options.map((option, index) => {
+                  const OptionIcon = option.icon
+                  return (
+                    <li
+                      key={option.value}
+                      id={optionId(index)}
+                      role="option"
+                      aria-selected={selectedIndex === index}
+                      className={\`edd-option\${activeIndex === index ? " is-active" : ""}\${
+                        selectedIndex === index ? " is-selected" : ""
+                      }\`}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={() => selectOption(index)}
+                    >
+                      {OptionIcon && (
+                        <span className="edd-icon">
+                          <OptionIcon />
+                        </span>
+                      )}
+                      <span>{option.label}</span>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Off-screen twin of the option list, always laid out at full
+            height, used only to measure the true expanded height. */}
+        <div ref={optionsMeasureRef} className="edd-options-measure" aria-hidden="true">
+          <div className="edd-options-wrap" style={{ opacity: 1 }}>
+            <ul className="edd-list">
+              {options.map((option) => {
+                const OptionIcon = option.icon
+                return (
+                  <li key={option.value} className="edd-option">
+                    {OptionIcon && (
+                      <span className="edd-icon">
+                        <OptionIcon />
+                      </span>
+                    )}
+                    <span>{option.label}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  demo shell                                                          */
+/* ------------------------------------------------------------------ */
+
+export default function ElasticDropdownShowcase() {
+  const [isDark, setIsDark] = React.useState(false)
+
+  return (
+    <div
+      className={isDark ? "dark" : undefined}
+      style={{
+        position: "relative",
+        display: "flex",
+        width: "100%",
+        minHeight: 420,
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        padding: 24,
+        borderRadius: 24,
+        background: isDark ? "#0a0a12" : "#f8f7fc",
+        transition: "background 400ms ease",
+      }}
+    >
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: -80,
+          right: -80,
+          width: 260,
+          height: 260,
+          borderRadius: "9999px",
+          opacity: 0.3,
+          filter: "blur(60px)",
+          background: isDark
+            ? "radial-gradient(circle, #4c1d95, transparent 70%)"
+            : "radial-gradient(circle, #c4b5fd, transparent 70%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          bottom: -80,
+          left: -60,
+          width: 260,
+          height: 260,
+          borderRadius: "9999px",
+          opacity: 0.3,
+          filter: "blur(60px)",
+          background: isDark
+            ? "radial-gradient(circle, #1e3a8a, transparent 70%)"
+            : "radial-gradient(circle, #bfdbfe, transparent 70%)",
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={() => setIsDark((d) => !d)}
+        aria-label="Toggle color theme"
+        style={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          zIndex: 20,
+          display: "flex",
+          height: 36,
+          width: 36,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "9999px",
+          border: "none",
+          cursor: "pointer",
+          color: isDark ? "#fff" : "#334155",
+          background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          {isDark ? (
+            <path
+              d="M8 2v1.4M8 12.6V14M14 8h-1.4M3.4 8H2M12 4l-1 1M5 11l-1 1M12 12l-1-1M5 5 4 4"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+            />
+          ) : (
+            <path
+              d="M13.5 9.6A5.6 5.6 0 0 1 6.4 2.5a5.8 5.8 0 1 0 7.1 7.1Z"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinejoin="round"
+            />
+          )}
+          {isDark && <circle cx="8" cy="8" r="2.6" stroke="currentColor" strokeWidth="1.4" />}
+        </svg>
+      </button>
+
+      <div style={{ position: "relative", zIndex: 10 }}>
+        <ElasticDropdown placeholder="Project" />
+      </div>
+    </div>
+  )
+}
+`,
+  },
 ];
 
 export function getComponentBySlug(slug: string): ComponentEntry | undefined {
