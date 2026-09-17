@@ -2642,7 +2642,8 @@ export default function ButtonsPreview() {
   return <Buttons variants={variants} />;
 }
 `,
-    sourceCode: `"use client";
+    sourceCode: `
+"use client";
 
 /**
  * Buttons — four independently-stateful animated button interactions:
@@ -2782,15 +2783,6 @@ function colorsFor(theme: ThemeMode): ThemeColors {
 /* ------------------------------------------------------------------ */
 /*  Variant 1 — Staggered Letter Lift                                   */
 /* ------------------------------------------------------------------ */
-/* Each character sits in its own 1-line-tall, overflow-hidden window    */
-/* that holds TWO stacked copies of the letter. On hover, the inner      */
-/* column translates up by exactly half its height (one letter-height), */
-/* sliding the visible copy out through the top of its window while its  */
-/* twin slides up seamlessly into view underneath. Each letter's motion  */
-/* is delayed by its own index, so H moves before E, before the first L, */
-/* before the second L, before O — a real one-by-one sequence.           */
-/* TIMING: slowed from the previous fast pass — 70ms stagger, 300ms per  */
-/* letter — so the sequence reads clearly instead of blurring together.  */
 
 function LetterLiftButton({
   label,
@@ -2853,28 +2845,12 @@ function LetterLiftButton({
 /* ------------------------------------------------------------------ */
 /*  Variant 2 — Single Liquid Bubble (one continuous fluid)            */
 /* ------------------------------------------------------------------ */
-/* This is ONE pill-shaped fluid mass, the same height as the button,   */
-/* that grows across the button from whichever half the pointer entered,*/
-/* reaches the opposite edge (full coverage), then shrinks away in the  */
-/* SAME direction it grew (leading edge stays put, trailing edge        */
-/* retreats). It is driven by a tiny state machine — idle → grow →      */
-/* shrink → idle — with an actual "reach full coverage" hold, not a     */
-/* single 0%→100%→0% tween, so growth visibly stops before it reverses. */
-/*                                                                       */
-/* Geometry: the fluid <span> is pinned to whichever edge is its current */
-/* anchor (left:0 or right:0) and its WIDTH is animated with a plain CSS */
-/* transition. Because both edges of a full-width (100%) box sit in the  */
-/* same place, flipping the anchor at that exact instant (grow → shrink) */
-/* causes no visual jump — it just changes which edge the next width     */
-/* transition holds fixed, which is exactly what "grow one way, shrink   */
-/* the same way" requires. rounded-full on both the fluid and its parent */
-/* keeps the leading edge round and the anchored edge flush/seamless.    */
 
 type FluidPhase = "idle" | "grow" | "shrink";
 type FluidSide = "left" | "right";
 
-const FLUID_DURATION_MS = 700;
-const FLUID_HOLD_MS = 200;
+const FLUID_DURATION_MS = 500;
+const FLUID_HOLD_MS = 10;
 
 function LiquidBubbleButton({
   label,
@@ -3019,7 +2995,6 @@ function LiquidBubbleButton({
 /* ------------------------------------------------------------------ */
 /*  Variant 3 — Magnetic                                                */
 /* ------------------------------------------------------------------ */
-/* UNCHANGED — working, do not modify.                                  */
 
 function MagneticButton({
   label,
@@ -3091,7 +3066,6 @@ function MagneticButton({
 /* ------------------------------------------------------------------ */
 /*  Variant 4 — Cursor Compression                                      */
 /* ------------------------------------------------------------------ */
-/* UNCHANGED — working, do not modify.                                  */
 
 const COMPRESSION_MAX_PUSH_RATIO = 0.34; // relative to button height
 const COMPRESSION_SIGMA_RATIO = 0.85; // relative to button height
@@ -3356,17 +3330,32 @@ export function AnimatedButton({
 /*  Demo showcase                                                       */
 /* ------------------------------------------------------------------ */
 
-const VARIANTS: Array<{ variant: ButtonVariant; name: string }> = [
+export interface VariantEntry {
+  variant: ButtonVariant;
+  name: string;
+}
+
+/** Internal fallback — used only when ButtonsShowcase is rendered
+ *  without a \`variants\` prop (e.g. installed via CLI, preview file
+ *  untouched). The preview file is the place a user is meant to find
+ *  and edit this list. */
+const DEFAULT_VARIANTS: VariantEntry[] = [
   { variant: "letters", name: "Staggered Letter Lift" },
   { variant: "liquid", name: "Single Liquid Bubble" },
   { variant: "magnetic", name: "Magnetic" },
   { variant: "compression", name: "Cursor Compression" },
 ];
 
-export default function ButtonsShowcase() {
+export interface ButtonsShowcaseProps {
+  /** Which variants to render, and in what order/with what label.
+   *  Defaults to all four. Omit an entry to leave it out of the grid. */
+  variants?: VariantEntry[];
+}
+
+export default function ButtonsShowcase({ variants = DEFAULT_VARIANTS }: ButtonsShowcaseProps) {
   return (
     <div className="grid w-full grid-cols-1 place-items-center gap-y-14 gap-x-[90px] sm:grid-cols-2 sm:gap-y-[100px]">
-      {VARIANTS.map(({ variant, name }) => (
+      {variants.map(({ variant, name }) => (
         <div key={variant} className="flex flex-col items-center gap-4">
           <AnimatedButton variant={variant} />
           <span className="text-sm text-neutral-500 dark:text-neutral-400">{name}</span>
