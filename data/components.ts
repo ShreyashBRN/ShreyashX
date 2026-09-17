@@ -1029,7 +1029,34 @@ export default LiquidScrollProgress;
       return <Pagination variants={variants} />;
     }
     `,
-    sourceCode: `"use client"
+    sourceCode: `
+"use client"
+
+/**
+ * ============================================================================
+ * Pagination
+ * ============================================================================
+ * Renders four visually distinct pagination styles — Pills, Outline, Compact,
+ * With Input — as four COMPLETELY INDEPENDENT instances. Each one owns its
+ * own page state and its own Framer Motion LayoutGroup, so interacting with
+ * one never affects, and never animates into, another.
+ *
+ * WHY THIS FILE HAS NO JSX
+ * ------------------------------------------------------------------------
+ * This file ends in \`.ts\`, not \`.tsx\`. TypeScript's parser only allows JSX
+ * syntax (\`<svg>\`, \`<div>...</div>\`, etc.) inside \`.tsx\` files — in a plain
+ * \`.ts\` file that syntax is a parse error ("Expected '>', got 'ident'"),
+ * which is exactly the build error this version fixes. Every element below
+ * is built with \`React.createElement(...)\` instead of JSX tags. The
+ * component's behavior, props, and output are otherwise identical to the
+ * JSX version — this is a mechanical syntax translation, not a rewrite.
+ *
+ * All pagination LOGIC (getPageRange, usePageWindow, usePaginationState, the
+ * onChange wiring, the four independent LayoutGroups, the active-indicator
+ * animation) and all layout/styling classes are unchanged from the last
+ * approved visual pass.
+ * ============================================================================
+ */
 
 import * as React from "react"
 import { motion, LayoutGroup, type Transition } from "framer-motion"
@@ -1765,7 +1792,7 @@ export default function Pagination({
   return h(
     "div",
     { className: cn("mx-auto flex w-full max-w-[860px] flex-col gap-7", className) },
-     ...variants.map((v) =>
+    ...variants.map((v) =>
       h(PaginationInstance, {
         key: v,
         variant: v,
