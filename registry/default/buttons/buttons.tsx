@@ -712,17 +712,32 @@ export function AnimatedButton({
 /*  Demo showcase                                                       */
 /* ------------------------------------------------------------------ */
 
-const VARIANTS: Array<{ variant: ButtonVariant; name: string }> = [
+export interface VariantEntry {
+  variant: ButtonVariant;
+  name: string;
+}
+
+/** Internal fallback — used only when ButtonsShowcase is rendered
+ *  without a `variants` prop (e.g. installed via CLI, preview file
+ *  untouched). The preview file is the place a user is meant to find
+ *  and edit this list. */
+const DEFAULT_VARIANTS: VariantEntry[] = [
   { variant: "letters", name: "Staggered Letter Lift" },
   { variant: "liquid", name: "Single Liquid Bubble" },
   { variant: "magnetic", name: "Magnetic" },
   { variant: "compression", name: "Cursor Compression" },
 ];
 
-export default function ButtonsShowcase() {
+export interface ButtonsShowcaseProps {
+  /** Which variants to render, and in what order/with what label.
+   *  Defaults to all four. Omit an entry to leave it out of the grid. */
+  variants?: VariantEntry[];
+}
+
+export default function ButtonsShowcase({ variants = DEFAULT_VARIANTS }: ButtonsShowcaseProps) {
   return (
     <div className="grid w-full grid-cols-1 place-items-center gap-y-14 gap-x-[90px] sm:grid-cols-2 sm:gap-y-[100px]">
-      {VARIANTS.map(({ variant, name }) => (
+      {variants.map(({ variant, name }) => (
         <div key={variant} className="flex flex-col items-center gap-4">
           <AnimatedButton variant={variant} />
           <span className="text-sm text-neutral-500 dark:text-neutral-400">{name}</span>
