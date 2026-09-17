@@ -60,10 +60,29 @@ export const components: ComponentEntry[] = [
     // Shown in the docs page's "Code" tab. Kept intentionally short —
     // this is how a consumer actually uses the component, not the
     // implementation itself.
-    previewCode: `import { DragDropReorder } from "@/components/drag-drop-reorder";
+    previewCode: `"use client";
+
+import { useState } from "react";
+import { DragDropReorder } from "@/components/drag-drop-reorder";
+import type { ReorderItem } from "@/components/drag-drop-reorder";
+import { Image, Code2, TerminalSquare, CloudUpload, RefreshCw } from "lucide-react";
+
+const initialItems: ReorderItem[] = [
+  { id: "design", title: "Design", description: "Create beautiful experiences", icon: Image, color: "pink" },
+  { id: "develop", title: "Develop", description: "Build with modern tools", icon: Code2, color: "blue" },
+  { id: "test", title: "Test", description: "Ensure everything works", icon: TerminalSquare, color: "neutral" },
+  { id: "deploy", title: "Deploy", description: "Launch to the world", icon: CloudUpload, color: "violet" },
+  { id: "iterate", title: "Iterate", description: "Make it better", icon: RefreshCw, color: "orange" },
+];
 
 export default function DragDropReorderPreview() {
-  return <DragDropReorder />;
+  const [items, setItems] = useState<ReorderItem[]>(initialItems);
+
+  return (
+    <div className="flex w-full items-center justify-center p-4">
+      <DragDropReorder items={items} onReorder={setItems} />
+    </div>
+  );
 }
 `,
     // Full implementation. Not rendered anywhere in the docs UI directly —
@@ -81,7 +100,7 @@ import {
   TerminalSquare,
   CloudUpload,
   RefreshCw,
-  typqe LucideIcon,
+  type LucideIcon,
 } from "lucide-react";
 
 export type ReorderColor = "pink" | "blue" | "violet" | "orange" | "neutral";
@@ -2619,10 +2638,17 @@ export default function OtpShowcase() {
       { property: "theme", type: `"light" | "dark" | "system"`, default: "system", description: "Color theme for the button surface, text, and effects." },
       { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost element." },
     ],
-    previewCode: `import ButtonsShowcase from "@/components/buttons";
+    previewCode: `import { Buttons, type VariantEntry } from "@/components/buttons";
+
+const variants: VariantEntry[] = [
+  { variant: "letters", name: "Staggered Letter Lift" },
+  { variant: "liquid", name: "Single Liquid Bubble" },
+  { variant: "magnetic", name: "Magnetic" },
+  { variant: "compression", name: "Cursor Compression" },
+];
 
 export default function ButtonsPreview() {
-  return <ButtonsShowcase />;
+  return <Buttons variants={variants} />;
 }
 `,
     sourceCode: `"use client";
