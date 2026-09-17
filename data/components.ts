@@ -1835,10 +1835,14 @@ export default function Pagination({
       { property: "theme", type: `"light" | "dark" | "system"`, default: "system", description: "Color theme for borders, digits, and the active indicator." },
       { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
     ],
-    previewCode: `import OtpShowcase from "@/components/otp-input";
+    previewCode: `"use client";
+
+import { OtpInput, type OtpVariant } from "@/components/otp-input";
+
+const variants: OtpVariant[] = ["classic", "underline", "pill", "filled"];
 
 export default function OtpInputPreview() {
-  return <OtpShowcase />;
+  return <OtpInput variants={variants} />;
 }
 `,
     sourceCode: `"use client";
@@ -1877,7 +1881,8 @@ function cn(...parts: Array<string | false | null | undefined>) {
 }
 
 type ThemeMode = "light" | "dark";
-type OtpVariant = "classic" | "underline" | "pill" | "filled";
+// type OtpVariant = "classic" | "underline" | "pill" | "filled";
+export type OtpVariant = "classic" | "underline" | "pill" | "filled";
 
 function useResolvedTheme(theme: ThemeMode | "system" = "system"): ThemeMode {
   const [resolved, setResolved] = useState<ThemeMode>("light");
@@ -2562,10 +2567,11 @@ function OtpCore({
 /* ------------------------------------------------------------------ */
 /*  public API                                                          */
 /* ------------------------------------------------------------------ */
-
+const DEFAULT_VARIANTS: OtpVariant[] = ["classic", "underline", "pill", "filled"];
 export interface OtpInputProps {
   length?: number;
   variant?: OtpVariant;
+  variants?: OtpVariant[];
   value?: string;
   onChange?: (value: string) => void;
   onComplete?: (value: string) => void;
@@ -2578,6 +2584,7 @@ export interface OtpInputProps {
 export function OtpInput({
   length = 6,
   variant,
+  variants: variantsProp,
   value,
   onChange,
   onComplete,
@@ -2605,7 +2612,8 @@ export function OtpInput({
     );
   }
 
-  const variants: OtpVariant[] = ["classic", "underline", "pill", "filled"];
+  // const variants: OtpVariant[] = ["classic", "underline", "pill", "filled"];
+  const variants = variantsProp ?? DEFAULT_VARIANTS;
 
   return (
     <div

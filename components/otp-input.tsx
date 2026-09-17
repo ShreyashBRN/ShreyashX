@@ -34,7 +34,8 @@ function cn(...parts: Array<string | false | null | undefined>) {
 }
 
 type ThemeMode = "light" | "dark";
-type OtpVariant = "classic" | "underline" | "pill" | "filled";
+// type OtpVariant = "classic" | "underline" | "pill" | "filled";
+export type OtpVariant = "classic" | "underline" | "pill" | "filled";
 
 function useResolvedTheme(theme: ThemeMode | "system" = "system"): ThemeMode {
   const [resolved, setResolved] = useState<ThemeMode>("light");
@@ -719,10 +720,11 @@ function OtpCore({
 /* ------------------------------------------------------------------ */
 /*  public API                                                          */
 /* ------------------------------------------------------------------ */
-
+const DEFAULT_VARIANTS: OtpVariant[] = ["classic", "underline", "pill", "filled"];
 export interface OtpInputProps {
   length?: number;
   variant?: OtpVariant;
+  variants?: OtpVariant[];
   value?: string;
   onChange?: (value: string) => void;
   onComplete?: (value: string) => void;
@@ -735,6 +737,7 @@ export interface OtpInputProps {
 export function OtpInput({
   length = 6,
   variant,
+  variants: variantsProp,
   value,
   onChange,
   onComplete,
@@ -762,7 +765,8 @@ export function OtpInput({
     );
   }
 
-  const variants: OtpVariant[] = ["classic", "underline", "pill", "filled"];
+  // const variants: OtpVariant[] = ["classic", "underline", "pill", "filled"];
+  const variants = variantsProp ?? DEFAULT_VARIANTS;
 
   return (
     <div

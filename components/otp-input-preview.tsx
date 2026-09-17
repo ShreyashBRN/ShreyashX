@@ -1,7 +1,9 @@
 "use client";
 
-import { OtpInput } from "@/components/otp-input";
+import { OtpInput, type OtpVariant } from "@/components/otp-input";
+
+const variants: OtpVariant[] = ["classic", "underline", "pill", "filled"];
 
 export default function OtpInputPreview() {
-  return <OtpInput />;
+  return <OtpInput variants={variants} />;
 }
