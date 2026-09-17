@@ -1015,17 +1015,20 @@ export default LiquidScrollProgress;
       { property: "defaultPage", type: "number", default: "1", description: "Uncontrolled initial page. Ignored if page is provided." },
       { property: "onPageChange", type: "function", default: "-", description: "Called whenever the page changes, from any variant." },
       { property: "variant", type: `"pills" | "outline" | "compact" | "input"`, default: "all four", description: "Render only this single variant instead of the full four-row demo." },
+      { property: "variants", type: `PaginationVariant[]`, default: `["pills", "outline", "compact", "input"]`, description: "Which variants to render in showcase mode (ignored if variant is set). Reorder or remove entries to change what's shown." },
       { property: "showInput", type: "boolean", default: "true", description: "Show the \"Go to page\" input on the input variant." },
       { property: "disabled", type: "boolean", default: "false", description: "Disable every control in every rendered variant." },
       { property: "siblingCount", type: "number", default: "2", description: "How many pages to show on each side of the current page." },
       { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
     ],
-    previewCode: `import Pagination from "@/components/pagination";
+    previewCode: `import Pagination, { type PaginationVariant } from "@/components/pagination";
 
-export default function PaginationPreview() {
-  return <Pagination />;
-}
-`,
+    const variants: PaginationVariant[] = ["pills", "outline", "compact", "input"];
+    
+    export default function PaginationPreview() {
+      return <Pagination variants={variants} />;
+    }
+    `,
     sourceCode: `"use client"
 
 import * as React from "react"
@@ -1038,6 +1041,7 @@ function cn(...classes: Array<string | false | null | undefined>): string {
 }
 
 export type PaginationVariant = "pills" | "outline" | "compact" | "input"
+const DEFAULT_VARIANTS: PaginationVariant[] = ["pills", "outline", "compact", "input"]
 
 export interface PaginationProps {
   totalPages?: number
@@ -1046,6 +1050,7 @@ export interface PaginationProps {
   initialPage?: number
   onPageChange?: (page: number) => void
   variant?: PaginationVariant
+  variants?: PaginationVariant[]
   showInput?: boolean
   disabled?: boolean
   siblingCount?: number
@@ -1726,6 +1731,7 @@ export default function Pagination({
   initialPage,
   onPageChange,
   variant,
+  variants = DEFAULT_VARIANTS,
   showInput = true,
   disabled = false,
   siblingCount = 2,
@@ -1759,10 +1765,17 @@ export default function Pagination({
   return h(
     "div",
     { className: cn("mx-auto flex w-full max-w-[860px] flex-col gap-7", className) },
-    h(PaginationInstance, { variant: "pills", totalPages, initialPage: seed, siblingCount, disabled }),
-    h(PaginationInstance, { variant: "outline", totalPages, initialPage: seed, siblingCount, disabled }),
-    h(PaginationInstance, { variant: "compact", totalPages, initialPage: seed, siblingCount, disabled }),
-    h(PaginationInstance, { variant: "input", totalPages, initialPage: seed, siblingCount, disabled, showInput })
+     ...variants.map((v) =>
+      h(PaginationInstance, {
+        key: v,
+        variant: v,
+        totalPages,
+        initialPage: seed,
+        siblingCount,
+        disabled,
+        showInput: v === "input" ? showInput : undefined,
+      })
+    )
   )
 }
 `,
@@ -1771,6 +1784,7 @@ export default function Pagination({
 
 
 
+  
   {
     slug: "otp-input",
     name: "OTP Input",

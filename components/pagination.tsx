@@ -45,6 +45,7 @@ function cn(...classes: Array<string | false | null | undefined>): string {
 
 /** Which single variant to render. Omit `variant` to render all four independent instances. */
 export type PaginationVariant = "pills" | "outline" | "compact" | "input"
+const DEFAULT_VARIANTS: PaginationVariant[] = ["pills", "outline", "compact", "input"]
 
 export interface PaginationProps {
   /** Total number of pages. */
@@ -63,7 +64,8 @@ export interface PaginationProps {
   onPageChange?: (page: number) => void
   /** Render only this single variant instead of the four-instance showcase. */
   variant?: PaginationVariant
-  /** Show the "Go to page" input on the "input" variant. Defaults to true. */
+  /** Which variants to render in showcase mode (used only when `variant` is not set). Defaults to all four, in this order. */
+  variants?: PaginationVariant[]
   showInput?: boolean
   /** Disable every control. */
   disabled?: boolean
@@ -806,6 +808,7 @@ export default function Pagination({
   initialPage,
   onPageChange,
   variant,
+  variants = DEFAULT_VARIANTS,
   showInput = true,
   disabled = false,
   siblingCount = 2,
@@ -846,9 +849,16 @@ export default function Pagination({
   return h(
     "div",
     { className: cn("mx-auto flex w-full max-w-[860px] flex-col gap-7", className) },
-    h(PaginationInstance, { variant: "pills", totalPages, initialPage: seed, siblingCount, disabled }),
-    h(PaginationInstance, { variant: "outline", totalPages, initialPage: seed, siblingCount, disabled }),
-    h(PaginationInstance, { variant: "compact", totalPages, initialPage: seed, siblingCount, disabled }),
-    h(PaginationInstance, { variant: "input", totalPages, initialPage: seed, siblingCount, disabled, showInput })
+    ...variants.map((v) =>
+            h(PaginationInstance, {
+              key: v,
+              variant: v,
+              totalPages,
+              initialPage: seed,
+              siblingCount,
+              disabled,
+              showInput: v === "input" ? showInput : undefined,
+            })
+          )
   )
 }
