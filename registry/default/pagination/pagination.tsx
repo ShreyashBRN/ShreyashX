@@ -1,3 +1,4 @@
+
 "use client"
 
 /**
@@ -31,53 +32,26 @@ import { motion, LayoutGroup, type Transition } from "framer-motion"
 
 const h = React.createElement
 
-// ---------------------------------------------------------------------------
-// cn() — replace with your project's own class-name merge utility if you
-// already have one (e.g. `import { cn } from "@/lib/utils"`).
-// ---------------------------------------------------------------------------
 function cn(...classes: Array<string | false | null | undefined>): string {
   return classes.filter(Boolean).join(" ")
 }
 
-// ---------------------------------------------------------------------------
-// Public types
-// ---------------------------------------------------------------------------
-
-/** Which single variant to render. Omit `variant` to render all four independent instances. */
 export type PaginationVariant = "pills" | "outline" | "compact" | "input"
 const DEFAULT_VARIANTS: PaginationVariant[] = ["pills", "outline", "compact", "input"]
 
 export interface PaginationProps {
-  /** Total number of pages. */
   totalPages?: number
-  /**
-   * Controlled current page (1-indexed). Only meaningful when `variant` is
-   * also set — the four-instance showcase mode never accepts a shared page,
-   * since that would reintroduce cross-instance state sharing.
-   */
   page?: number
-  /** Uncontrolled initial page (1-indexed). Ignored if `page` is provided. */
   defaultPage?: number
-  /** Alias of `defaultPage`. In showcase mode, this seeds all four instances' *initial* page — they still diverge independently after that. */
   initialPage?: number
-  /** Called whenever the page changes. Only used in single-variant mode. */
   onPageChange?: (page: number) => void
-  /** Render only this single variant instead of the four-instance showcase. */
   variant?: PaginationVariant
-  /** Which variants to render in showcase mode (used only when `variant` is not set). Defaults to all four, in this order. */
   variants?: PaginationVariant[]
   showInput?: boolean
-  /** Disable every control. */
   disabled?: boolean
-  /** How many pages to show on each side of the current page (desktop). Automatically reduced to 1 on narrow viewports. Default 2. */
   siblingCount?: number
-  /** Extra classes applied to the outermost wrapper. */
   className?: string
 }
-
-// ---------------------------------------------------------------------------
-// Shared page-range algorithm — LOCKED, UNCHANGED
-// ---------------------------------------------------------------------------
 
 type PageItem = number | "ellipsis"
 
@@ -133,10 +107,6 @@ function usePageWindow(
     [page, totalPages, effectiveSibling]
   )
 }
-
-// ---------------------------------------------------------------------------
-// Shared hooks — LOCKED, UNCHANGED
-// ---------------------------------------------------------------------------
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = React.useState(false)
@@ -199,10 +169,6 @@ function usePaginationState({
   return [page, setPage] as const
 }
 
-// ---------------------------------------------------------------------------
-// Small shared icons — LOCKED, UNCHANGED (built with createElement, not JSX)
-// ---------------------------------------------------------------------------
-
 function ChevronLeftIcon(props: React.SVGProps<SVGSVGElement>) {
   return h(
     "svg",
@@ -231,10 +197,6 @@ function ChevronRightIcon(props: React.SVGProps<SVGSVGElement>) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Props shared by every variant renderer
-// ---------------------------------------------------------------------------
-
 interface VariantProps {
   page: number
   totalPages: number
@@ -246,24 +208,12 @@ interface VariantProps {
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900"
 
-// Pointer cursor when enabled, "not-allowed" when disabled — applied to
-// every Prev/Next/page-number/Go control across all four variants.
 const interactiveCursor = "cursor-pointer disabled:cursor-not-allowed"
 
-// Small helper: render the shared "…" ellipsis item used between page
-// number buttons. `tag` lets callers ask for an `li` (inside a `<ul>`) or a
-// plain `span` (Outline uses a `div`, not a `ul`, for its number row).
 function renderEllipsis(tag: "li" | "span", key: string, className: string) {
   return h(tag, { key, className }, "\u2026")
 }
 
-/* =============================================================================
- * VARIANT 1 — PILLS
- * [Prev circle] [numbers pill] [Next circle] are wrapped together in one
- * inline-flex (fit-content) group, centered inside the full-width row. The
- * group only takes the space it needs — that's what keeps the arrows close
- * to the numbers instead of pinned to the row's outer edges.
- * ===========================================================================*/
 function PillsPagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
   const transition = useIndicatorTransition()
   const isCompact = useIsCompactViewport()
@@ -365,12 +315,6 @@ function PillsPagination({ page, totalPages, onChange, disabled, siblingCount }:
   return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, group)
 }
 
-/* =============================================================================
- * VARIANT 2 — OUTLINE
- * The bordered box is a fit-content group (matching Pills' width) centered
- * inside the full-width row — not stretched to the row's edges. Padding is
- * sized so the border always has room around the 32px buttons.
- * ===========================================================================*/
 function OutlinePagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
   const transition = useIndicatorTransition()
   const isCompact = useIsCompactViewport()
@@ -468,11 +412,6 @@ function OutlinePagination({ page, totalPages, onChange, disabled, siblingCount 
   return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, box)
 }
 
-/* =============================================================================
- * VARIANT 3 — COMPACT
- * A single fit-content box (numbers, then a small gap, then the Prev/Next
- * pair), centered inside the row.
- * ===========================================================================*/
 function CompactPagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
   const transition = useIndicatorTransition()
   const isCompact = useIsCompactViewport()
@@ -571,13 +510,6 @@ function CompactPagination({ page, totalPages, onChange, disabled, siblingCount 
   return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, box)
 }
 
-/* =============================================================================
- * VARIANT 4 — WITH INPUT
- * Desktop (>480px): ONE fit-content pill containing [Prev, numbers, Next]
- * and the "Go to page" group side by side, centered in the row.
- * Mobile (<=480px): the pill becomes full-width and stacks into two rows —
- * pagination on top, "Go to page" centered underneath.
- * ===========================================================================*/
 function InputPagination({
   page,
   totalPages,
@@ -666,9 +598,6 @@ function InputPagination({
             focusRing
           ),
         },
-        // Rotated-square "diamond" active shape. The page number itself is
-        // counter-rotated back to stay upright; `layout` + independent
-        // `rotate` style still animate smoothly together.
         isActive &&
           h(motion.span, {
             layoutId: "input-active",
@@ -763,13 +692,6 @@ function InputPagination({
   return h("div", { className: "flex w-full items-center justify-center" }, box)
 }
 
-// ---------------------------------------------------------------------------
-// PaginationInstance — LOCKED, UNCHANGED. Owns its own state (via
-// usePaginationState) and its own LayoutGroup id, so this variant's
-// `layoutId="pills-active"` etc. can never be confused with another
-// instance's identically-named layoutId, even if you render two Pagination
-// showcases on the same page.
-// ---------------------------------------------------------------------------
 function PaginationInstance({
   variant,
   totalPages,
@@ -798,9 +720,6 @@ function PaginationInstance({
   return h(LayoutGroup, { id: `pagination-${variant}-${groupId}` }, content)
 }
 
-/* =============================================================================
- * MAIN COMPONENT
- * ===========================================================================*/
 export default function Pagination({
   totalPages = 40,
   page,
@@ -814,8 +733,6 @@ export default function Pagination({
   siblingCount = 2,
   className,
 }: PaginationProps) {
-  // Single-variant mode: exactly one instance, full controlled/uncontrolled
-  // API — no multi-instance concerns since there's nothing else to conflict with.
   const singleGroupId = React.useId()
   const [singlePage, setSinglePage] = usePaginationState({
     totalPages,
@@ -839,26 +756,21 @@ export default function Pagination({
     )
   }
 
-  // Showcase mode: four fully independent instances, all sharing one width
-  // slot (~860px) for outer alignment. Each variant's own visible box sizes
-  // to its content and is centered within that slot. `defaultPage`/
-  // `initialPage` only seed each instance's STARTING page — after that,
-  // each one's state is entirely its own.
   const seed = defaultPage ?? initialPage ?? 3
 
   return h(
     "div",
     { className: cn("mx-auto flex w-full max-w-[860px] flex-col gap-7", className) },
     ...variants.map((v) =>
-            h(PaginationInstance, {
-              key: v,
-              variant: v,
-              totalPages,
-              initialPage: seed,
-              siblingCount,
-              disabled,
-              showInput: v === "input" ? showInput : undefined,
-            })
-          )
+      h(PaginationInstance, {
+        key: v,
+        variant: v,
+        totalPages,
+        initialPage: seed,
+        siblingCount,
+        disabled,
+        showInput: v === "input" ? showInput : undefined,
+      })
+    )
   )
 }
