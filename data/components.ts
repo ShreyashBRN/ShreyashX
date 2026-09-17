@@ -590,12 +590,31 @@ export default LiquidScrollProgress;
       { property: "enableShortcuts", type: "boolean", default: "true", description: "Whether pressing an item's shortcut key activates it globally." },
       { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer wrapper." },
     ],
-    previewCode: `import { JellyToolbar } from "@/components/jelly-toolbar";
+    previewCode: `"use client";
   
-  export default function JellyToolbarPreview() {
-    return <JellyToolbar />;
-  }
-  `,
+    import { JellyToolbar, type JellyToolbarItem } from "@/components/jelly-toolbar";
+    import {
+      MessageSquare,
+      Inbox,
+      Settings,
+      Eye,
+      Send,
+      Menu as MenuIcon,
+    } from "lucide-react";
+    
+    const items: JellyToolbarItem[] = [
+      { label: "Chat", icon: MessageSquare, shortcut: "C" },
+      { label: "Inbox", icon: Inbox, shortcut: "I" },
+      { label: "Settings", icon: Settings, shortcut: "S" },
+      { label: "Preview", icon: Eye, shortcut: "P" },
+      { label: "Send", icon: Send, shortcut: "E" },
+      { label: "Menu", icon: MenuIcon, shortcut: "M" },
+    ];
+    
+    export default function JellyToolbarPreview() {
+      return <JellyToolbar items={items} />;
+    }
+    `,
     sourceCode: `"use client";
   
   import * as React from "react";
