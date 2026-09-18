@@ -80,6 +80,19 @@
       ]
     },
     {
+      "name": "elastic-dropdown",
+      "type": "registry:component",
+      "title": "Elastic Dropdown",
+      "description": "A compact dropdown whose outer shape physically stretches open — one continuous spring-driven SVG surface that bows, overshoots, and settles back into the trigger, not a menu that fades or slides in.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/default/elastic-dropdown/elastic-dropdown.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "buttons",
       "type": "registry:component",
       "title": "Buttons",

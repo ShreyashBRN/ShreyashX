@@ -1,6 +1,27 @@
 "use client";
 
-import { ElasticDropdown } from "@/components/elastic-dropdown";
+import {
+  ElasticDropdown,
+  type ElasticDropdownOption,
+  UserIcon,
+  UserFilledIcon,
+  BriefcaseIcon,
+  BriefcaseFilledIcon,
+  PaletteIcon,
+  PaletteFilledIcon,
+  CodeIcon,
+  CodeFilledIcon,
+  FinanceIcon,
+  FinanceFilledIcon,
+} from "@/components/elastic-dropdown";
+
+const options: ElasticDropdownOption[] = [
+  { value: "personal", label: "Personal", icon: UserIcon, filledIcon: UserFilledIcon },
+  { value: "work", label: "Work", icon: BriefcaseIcon, filledIcon: BriefcaseFilledIcon },
+  { value: "design", label: "Design", icon: PaletteIcon, filledIcon: PaletteFilledIcon },
+  { value: "development", label: "Development", icon: CodeIcon, filledIcon: CodeFilledIcon },
+  { value: "finance", label: "Finance", icon: FinanceIcon, filledIcon: FinanceFilledIcon },
+];
 
 export default function ElasticDropdownPreview() {
   return (
@@ -22,7 +43,7 @@ export default function ElasticDropdownPreview() {
           zIndex: 10,
         }}
       >
-        <ElasticDropdown placeholder="Project" />
+        <ElasticDropdown placeholder="Project" options={options} />
       </div>
     </div>
   );
