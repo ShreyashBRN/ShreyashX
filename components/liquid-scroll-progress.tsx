@@ -166,7 +166,7 @@ export function LiquidScrollProgress({
 >
       <section
         aria-label="Scroll progress"
-        className={`relative mx-auto w-full max-w-xs px-2 py-4 sm:px-3 ${className}`}
+        className={`relative mx-auto w-fit px-2 py-4 sm:px-3 ${className}`}
       >
         <style>{`
           .lsp-glass {
@@ -177,6 +177,20 @@ export function LiquidScrollProgress({
               inset 1px 0 1px rgba(255,255,255,0.9),
               inset -1px 0 1px rgba(15,23,42,0.08),
               0 1px 3px rgba(15,23,42,0.08);
+          }
+          .lsp-card {
+            border: 1px solid rgba(148,163,184,0.4);
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(16px);
+            box-shadow:
+              0 4px 10px rgba(20,40,60,0.08),
+              inset 0 1px rgba(255,255,255,0.9);
+          }
+          .lsp-card-border {
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow:
+              inset 0 1px rgba(255,255,255,0.85),
+              inset 0 -1px rgba(15,23,42,0.04);
           }
           .lsp-liquid-h {
             background: linear-gradient(
@@ -225,6 +239,33 @@ export function LiquidScrollProgress({
           @media (prefers-reduced-motion: reduce) {
             .liquid-scroll-motion { animation: none !important; }
           }
+
+          /* Dark mode: empty pipes/boxes go transparent instead of grey,
+             text flips to a light color for contrast against dark pages.
+             Scoped to the .dark class your ThemeContext toggles. */
+          .dark .lsp-glass {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(148,163,184,0.25);
+            box-shadow:
+              inset 1px 0 1px rgba(255,255,255,0.08),
+              inset -1px 0 1px rgba(0,0,0,0.35),
+              0 1px 3px rgba(0,0,0,0.35);
+          }
+          .dark .lsp-card {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(148,163,184,0.22);
+            box-shadow:
+              0 4px 10px rgba(0,0,0,0.35),
+              inset 0 1px rgba(255,255,255,0.06);
+          }
+          .dark .lsp-card-border {
+            border-color: rgba(255,255,255,0.1);
+            box-shadow:
+              inset 0 1px rgba(255,255,255,0.08),
+              inset 0 -1px rgba(0,0,0,0.2);
+          }
+          .dark .lsp-content { color: rgba(226,232,240,0.85); }
+          .dark .lsp-content.is-filled { color: #fff; }
         `}</style>
 
         <div
@@ -271,7 +312,7 @@ export function LiquidScrollProgress({
                   />
                 </div>
 
-                <div className="relative z-20 w-[180px] max-w-full h-[48px] overflow-hidden rounded-none border border-slate-300/40 bg-white/[0.7] shadow-[0_4px_10px_rgba(20,40,60,0.08),inset_0_1px_rgba(255,255,255,0.9)] backdrop-blur-xl">
+                <div className="lsp-card relative z-20 w-[180px] max-w-full h-[48px] overflow-hidden rounded-lg backdrop-blur-xl">
                   <div
                     ref={(node) => {
                       cardLiquidRefs.current[index] = node
@@ -289,7 +330,7 @@ export function LiquidScrollProgress({
 
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-none border border-white/60 shadow-[inset_0_1px_rgba(255,255,255,0.85),inset_0_-1px_rgba(15,23,42,0.04)]"
+                    className="lsp-card-border pointer-events-none absolute inset-0 rounded-lg"
                   />
 
                   <div
