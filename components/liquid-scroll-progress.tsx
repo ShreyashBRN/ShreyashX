@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-type LiquidScrollProgressSection = {
+export type LiquidScrollProgressSection = {
   title: string
 }
 

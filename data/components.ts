@@ -208,40 +208,52 @@ export default DragDropReorder;
       { property: "liquidColor", type: "string", default: `"#159cff"`, description: "CSS color used for the liquid fill (pipe, connectors, and cards)." },
       { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer section." },
     ],
-    previewCode: `import { LiquidScrollProgress } from "@/components/liquid-scroll-progress";
+    previewCode: `"use client";
 
-export default function LiquidScrollProgressPreview() {
-  return <LiquidScrollProgress />;
-}
-`,
-    sourceCode: `"use client";
+import {
+  LiquidScrollProgress,
+  type LiquidScrollProgressSection,
+} from "@/components/liquid-scroll-progress";
 
-import * as React from "react";
-
-type LiquidScrollProgressSection = {
-  title: string;
-};
-
-type LiquidScrollProgressProps = {
-  sections?: LiquidScrollProgressSection[];
-  liquidColor?: string;
-  className?: string;
-};
-
-const DEFAULT_SECTIONS: LiquidScrollProgressSection[] = [
+const sections: LiquidScrollProgressSection[] = [
   { title: "Introduction" },
   { title: "Implementation" },
   { title: "Customization" },
   { title: "Usage" },
 ];
 
-const clamp = (value: number, min = 0, max = 1) =>
-  Math.min(Math.max(value, min), max);
+export default function LiquidScrollProgressPreview() {
+  return <LiquidScrollProgress sections={sections} />;
+}
+`,
+    sourceCode: `"use client"
 
-const PIPE_LEFT = 4;
-const PIPE_W = 6;
-const GAP = 22;
-const TUCK_INTO_CARD = 4;
+import * as React from "react"
+
+export type LiquidScrollProgressSection = {
+  title: string
+}
+
+type LiquidScrollProgressProps = {
+  sections?: LiquidScrollProgressSection[]
+  liquidColor?: string
+  className?: string
+}
+
+const DEFAULT_SECTIONS: LiquidScrollProgressSection[] = [
+  { title: "Introduction" },
+  { title: "Implementation" },
+  { title: "Customization" },
+  { title: "Usage" },
+]
+
+const clamp = (value: number, min = 0, max = 1) =>
+  Math.min(Math.max(value, min), max)
+
+const PIPE_LEFT = 4
+const PIPE_W = 6
+const GAP = 22
+const TUCK_INTO_CARD = 4
 
 /**
  * How much wheel/touch travel (in px-equivalent units) corresponds to
@@ -250,117 +262,117 @@ const TUCK_INTO_CARD = 4;
  * knob — not tied to any real scrollable height, since nothing here
  * actually scrolls.
  */
-const VIRTUAL_SCROLL_RANGE = 600;
+const VIRTUAL_SCROLL_RANGE = 600
 
 export function LiquidScrollProgress({
   sections = DEFAULT_SECTIONS,
   liquidColor = "#159cff",
   className = "",
 }: LiquidScrollProgressProps) {
-  const pipeLiquidRef = React.useRef<HTMLDivElement | null>(null);
-  const connectorLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([]);
-  const cardLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([]);
-  const contentRefs = React.useRef<Array<HTMLDivElement | null>>([]);
+  const pipeLiquidRef = React.useRef<HTMLDivElement | null>(null)
+  const connectorLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([])
+  const cardLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([])
+  const contentRefs = React.useRef<Array<HTMLDivElement | null>>([])
 
   // The fixed, non-scrolling "capture" box. It never scrolls — it only
   // listens for wheel/touch input and turns that into a virtual
   // progress value below. The component's own DOM never moves.
-  const captureRef = React.useRef<HTMLDivElement | null>(null);
+  const captureRef = React.useRef<HTMLDivElement | null>(null)
 
   // Virtual progress, 0–1. This replaces \`window.scrollY\` /
   // \`container.scrollTop\` entirely — there is no real scroll position
   // anywhere in this component anymore, just this one number that wheel
   // and touch input nudge up or down.
-  const progressRef = React.useRef(0);
+  const progressRef = React.useRef(0)
 
-  connectorLiquidRefs.current = [];
-  cardLiquidRefs.current = [];
-  contentRefs.current = [];
+  connectorLiquidRefs.current = []
+  cardLiquidRefs.current = []
+  contentRefs.current = []
 
   React.useEffect(() => {
-    if (sections.length === 0) return;
+    if (sections.length === 0) return
 
-    const capture = captureRef.current;
-    if (!capture) return;
+    const capture = captureRef.current
+    if (!capture) return
 
-    let frame = 0;
-    const total = sections.length;
+    let frame = 0
+    const total = sections.length
 
     // Paints the DOM from whatever progressRef.current currently is.
     // Same fill formulas as before — only the source of \`overall\`
     // changed (a plain number we control, not a scroll measurement).
     const paint = () => {
-      if (frame) cancelAnimationFrame(frame);
+      if (frame) cancelAnimationFrame(frame)
 
       frame = requestAnimationFrame(() => {
-        const overall = progressRef.current;
+        const overall = progressRef.current
 
         if (pipeLiquidRef.current) {
-          pipeLiquidRef.current.style.transform = \`scaleY(\${overall})\`;
+          pipeLiquidRef.current.style.transform = \`scaleY(\${overall})\`
         }
 
         for (let i = 0; i < total; i++) {
-          const start = i / total;
-          const end = (i + 1) / total;
-          const raw = clamp((overall - start) / (end - start));
-          const connectorFill = clamp(raw / 0.35);
-          const cardFill = clamp((raw - 0.1) / 0.9);
-          const isFilled = cardFill >= 0.45;
+          const start = i / total
+          const end = (i + 1) / total
+          const raw = clamp((overall - start) / (end - start))
+          const connectorFill = clamp(raw / 0.35)
+          const cardFill = clamp((raw - 0.1) / 0.9)
+          const isFilled = cardFill >= 0.45
 
-          const connectorEl = connectorLiquidRefs.current[i];
-          if (connectorEl) connectorEl.style.transform = \`scaleX(\${connectorFill})\`;
+          const connectorEl = connectorLiquidRefs.current[i]
+          if (connectorEl) connectorEl.style.transform = \`scaleX(\${connectorFill})\`
 
-          const cardEl = cardLiquidRefs.current[i];
-          if (cardEl) cardEl.style.transform = \`scaleY(\${cardFill})\`;
+          const cardEl = cardLiquidRefs.current[i]
+          if (cardEl) cardEl.style.transform = \`scaleY(\${cardFill})\`
 
-          const contentEl = contentRefs.current[i];
-          if (contentEl) contentEl.classList.toggle("is-filled", isFilled);
+          const contentEl = contentRefs.current[i]
+          if (contentEl) contentEl.classList.toggle("is-filled", isFilled)
         }
-      });
-    };
+      })
+    }
 
     // Wheel: the primary input. preventDefault + stopPropagation stop
     // both the native page scroll AND any smooth-scroll library (e.g.
     // Lenis) upstream from ever seeing this event — nothing scrolls,
     // anywhere, as a result of this gesture.
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      progressRef.current = clamp(progressRef.current + e.deltaY / VIRTUAL_SCROLL_RANGE);
-      paint();
-    };
+      e.preventDefault()
+      e.stopPropagation()
+      progressRef.current = clamp(progressRef.current + e.deltaY / VIRTUAL_SCROLL_RANGE)
+      paint()
+    }
 
     // Touch: same idea, tracked manually since there's no native scroll
     // to read a position from.
-    let touchY = 0;
+    let touchY = 0
     const onTouchStart = (e: TouchEvent) => {
-      touchY = e.touches[0].clientY;
-    };
+      touchY = e.touches[0].clientY
+    }
     const onTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const currentY = e.touches[0].clientY;
-      const deltaY = touchY - currentY;
-      touchY = currentY;
-      progressRef.current = clamp(progressRef.current + deltaY / VIRTUAL_SCROLL_RANGE);
-      paint();
-    };
+      e.preventDefault()
+      e.stopPropagation()
+      const currentY = e.touches[0].clientY
+      const deltaY = touchY - currentY
+      touchY = currentY
+      progressRef.current = clamp(progressRef.current + deltaY / VIRTUAL_SCROLL_RANGE)
+      paint()
+    }
 
-    paint(); // initial paint at progress = 0
+    paint() // initial paint at progress = 0
 
-    capture.addEventListener("wheel", onWheel, { passive: false });
-    capture.addEventListener("touchstart", onTouchStart, { passive: true });
-    capture.addEventListener("touchmove", onTouchMove, { passive: false });
+    capture.addEventListener("wheel", onWheel, { passive: false })
+    capture.addEventListener("touchstart", onTouchStart, { passive: true })
+    capture.addEventListener("touchmove", onTouchMove, { passive: false })
 
     return () => {
-      if (frame) cancelAnimationFrame(frame);
-      capture.removeEventListener("wheel", onWheel);
-      capture.removeEventListener("touchstart", onTouchStart);
-      capture.removeEventListener("touchmove", onTouchMove);
-    };
-  }, [sections.length]);
+      if (frame) cancelAnimationFrame(frame)
+      capture.removeEventListener("wheel", onWheel)
+      capture.removeEventListener("touchstart", onTouchStart)
+      capture.removeEventListener("touchmove", onTouchMove)
+    }
+  }, [sections.length])
 
-  if (sections.length === 0) return null;
+  if (sections.length === 0) return null
 
   return (
     // Fixed viewport / input capture area. \`overflow: hidden\` with no
@@ -371,18 +383,18 @@ export function LiquidScrollProgress({
     // prevent\` is a second line of defense for the Lenis smooth-scroll
     // library specifically, on top of the stopPropagation() above.
     <div
-      ref={captureRef}
-      data-lenis-prevent
-      className="flex h-full w-full items-center justify-center"
-      style={{
-        overflow: "hidden",
-        touchAction: "none",
-        userSelect: "none",
-      }}
-    >
+  ref={captureRef}
+  data-lenis-prevent
+  className="flex h-full w-full items-center justify-center"
+  style={{
+    overflow: "hidden",
+    touchAction: "none",
+    userSelect: "none",
+  }}
+>
       <section
         aria-label="Scroll progress"
-        className={\`relative mx-auto w-full max-w-xs px-2 py-4 sm:px-3 \${className}\`}
+        className={\`relative mx-auto w-fit px-2 py-4 sm:px-3 \${className}\`}
       >
         <style>{\`
           .lsp-glass {
@@ -393,6 +405,20 @@ export function LiquidScrollProgress({
               inset 1px 0 1px rgba(255,255,255,0.9),
               inset -1px 0 1px rgba(15,23,42,0.08),
               0 1px 3px rgba(15,23,42,0.08);
+          }
+          .lsp-card {
+            border: 1px solid rgba(148,163,184,0.4);
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(16px);
+            box-shadow:
+              0 4px 10px rgba(20,40,60,0.08),
+              inset 0 1px rgba(255,255,255,0.9);
+          }
+          .lsp-card-border {
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow:
+              inset 0 1px rgba(255,255,255,0.85),
+              inset 0 -1px rgba(15,23,42,0.04);
           }
           .lsp-liquid-h {
             background: linear-gradient(
@@ -441,6 +467,33 @@ export function LiquidScrollProgress({
           @media (prefers-reduced-motion: reduce) {
             .liquid-scroll-motion { animation: none !important; }
           }
+
+          /* Dark mode: empty pipes/boxes go transparent instead of grey,
+             text flips to a light color for contrast against dark pages.
+             Scoped to the .dark class your ThemeContext toggles. */
+          .dark .lsp-glass {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(148,163,184,0.25);
+            box-shadow:
+              inset 1px 0 1px rgba(255,255,255,0.08),
+              inset -1px 0 1px rgba(0,0,0,0.35),
+              0 1px 3px rgba(0,0,0,0.35);
+          }
+          .dark .lsp-card {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(148,163,184,0.22);
+            box-shadow:
+              0 4px 10px rgba(0,0,0,0.35),
+              inset 0 1px rgba(255,255,255,0.06);
+          }
+          .dark .lsp-card-border {
+            border-color: rgba(255,255,255,0.1);
+            box-shadow:
+              inset 0 1px rgba(255,255,255,0.08),
+              inset 0 -1px rgba(0,0,0,0.2);
+          }
+          .dark .lsp-content { color: rgba(226,232,240,0.85); }
+          .dark .lsp-content.is-filled { color: #fff; }
         \`}</style>
 
         <div
@@ -479,7 +532,7 @@ export function LiquidScrollProgress({
                   <div aria-hidden="true" className="lsp-glass absolute inset-0 rounded-full" />
                   <div
                     ref={(node) => {
-                      connectorLiquidRefs.current[index] = node;
+                      connectorLiquidRefs.current[index] = node
                     }}
                     aria-hidden="true"
                     className="lsp-liquid-h absolute inset-y-0 left-0 w-full origin-left will-change-transform"
@@ -487,10 +540,10 @@ export function LiquidScrollProgress({
                   />
                 </div>
 
-                <div className="relative z-20 w-[180px] max-w-full h-[48px] overflow-hidden rounded-none border border-slate-300/40 bg-white/[0.7] shadow-[0_4px_10px_rgba(20,40,60,0.08),inset_0_1px_rgba(255,255,255,0.9)] backdrop-blur-xl">
+                <div className="lsp-card relative z-20 w-[180px] max-w-full h-[48px] overflow-hidden rounded-lg backdrop-blur-xl">
                   <div
                     ref={(node) => {
-                      cardLiquidRefs.current[index] = node;
+                      cardLiquidRefs.current[index] = node
                     }}
                     aria-hidden="true"
                     className="lsp-liquid absolute inset-x-0 bottom-0 top-0 origin-bottom overflow-hidden will-change-transform"
@@ -505,12 +558,12 @@ export function LiquidScrollProgress({
 
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-none border border-white/60 shadow-[inset_0_1px_rgba(255,255,255,0.85),inset_0_-1px_rgba(15,23,42,0.04)]"
+                    className="lsp-card-border pointer-events-none absolute inset-0 rounded-lg"
                   />
 
                   <div
                     ref={(node) => {
-                      contentRefs.current[index] = node;
+                      contentRefs.current[index] = node
                     }}
                     className="lsp-content relative z-10 flex h-full w-full items-center justify-center px-3 text-center"
                   >
@@ -525,7 +578,7 @@ export function LiquidScrollProgress({
         </div>
       </section>
     </div>
-  );
+  )
 }
 
 function LiquidBubbles({ compact = false }: { compact?: boolean }) {
@@ -538,7 +591,7 @@ function LiquidBubbles({ compact = false }: { compact?: boolean }) {
         { left: "20%", size: 1.5, duration: "2.6s", delay: "0s", drift: "-1px" },
         { left: "50%", size: 2, duration: "3.2s", delay: "0.7s", drift: "1px" },
         { left: "78%", size: 1.5, duration: "2.9s", delay: "1.3s", drift: "-1px" },
-      ];
+      ]
 
   return (
     <div
@@ -561,10 +614,8 @@ function LiquidBubbles({ compact = false }: { compact?: boolean }) {
         />
       ))}
     </div>
-  );
+  )
 }
-
-export default LiquidScrollProgress;
 `,
   },
 

@@ -1,7 +1,17 @@
 "use client";
 
-import { LiquidScrollProgress } from "@/components/liquid-scroll-progress";
+import {
+  LiquidScrollProgress,
+  type LiquidScrollProgressSection,
+} from "@/components/liquid-scroll-progress";
+
+const sections: LiquidScrollProgressSection[] = [
+  { title: "Introduction" },
+  { title: "Implementation" },
+  { title: "Customization" },
+  { title: "Usage" },
+];
 
 export default function LiquidScrollProgressPreview() {
-  return <LiquidScrollProgress />;
+  return <LiquidScrollProgress sections={sections} />;
 }
