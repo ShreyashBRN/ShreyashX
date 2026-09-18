@@ -20,20 +20,39 @@ export function InstallCommandBlock({ command }: { command: string }) {
     setTimeout(() => setCopied(false), 1500);
   }
 
+  // Every install command is "<runner> shadcn@latest add <url>" — split
+  // out the "add" keyword so it can be picked out in color, the way a
+  // real CLI highlights a subcommand. Everything else stays plain.
+  const parts = command.split(/(\badd\b)/);
+
   return (
     <div className="flex min-w-0 max-w-full items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-900">
       {/* overflow-x-auto scoped to the <code> only, so a long URL scrolls
-          sideways inside this pill instead of widening the whole page —
-          this is the exact fix for the cut-off command in image 6. */}
-      <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-sm text-neutral-800 dark:text-neutral-200">
-        {command}
+          sideways inside this pill instead of widening the whole page. */}
+      <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-base text-neutral-800 dark:text-neutral-200">
+        {parts.map((part, i) =>
+          part === "add" ? (
+            <span key={i} className="text-blue-600 dark:text-blue-400">
+              {part}
+            </span>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
       </code>
+
       <button
         aria-label="Copy install command"
         onClick={handleCopy}
         className="shrink-0 rounded-lg border border-neutral-200 bg-white p-1.5 text-neutral-500 hover:text-[#0d7d86] dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-[#2dd4bf]"
       >
-        {copied ? <span className="block h-3.5 w-3.5 text-[10px] leading-[14px] text-[#0d7d86] dark:text-[#2dd4bf]">✓</span> : <Copy size={14} />}
+        {copied ? (
+          <span className="block h-3.5 w-3.5 text-[10px] leading-[14px] text-[#0d7d86] dark:text-[#2dd4bf]">
+            ✓
+          </span>
+        ) : (
+          <Copy size={14} />
+        )}
       </button>
     </div>
   );
