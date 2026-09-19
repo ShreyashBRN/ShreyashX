@@ -154,7 +154,7 @@ function TalkButton() {
       url="https://calendly.com/shreyashbagade-work/30min"
       rootElement={rootEl}
       text="Let's Talk"
-      className="group relative hidden md:inline-block cursor-pointer overflow-hidden rounded-full bg-black px-4 py-[11px] text-sm font-medium text-white"
+      className="group relative inline-block shrink-0 cursor-pointer overflow-hidden rounded-full bg-black px-3 py-2 text-xs font-medium text-white sm:px-4 sm:py-[11px] sm:text-sm"
     />
   );
 }
