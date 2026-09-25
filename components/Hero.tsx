@@ -125,7 +125,7 @@ export default function Hero() {
             </Link>
             <Link
               href="#contact"
-              className="h-[45px] lg:h-[50px] px-[20px]  hover:border-black inline-flex items-center justify-center rounded-full b border border-[#d6d6d6] text-[14px] lg:text-[15px] font-semibold transition-colors duration-250 hover:bg-[#fafafa]"
+              className="h-[45px] lg:h-[50px] px-[20px] hover:border-black inline-flex items-center justify-center rounded-full border border-[#d6d6d6] text-[14px] lg:text-[15px] font-semibold text-[#111111] transition-colors duration-250 hover:bg-[#fafafa]"
             >
               Contact
             </Link>
@@ -180,7 +180,7 @@ export default function Hero() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="h-10 w-10 lg:h-10 lg:w-10 rounded-full border border-[#d8d8d8] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
+                className="h-10 w-10 lg:h-10 lg:w-10 rounded-full border border-[#d8d8d8] text-[#111111] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
               >
                 <FaInstagram size={20} />
               </a>
@@ -189,7 +189,7 @@ export default function Hero() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
-                className="h-10 w-10 lg:h-10 lg:w-10 rounded-full border border-[#d8d8d8] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
+                className="h-10 w-10 lg:h-10 lg:w-10 rounded-full border border-[#d8d8d8] text-[#111111] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
               >
                 <FaGithub size={20} />
               </a>
@@ -198,7 +198,7 @@ export default function Hero() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
-                className="h-10 w-10 lg:h-10 lg:w-10 rounded-full border border-[#d8d8d8] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
+                className="h-10 w-10 lg:h-10 lg:w-10 rounded-full border border-[#d8d8d8] text-[#111111] flex items-center justify-center transition-colors duration-250 hover:bg-[#111111] hover:text-white"
               >
                 <FaLinkedin size={20} />
               </a>

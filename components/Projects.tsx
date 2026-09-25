@@ -73,7 +73,9 @@ function StackCard({
   return (
     <motion.div
       style={{ y, opacity: 1, zIndex: index + 1 }}
-      className="absolute inset-x-0 top-0 will-change-transform transform-gpu"
+      className={`${
+        variant === "mobile" && index === 0 ? "relative" : "absolute inset-x-0 top-0"
+      } will-change-transform transform-gpu`}
     >
       {variant === "desktop" ? (
         <div className="group relative w-full h-[300px] rounded-[24px] overflow-hidden border border-black/[.06] shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
@@ -170,11 +172,12 @@ export default function Projects() {
   const activeProject = projects[activeIndex];
 
   return (
-    // Tall scroll runway: gives the pinned view enough scroll distance
-    // to step through every card before releasing back to normal scroll.
-    <section
-      ref={sectionRef}
-      id="projects"
+    <>
+      {/* Tall scroll runway: gives the pinned view enough scroll distance
+          to step through every card before releasing back to normal scroll. */}
+      <section
+        ref={sectionRef}
+        id="projects"
       className="projects-runway relative bg-[#F2F1ED]"
       style={{ height: `350svh` }}
     >
@@ -257,7 +260,7 @@ export default function Projects() {
 
 
         <Container className="md:hidden relative flex-1 min-h-0 mt-4">
-          <div className="relative w-full h-[420px]">
+          <div className="relative w-full pb-[18px]">
             {/* indicator now FIRST, no z-index, so cards stack above it */}
             <motion.div
               className="absolute inset-0 flex pt-[200px] flex-col items-center justify-center gap-2 pointer-events-none"
@@ -288,8 +291,9 @@ export default function Projects() {
           </div>
         </Container>
 
+        {/* Desktop Collaborate: pinned inside frame and shifted downward */}
         <motion.div
-          className="collaborate-wrap absolute inset-x-0 z-30 -bottom-8 md:bottom-auto md:top-[580px]"
+          className="collaborate-wrap hidden md:block md:absolute inset-x-0 z-30 md:top-[610px]"
           style={{
             y: useTransform(scrollYProgress, [(total - 1) / total, 1], [200, 0]),
             opacity: useTransform(scrollYProgress, [(total - 1) / total, 1], [0, 1]),
@@ -301,5 +305,13 @@ export default function Projects() {
         </motion.div>
       </div>
     </section>
+
+    {/* Mobile Collaborate: in normal document flow after the projects section */}
+    <section className="md:hidden relative z-30 pt-8 pb-10 bg-[#f6f4ef]">
+      <Container>
+        <Collaborate />
+      </Container>
+    </section>
+  </>
   );
 }

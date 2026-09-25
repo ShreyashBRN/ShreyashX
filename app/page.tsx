@@ -11,7 +11,6 @@ export default function Home() {
       <Navbar />
       <Hero />
       <Projects />
-      <div className="h-8 md:hidden" />
       <TrustedBy />
       <Contact />
       <Footer />

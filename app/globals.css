@@ -4,6 +4,7 @@
 :root {
   --background: #f6f4ef;
   --background-elevated: #fffcf7;
+  --foreground: #111111;
 
   /* Centered content layout — adjust these to change width and side padding */
   --container-max: 75rem;
@@ -27,13 +28,6 @@
    so drop lg just below that so type, spacing, and leftover lg: rules match desktop. */
 @theme {
   --breakpoint-lg: 60rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
@@ -157,6 +151,6 @@ body {
   }
 
   .collaborate-wrap {
-    top: 640px !important;
+    top: 670px !important;
   }
 }
