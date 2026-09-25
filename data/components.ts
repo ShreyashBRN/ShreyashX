@@ -2744,7 +2744,7 @@ export default function Pagination({
     cardDescription:
       "Four animated button interactions — Staggered Letter Lift, Single Liquid Bubble, Magnetic, Cursor Compression — monochrome, independently stateful, and built on identical geometry.",
     fullDescription:
-      "A self-contained set of four animated button interactions, each fully independent. Per-letter clip/lift typography, a single continuous liquid fluid that grows across the button and shrinks away in the same direction, cursor-following magnetic pull, and a cursor-driven compression dent that deforms the button's silhouette toward the pointer — all sharing the same button geometry so no animation ever resizes the layout.",
+      "Four independent animated buttons: letter lift, flowing liquid fill, magnetic cursor pull, and cursor-driven dent deformation — all using the same fixed geometry with no layout resizing.",
     icon: "MousePointerClick",
     status: "new",
     installCommand: "npx shadcn@latest add https://shreyashtech.me/r/buttons.json",
