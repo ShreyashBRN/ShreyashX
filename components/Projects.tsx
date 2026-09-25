@@ -178,16 +178,14 @@ export default function Projects() {
       <section
         ref={sectionRef}
         id="projects"
-      className="projects-runway relative bg-[#F2F1ED]"
-      style={{ height: `350svh` }}
-    >
-      <div
-        className="projects-pin sticky overflow-hidden flex flex-col overflow-visible md:overflow-hidden"
-        style={{
-          top: NAVBAR_HEIGHT,
-          height: `calc(100dvh - ${NAVBAR_HEIGHT}px)`,
-        }}
+        className="projects-runway relative bg-[#F2F1ED] h-[220svh] md:h-[350svh]"
       >
+        <div
+          className="projects-pin sticky flex flex-col overflow-visible md:overflow-hidden h-auto md:h-[calc(100dvh-32px)]"
+          style={{
+            top: NAVBAR_HEIGHT,
+          }}
+        >
         <Container className="pt-8 lg:pt-14 shrink-0">
           <h2 className="font-bricolage text-[32px] sm:text-[36px] lg:text-[58px] font-extrabold text-[#111111] tracking-[-0.03em]">
             Projects.
@@ -259,7 +257,7 @@ export default function Projects() {
         </Container>
 
 
-        <Container className="md:hidden relative flex-1 min-h-0 mt-4">
+        <Container className="md:hidden relative mt-4">
           <div className="relative w-full pb-[18px]">
             {/* indicator now FIRST, no z-index, so cards stack above it */}
             <motion.div
@@ -307,7 +305,7 @@ export default function Projects() {
     </section>
 
     {/* Mobile Collaborate: in normal document flow after the projects section */}
-    <section className="md:hidden relative z-30 pt-8 pb-10 bg-[#f6f4ef]">
+    <section className="md:hidden relative z-30 pt-10 pb-8 bg-[#f6f4ef]">
       <Container>
         <Collaborate />
       </Container>
