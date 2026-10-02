@@ -138,15 +138,6 @@ body {
 /* Phone desktop-site mode keeps a portrait aspect ratio while CSS width is
    desktop-sized, so 100dvh/svh become thousands of pixels. Cap to a laptop frame. */
 @media (min-width: 48rem) and (max-aspect-ratio: 1/1) {
-  /* Match Components page (max-w-3xl) left/right side gaps exactly.
-     48rem = Tailwind max-w-3xl. Leaves real mobile + landscape desktop untouched. */
-  :root {
-    --container-padding-sm: max(
-      2rem,
-      calc((min(100vw, var(--container-max)) - 48rem) / 2)
-    );
-  }
-
   .hero-frame {
     min-height: 850px !important;
   }
