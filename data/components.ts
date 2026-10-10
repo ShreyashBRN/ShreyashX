@@ -4760,6 +4760,7 @@ const sections = [
   { id: "history", label: "History" },
   { id: "overview", label: "Overview" },
   { id: "architecture", label: "Architecture" },
+  { id: "implementation", label: "Implementation" },
   { id: "references", label: "References" },
 ];
 
