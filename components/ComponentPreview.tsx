@@ -7,6 +7,7 @@ import PaginationPreview from "@/components/pagination-preview";
 import OtpInputPreview from "@/components/otp-input-preview";
 import Buttons from "@/components/buttons-preview";
 import ElasticDropdownPreview from "@/components/elastic-dropdown-preview";
+import FlowSidebarPreview from "@/components/flow-sidebar-preview";
 
 const previewMap: Record<string, React.ReactNode> = {
   "drag-drop-reorder": <DragDropReorderPreview />,
@@ -15,7 +16,8 @@ const previewMap: Record<string, React.ReactNode> = {
   "pagination": <PaginationPreview />,
   "otp-input": <OtpInputPreview />,
   "buttons": <Buttons />,
-  "elastic-dropdown": <ElasticDropdownPreview />
+  "elastic-dropdown": <ElasticDropdownPreview />,
+  "flow-sidebar": <FlowSidebarPreview />
 };
 
 export function ComponentPreview({ slug }: { slug: string }) {
