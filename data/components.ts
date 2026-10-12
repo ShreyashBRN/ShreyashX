@@ -60,27 +60,11 @@ export const components: ComponentEntry[] = [
   ]}
   accentColor="#ff5a4f"
 />`,
-    props: [
-      { property: "sections", type: "SidebarSection[]", default: "-", description: "Navigation items. Each has an id (matches the section element's id), a label, and an optional href." },
-      { property: "activeSectionId", type: "string", default: "-", description: "Controlled active section. Pass with onActiveChange to control the sidebar externally." },
-      { property: "defaultActiveSectionId", type: "string", default: "first section", description: "Initial active section for uncontrolled use." },
-      { property: "onActiveChange", type: "function", default: "-", description: "Called with the new section id whenever the active section changes." },
-      { property: "title", type: "string", default: "\"Contents\"", description: "Heading shown above the list in vertical mode. Pass \"\" to hide it." },
-      { property: "ariaLabel", type: "string", default: "\"Table of contents\"", description: "Accessible label for the nav landmark." },
-      { property: "accentColor", type: "string", default: "#ff5a4f", description: "Colour of the active dot and the curved line. Any CSS colour." },
-      { property: "activationOffset", type: "number", default: "24", description: "Pixels below the sticky-header offset where the reading line sits." },
-      { property: "scrollOffset", type: "number", default: "0", description: "Height of a sticky header in px. Used by the reading line and click scrolling." },
-      { property: "expandDuration", type: "number", default: "320", description: "Milliseconds for the curve to draw from the old dot to the new one." },
-      { property: "pauseDuration", type: "number", default: "70", description: "Milliseconds the full curve stays visible." },
-      { property: "retractDuration", type: "number", default: "320", description: "Milliseconds for the curve to erase." },
-      { property: "curveStrength", type: "number", default: "1", description: "Multiplier for how far the curve bows. It never leaves the indicator gutter." },
-      { property: "lineWidth", type: "number", default: "2.5", description: "Stroke width of the curve in px." },
-      { property: "indicatorSize", type: "number", default: "8", description: "Active dot diameter in px. Inactive dots are 75%." },
-      { property: "orientation", type: "\"vertical\" | \"horizontal\" | \"responsive\"", default: "\"vertical\"", description: "Layout direction. Responsive switches to a horizontal strip on narrow screens." },
-      { property: "responsiveBreakpoint", type: "number", default: "640", description: "Viewport width in px at or below which responsive becomes horizontal." },
-      { property: "virtualScroll", type: "boolean", default: "auto", description: "Wheel and touch drive the active item instead of real scrolling. Auto-enabled when no section elements exist (isolated previews)." },
-      { property: "className", type: "string", default: "-", description: "Extra classes applied to the nav element." },
-    ],
+props: [
+  { property: "sections", type: "SidebarSection[]", default: "-", description: "Navigation items (id, label, optional href)." },
+  { property: "accentColor", type: "string", default: "#ff5a4f", description: "Color of the active dot and curve." },
+  { property: "orientation", type: "\"vertical\" | \"horizontal\" | \"responsive\"", default: "\"vertical\"", description: "Layout direction." },
+],
     previewCode: `"use client";
 
 import { AnimatedSidebar } from "@/components/flow-sidebar";
@@ -1065,13 +1049,9 @@ export default AnimatedSidebar;
     importStatement: `import { JellyToolbar } from "@/components/jelly-toolbar"`,
     usageJsx: "<JellyToolbar />",
     props: [
-      { property: "items", type: "JellyToolbarItem[]", default: "6 default items", description: "Array of { label, icon, shortcut?, onSelect? }." },
+      { property: "items", type: "JellyToolbarItem[]", default: "6 default items", description: "Toolbar items (label, icon, shortcut)." },
       { property: "jellyColor", type: "string", default: `"#c4b5fd"`, description: "Jelly color in light mode." },
-      { property: "jellyColorDark", type: "string", default: "jellyColor", description: "Jelly color in dark mode. Defaults to jellyColor if omitted." },
-      { property: "stiffness", type: "number", default: "380", description: "Spring stiffness for jelly movement — higher is snappier." },
-      { property: "damping", type: "number", default: "critical damping (≈39 at default stiffness)", description: "Spring damping for jelly position. Internally floored at the critically-damped value for the given stiffness, so overshoot is never possible even if a lower number is passed." },
-      { property: "enableShortcuts", type: "boolean", default: "true", description: "Whether pressing an item's shortcut key activates it globally." },
-      { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer wrapper." },
+      { property: "enableShortcuts", type: "boolean", default: "true", description: "Enable global shortcut keys." },
     ],
     previewCode: `"use client";
   
@@ -1539,15 +1519,9 @@ export default AnimatedSidebar;
     importStatement: `import OtpShowcase, { OtpInput } from "@/components/otp-input"`,
     usageJsx: `<OtpInput length={6} variant="classic" />`,
     props: [
-      { property: "length", type: "number", default: "6", description: "Number of OTP digits/slots." },
-      { property: "variant", type: `"classic" | "underline" | "pill" | "filled"`, default: "all four", description: "Render only this single variant instead of the full four-card demo." },
-      { property: "value", type: "string", default: "-", description: "Controlled value. Pass with onChange to control the input externally." },
-      { property: "onChange", type: "function", default: "-", description: "Called with the joined digit string whenever any slot changes." },
-      { property: "onComplete", type: "function", default: "-", description: "Called once with the full code when every slot is filled." },
-      { property: "disabled", type: "boolean", default: "false", description: "Disable every slot." },
-      { property: "autoFocus", type: "boolean", default: "true", description: "Focus the first slot on mount." },
-      { property: "theme", type: `"light" | "dark" | "system"`, default: "system", description: "Color theme for borders, digits, and the active indicator." },
-      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
+      { property: "length", type: "number", default: "6", description: "Number of digit slots." },
+      { property: "variant", type: `"classic" | "underline" | "pill" | "filled"`, default: "all four", description: "Render a single style." },
+      { property: "onComplete", type: "function", default: "-", description: "Called when all slots are filled." },
     ],
     previewCode: `"use client";
   
@@ -2445,9 +2419,9 @@ export default AnimatedSidebar;
     importStatement: `import { DragDropReorder } from "@/components/drag-drop-reorder"`,
     usageJsx: "<DragDropReorder />",
     props: [
-      { property: "items", type: "ReorderItem[]", default: "-", description: "Array of { id, title, description, icon, color } (controlled)." },
-      { property: "onReorder", type: "function", default: "-", description: "Callback fired with the new order when dragging ends." },
-      { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer card." },
+      { property: "items", type: "ReorderItem[]", default: "-", description: "List items to reorder." },
+      { property: "onReorder", type: "function", default: "-", description: "Called with the new order." },
+      { property: "className", type: "string", default: "-", description: "Extra classes for the outer card." },
     ],
     // Shown in the docs page's "Code" tab. Kept intentionally short —
     // this is how a consumer actually uses the component, not the
@@ -2607,15 +2581,8 @@ export default DragDropReorder;
     usageJsx: "<Pagination />",
     props: [
       { property: "totalPages", type: "number", default: "40", description: "Total number of pages." },
-      { property: "page", type: "number", default: "-", description: "Controlled current page (1-indexed). Pass with onPageChange." },
-      { property: "defaultPage", type: "number", default: "1", description: "Uncontrolled initial page. Ignored if page is provided." },
-      { property: "onPageChange", type: "function", default: "-", description: "Called whenever the page changes, from any variant." },
-      { property: "variant", type: `"pills" | "outline" | "compact" | "input"`, default: "all four", description: "Render only this single variant instead of the full four-row demo." },
-      { property: "variants", type: `PaginationVariant[]`, default: `["pills", "outline", "compact", "input"]`, description: "Which variants to render in showcase mode (ignored if variant is set). Reorder or remove entries to change what's shown." },
-      { property: "showInput", type: "boolean", default: "true", description: "Show the \"Go to page\" input on the input variant." },
-      { property: "disabled", type: "boolean", default: "false", description: "Disable every control in every rendered variant." },
-      { property: "siblingCount", type: "number", default: "2", description: "How many pages to show on each side of the current page." },
-      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
+      { property: "variant", type: `"pills" | "outline" | "compact" | "input"`, default: "all four", description: "Render a single style." },
+      { property: "onPageChange", type: "function", default: "-", description: "Called when the page changes." },
     ],
     previewCode: `import Pagination, { type PaginationVariant } from "@/components/pagination";
 
@@ -3425,11 +3392,9 @@ export default function Pagination({
     importStatement: `import ButtonsShowcase, { AnimatedButton } from "@/components/buttons"`,
     usageJsx: `<AnimatedButton variant="magnetic" />`,
     props: [
-      { property: "variant", type: `"letters" | "liquid" | "magnetic" | "compression"`, default: "-", description: "Which single interaction to render." },
+      { property: "variant", type: `"letters" | "liquid" | "magnetic" | "compression"`, default: "-", description: "Which interaction to render." },
       { property: "label", type: "string", default: `"Book a call"`, description: "Button text." },
-      { property: "onClick", type: "function", default: "-", description: "Called on click/activation." },
-      { property: "theme", type: `"light" | "dark" | "system"`, default: "system", description: "Color theme for the button surface, text, and effects." },
-      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost element." },
+      { property: "onClick", type: "function", default: "-", description: "Called on click." },
     ],
     previewCode: `import { Buttons, type VariantEntry } from "@/components/buttons";
 
@@ -4198,14 +4163,9 @@ export { ButtonsShowcase as Buttons };
     importStatement: `import ElasticDropdownShowcase, { ElasticDropdown } from "@/components/elastic-dropdown"`,
     usageJsx: `<ElasticDropdown placeholder="Project" onChange={(value) => console.log(value)} />`,
     props: [
-      { property: "options", type: "ElasticDropdownOption[]", default: "Personal / Work / Design / Development", description: "Selectable options, each with a value, label, and optional icon." },
-      { property: "value", type: "string", default: "-", description: "Controlled selected value. Pass with onChange to control the dropdown externally." },
-      { property: "defaultValue", type: "string", default: "-", description: "Initial selected value for uncontrolled use." },
-      { property: "onChange", type: "function", default: "-", description: "Called with the newly selected option's value." },
-      { property: "placeholder", type: "string", default: `"Select option"`, description: "Trigger text shown when nothing is selected." },
-      { property: "placeholderIcon", type: "IconComponent", default: "FolderIcon", description: "Icon shown next to the placeholder text." },
-      { property: "disabled", type: "boolean", default: "false", description: "Disable the trigger and prevent opening." },
-      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
+      { property: "options", type: "ElasticDropdownOption[]", default: "Personal / Work / Design / Development", description: "Selectable options." },
+      { property: "onChange", type: "function", default: "-", description: "Called with the selected value." },
+      { property: "placeholder", type: "string", default: `"Select option"`, description: "Text shown when nothing is selected." },
     ],
     previewCode: `"use client";
 
@@ -5390,9 +5350,9 @@ export default function ElasticDropdownShowcase() {
     importStatement: `import { LiquidScrollProgress } from "@/components/liquid-scroll-progress"`,
     usageJsx: "<LiquidScrollProgress />",
     props: [
-      { property: "sections", type: "LiquidScrollProgressSection[]", default: "DEFAULT_SECTIONS", description: "Array of { title } — one per card, filled in order as progress advances." },
-      { property: "liquidColor", type: "string", default: `"#159cff"`, description: "CSS color used for the liquid fill (pipe, connectors, and cards)." },
-      { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer section." },
+      { property: "sections", type: "LiquidScrollProgressSection[]", default: "DEFAULT_SECTIONS", description: "Cards to fill, one per title." },
+      { property: "liquidColor", type: "string", default: `"#159cff"`, description: "Color of the liquid fill." },
+      { property: "className", type: "string", default: "-", description: "Extra classes for the outer section." },
     ],
     previewCode: `"use client";
 
