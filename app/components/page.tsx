@@ -57,9 +57,14 @@ export default function ComponentsPage() {
 
           {/* Components Grid */}
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
-            {components.map((entry) => (
+            {/* {components.map((entry) => (
               <ComponentCard key={entry.slug} entry={entry} />
-            ))}
+            ))} */}
+            {components
+  .filter((entry) => !["buttons"].includes(entry.slug))
+  .map((entry) => (
+    <ComponentCard key={entry.slug} entry={entry} />
+  ))}
           </div>
         </div>
       </Container>

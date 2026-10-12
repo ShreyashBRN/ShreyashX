@@ -40,584 +40,1016 @@ export interface ComponentEntry {
 }
 
 export const components: ComponentEntry[] = [
+
   {
-    slug: "drag-drop-reorder",
-    name: "Drag & Drop Reorder",
+    slug: "flow-sidebar",
+    name: "Flow Sidebar",
     cardDescription:
-      "A smooth, accessible sortable list with spring physics and a glow while dragging.",
+      "A minimalist scroll-aware table of contents. When the active section changes, a curved line draws from the old dot to the new one, then retracts and leaves nothing behind.",
     fullDescription:
-      "A smooth, customizable, and accessible sortable list for modern applications.",
-    icon: "GripVertical",
+      "A scroll-aware sidebar navigation with real section tracking, smooth click-to-scroll, and a temporary curved SVG line that connects the previous and next active dots. Supports any number of items, light and dark themes, reduced motion, keyboard navigation, and a horizontal layout for narrow screens.",
+    icon: "ListTree",
     status: "new",
-    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/drag-drop-reorder.json",
-    importStatement: `import { DragDropReorder } from "@/components/drag-drop-reorder"`,
-    usageJsx: "<DragDropReorder />",
+    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/flow-sidebar.json",
+    importStatement: `import { AnimatedSidebar } from "@/components/flow-sidebar"`,
+    usageJsx: `<AnimatedSidebar
+  sections={[
+    { id: "introduction", label: "Introduction" },
+    { id: "history", label: "History" },
+    { id: "overview", label: "Overview" },
+  ]}
+  accentColor="#ff5a4f"
+/>`,
     props: [
-      { property: "items", type: "ReorderItem[]", default: "-", description: "Array of { id, title, description, icon, color } (controlled)." },
-      { property: "onReorder", type: "function", default: "-", description: "Callback fired with the new order when dragging ends." },
-      { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer card." },
+      { property: "sections", type: "SidebarSection[]", default: "-", description: "Navigation items. Each has an id (matches the section element's id), a label, and an optional href." },
+      { property: "activeSectionId", type: "string", default: "-", description: "Controlled active section. Pass with onActiveChange to control the sidebar externally." },
+      { property: "defaultActiveSectionId", type: "string", default: "first section", description: "Initial active section for uncontrolled use." },
+      { property: "onActiveChange", type: "function", default: "-", description: "Called with the new section id whenever the active section changes." },
+      { property: "title", type: "string", default: "\"Contents\"", description: "Heading shown above the list in vertical mode. Pass \"\" to hide it." },
+      { property: "ariaLabel", type: "string", default: "\"Table of contents\"", description: "Accessible label for the nav landmark." },
+      { property: "accentColor", type: "string", default: "#ff5a4f", description: "Colour of the active dot and the curved line. Any CSS colour." },
+      { property: "activationOffset", type: "number", default: "24", description: "Pixels below the sticky-header offset where the reading line sits." },
+      { property: "scrollOffset", type: "number", default: "0", description: "Height of a sticky header in px. Used by the reading line and click scrolling." },
+      { property: "expandDuration", type: "number", default: "320", description: "Milliseconds for the curve to draw from the old dot to the new one." },
+      { property: "pauseDuration", type: "number", default: "70", description: "Milliseconds the full curve stays visible." },
+      { property: "retractDuration", type: "number", default: "320", description: "Milliseconds for the curve to erase." },
+      { property: "curveStrength", type: "number", default: "1", description: "Multiplier for how far the curve bows. It never leaves the indicator gutter." },
+      { property: "lineWidth", type: "number", default: "2.5", description: "Stroke width of the curve in px." },
+      { property: "indicatorSize", type: "number", default: "8", description: "Active dot diameter in px. Inactive dots are 75%." },
+      { property: "orientation", type: "\"vertical\" | \"horizontal\" | \"responsive\"", default: "\"vertical\"", description: "Layout direction. Responsive switches to a horizontal strip on narrow screens." },
+      { property: "responsiveBreakpoint", type: "number", default: "640", description: "Viewport width in px at or below which responsive becomes horizontal." },
+      { property: "virtualScroll", type: "boolean", default: "auto", description: "Wheel and touch drive the active item instead of real scrolling. Auto-enabled when no section elements exist (isolated previews)." },
+      { property: "className", type: "string", default: "-", description: "Extra classes applied to the nav element." },
     ],
-    // Shown in the docs page's "Code" tab. Kept intentionally short —
-    // this is how a consumer actually uses the component, not the
-    // implementation itself.
     previewCode: `"use client";
 
-import { useState } from "react";
-import { DragDropReorder } from "@/components/drag-drop-reorder";
-import type { ReorderItem } from "@/components/drag-drop-reorder";
-import { Image, Code2, TerminalSquare, CloudUpload, RefreshCw } from "lucide-react";
+import { AnimatedSidebar } from "@/components/flow-sidebar";
 
-const initialItems: ReorderItem[] = [
-  { id: "design", title: "Design", description: "Create beautiful experiences", icon: Image, color: "pink" },
-  { id: "develop", title: "Develop", description: "Build with modern tools", icon: Code2, color: "blue" },
-  { id: "test", title: "Test", description: "Ensure everything works", icon: TerminalSquare, color: "neutral" },
-  { id: "deploy", title: "Deploy", description: "Launch to the world", icon: CloudUpload, color: "violet" },
-  { id: "iterate", title: "Iterate", description: "Make it better", icon: RefreshCw, color: "orange" },
+const sections = [
+  { id: "introduction", label: "Introduction" },
+  { id: "history", label: "History" },
+  { id: "overview", label: "Overview" },
+  { id: "architecture", label: "Architecture" },
+  { id: "implementation", label: "Implementation" },
+  { id: "references", label: "References" },
 ];
 
-export default function DragDropReorderPreview() {
-  const [items, setItems] = useState<ReorderItem[]>(initialItems);
-
-  return (
-    <div className="flex w-full items-center justify-center p-4">
-      <DragDropReorder items={items} onReorder={setItems} />
-    </div>
-  );
+export default function FlowSidebarPreview() {
+  return <AnimatedSidebar sections={sections} accentColor="#ff5a4f" />;
 }
 `,
-    // Full implementation. Not rendered anywhere in the docs UI directly —
-    // intended as the source your registry JSON route serves to the CLI.
-    // (See note below on wiring up a real /r/drag-drop-reorder.json route.)
     sourceCode: `"use client";
 
-import * as React from "react";
-import { Reorder } from "framer-motion";
+/**
+ * AnimatedSidebar
+ *
+ * A minimalist, scroll-aware table-of-contents navigation. When the active
+ * section changes, a temporary curved SVG line draws from the old dot to the
+ * new dot, pauses briefly, then retracts along the same path, leaving nothing
+ * behind.
+ *
+ * Requirements: React 18+, Tailwind CSS, framer-motion.
+ * Scrolling is tracked on \`window\` (the document scroller).
+ *
+ * Customisation (CSS custom properties, set on the component or any ancestor):
+ *   --animated-sidebar-text-active
+ *   --animated-sidebar-text-inactive
+ *   --animated-sidebar-accent          (or use the \`accentColor\` prop)
+ *   --animated-sidebar-item-gap
+ *   --animated-sidebar-label-gap
+ *   --animated-sidebar-gutter          (width/height of the indicator gutter)
+ *   --animated-sidebar-dot-inset       (dot distance from the gutter's left edge)
+ * \`indicatorSize\` and \`lineWidth\` are props and write
+ *   --animated-sidebar-indicator-size / --animated-sidebar-line-width.
+ *
+ * \`href\` on a section is used as the link's href. If the section's element
+ * exists on the current page, the click is intercepted and scrolled to with
+ * the configured offset; otherwise the browser navigates normally.
+ */
+
+import { animate, useMotionValue } from "framer-motion";
 import {
-  GripVertical,
-  ChevronRight,
-  Image,
-  Code2,
-  TerminalSquare,
-  CloudUpload,
-  RefreshCw,
-  type LucideIcon,
-} from "lucide-react";
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 
-export type ReorderColor = "pink" | "blue" | "violet" | "orange" | "neutral";
+/* -------------------------------------------------------------------------- */
+/*                                    Types                                   */
+/* -------------------------------------------------------------------------- */
 
-export interface ReorderItem {
+export type SidebarSection = {
   id: string;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  color: ReorderColor;
-}
-
-const defaultItems: ReorderItem[] = [
-  { id: "design", title: "Design", description: "Create beautiful experiences", icon: Image, color: "pink" },
-  { id: "develop", title: "Develop", description: "Build with modern tools", icon: Code2, color: "blue" },
-  { id: "test", title: "Test", description: "Ensure everything works", icon: TerminalSquare, color: "neutral" },
-  { id: "deploy", title: "Deploy", description: "Launch to the world", icon: CloudUpload, color: "violet" },
-  { id: "iterate", title: "Iterate", description: "Make it better", icon: RefreshCw, color: "orange" },
-];
-
-const colorMap: Record<ReorderColor, string> = {
-  pink: "bg-pink-100 text-pink-600 dark:bg-pink-950/60 dark:text-pink-400",
-  blue: "bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400",
-  violet: "bg-violet-100 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400",
-  orange: "bg-orange-100 text-orange-600 dark:bg-orange-950/60 dark:text-orange-400",
-  neutral: "bg-neutral-900 text-white dark:bg-neutral-800 dark:text-white",
+  label: string;
+  href?: string;
 };
 
-export interface DragDropReorderProps {
-  items?: ReorderItem[];
-  onReorder?: (items: ReorderItem[]) => void;
+export type AnimatedSidebarProps = {
+  sections: SidebarSection[];
+
+  /** Controlled active section. */
+  activeSectionId?: string;
+  /** Initial active section when uncontrolled. Defaults to the first section. */
+  defaultActiveSectionId?: string;
+  onActiveChange?: (id: string) => void;
+
+  ariaLabel?: string;
+  /** Heading shown above the list (vertical mode only). Pass "" to hide. Default "Contents". */
+  title?: string;
+
+  /** Px below the sticky-header offset where the reading line sits. Default 24. */
+  activationOffset?: number;
+  /** Height (px) of a sticky header; used for the reading line and click scrolling. Default 0. */
+  scrollOffset?: number;
+
+  /** Milliseconds. Defaults: 320 / 70 / 320. */
+  expandDuration?: number;
+  pauseDuration?: number;
+  retractDuration?: number;
+
+  /** Multiplier for how far the curve bows. Default 1. */
+  curveStrength?: number;
+  /** Stroke width in px. Default 2.5. */
+  lineWidth?: number;
+  /** Active dot diameter in px (inactive dots are 75%). Default 8. */
+  indicatorSize?: number;
+
+  accentColor?: string;
   className?: string;
+
+  orientation?: "vertical" | "horizontal" | "responsive";
+  /**
+   * Virtual scrolling: wheel/touch input over the component's box drives the active
+   * item and the page never scrolls (useful for isolated previews with no sections).
+   * Default (undefined) = automatic: enabled only when none of the section elements exist.
+   */
+  virtualScroll?: boolean;
+  /** Viewport width (px) at or below which "responsive" becomes horizontal. Default 640. */
+  responsiveBreakpoint?: number;
+};
+
+type Phase = "expand" | "pause" | "retract";
+type Point = { x: number; y: number };
+type Transition = {
+  seq: number;
+  from: string;
+  to: string;
+  d: string;
+  w: number;
+  h: number;
+  phase: Phase;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                  Constants                                 */
+/* -------------------------------------------------------------------------- */
+
+const EASE: [number, number, number, number] = [0.65, 0, 0.35, 1];
+const MIN_BULGE = 9;
+const MAX_BULGE = 28;
+const SILENT_WINDOW_MS = 150;
+/** Virtual wheel/touch travel (px) needed to move one item in virtual-scroll mode. */
+const VIRTUAL_PX_PER_ITEM = 220;
+
+const useIsoLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+const cx = (...parts: Array<string | false | null | undefined>): string =>
+  parts.filter(Boolean).join(" ");
+
+const clamp = (v: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, v));
+
+/** Nearest ancestor that actually scrolls, or null when the window scrolls. */
+function findScroller(el: HTMLElement): HTMLElement | null {
+  let p = el.parentElement;
+  while (p && p !== document.body && p !== document.documentElement) {
+    const oy = getComputedStyle(p).overflowY;
+    if (
+      (oy === "auto" || oy === "scroll" || oy === "overlay") &&
+      p.scrollHeight > p.clientHeight
+    ) {
+      return p;
+    }
+    p = p.parentElement;
+  }
+  return null;
 }
 
-export function DragDropReorder({ items, onReorder, className = "" }: DragDropReorderProps) {
-  const [internalItems, setInternalItems] = React.useState<ReorderItem[]>(defaultItems);
-  const [draggingId, setDraggingId] = React.useState<string | null>(null);
+/* -------------------------------------------------------------------------- */
+/*                                    Hooks                                   */
+/* -------------------------------------------------------------------------- */
 
-  const isControlled = Array.isArray(items);
-  const values = isControlled ? (items as ReorderItem[]) : internalItems;
-  const setValues = isControlled ? (onReorder as (items: ReorderItem[]) => void) : setInternalItems;
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mql = window.matchMedia(query);
+    const update = () => setMatches(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, [query]);
+  return matches;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  Geometry                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Builds a cubic Bézier from dot A to dot B that bows toward the gutter side
+ * (left in vertical mode, up in horizontal mode), like a rounded "(".
+ * The shape is symmetric, so reversing direction reuses the same route.
+ */
+function buildPath(
+  a: Point,
+  b: Point,
+  vertical: boolean,
+  lineWidth: number,
+  strength: number,
+): string {
+  const along0 = vertical ? a.y : a.x;
+  const along1 = vertical ? b.y : b.x;
+  const cross = vertical ? (a.x + b.x) / 2 : (a.y + b.y) / 2;
+  const dist = along1 - along0;
+
+  // Never leave the indicator gutter (cross coordinate 0 is its outer edge).
+  const maxBulge = Math.max(0, cross - lineWidth / 2 - 0.5);
+  const bulge = Math.min(
+    maxBulge,
+    clamp(Math.abs(dist) * 0.3, MIN_BULGE, MAX_BULGE) * strength,
+  );
+  // A cubic with both control points at offset h reaches 0.75h at its midpoint.
+  const h = bulge / 0.75;
+
+  const p = (al: number, cr: number): string =>
+    vertical ? \`\${cr} \${al}\` : \`\${al} \${cr}\`;
+
+  return [
+    \`M \${p(along0, cross)}\`,
+    \`C \${p(along0 + dist * 0.22, cross - h)}\`,
+    \`\${p(along1 - dist * 0.22, cross - h)}\`,
+    \`\${p(along1, cross)}\`,
+  ].join(" ");
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  Component                                 */
+/* -------------------------------------------------------------------------- */
+
+export function AnimatedSidebar({
+  sections,
+  activeSectionId,
+  defaultActiveSectionId,
+  onActiveChange,
+  ariaLabel = "Table of contents",
+  title = "Contents",
+  activationOffset = 24,
+  scrollOffset = 0,
+  expandDuration = 320,
+  pauseDuration = 70,
+  retractDuration = 320,
+  curveStrength = 1,
+  lineWidth = 2.5,
+  indicatorSize = 8,
+  accentColor,
+  className,
+  orientation = "vertical",
+  virtualScroll,
+  responsiveBreakpoint = 640,
+}: AnimatedSidebarProps) {
+  /* ------------------------------ Normalisation ----------------------------- */
+
+  // Defensive de-duplication: the first occurrence of an id wins.
+  const items = useMemo(() => {
+    const seen = new Set<string>();
+    const out: SidebarSection[] = [];
+    for (const s of sections) {
+      if (seen.has(s.id)) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(\`[AnimatedSidebar] Duplicate section id "\${s.id}" ignored.\`);
+        }
+        continue;
+      }
+      seen.add(s.id);
+      out.push(s);
+    }
+    return out;
+  }, [sections]);
+
+  const idsKey = items.map((s) => s.id).join("\\u0000");
+
+  const isControlled = activeSectionId !== undefined;
+  const [internalId, setInternalId] = useState<string | null>(null);
+
+  const pick = (id: string | null | undefined): string | null =>
+    id && items.some((s) => s.id === id) ? id : null;
+
+  const effectiveActive: string | null =
+    pick(activeSectionId) ??
+    pick(internalId) ??
+    pick(defaultActiveSectionId) ??
+    items[0]?.id ??
+    null;
+
+  const [autoVirtual, setAutoVirtual] = useState(false);
+  const virtual = virtualScroll ?? autoVirtual;
+
+  const reduced = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const narrow = useMediaQuery(\`(max-width: \${responsiveBreakpoint}px)\`);
+  const horizontal =
+    orientation === "horizontal" || (orientation === "responsive" && narrow);
+
+  /* --------------------------------- Refs ---------------------------------- */
+
+  const navRef = useRef<HTMLElement | null>(null);
+  const captureRef = useRef<HTMLDivElement | null>(null);
+  const progressRef = useRef(0); // virtual scroll progress, 0..1
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const pathRef = useRef<SVGPathElement | null>(null);
+  const slotRefs = useRef(new Map<string, HTMLSpanElement>());
+
+  const latest = useRef({
+    items,
+    scrollOffset,
+    activationOffset,
+    expandDuration,
+    pauseDuration,
+    retractDuration,
+    curveStrength,
+    lineWidth,
+    onActiveChange,
+    isControlled,
+    reduced,
+    horizontal,
+    effectiveActive,
+    virtual,
+  });
+  useIsoLayoutEffect(() => {
+    latest.current = {
+      items,
+      scrollOffset,
+      activationOffset,
+      expandDuration,
+      pauseDuration,
+      retractDuration,
+      curveStrength,
+      lineWidth,
+      onActiveChange,
+      isControlled,
+      reduced,
+      horizontal,
+      effectiveActive,
+      virtual,
+    };
+  });
+
+  const prevActiveRef = useRef<string | null>(effectiveActive);
+  const silentUntilRef = useRef(0);
+
+  /* ------------------------------- Animation ------------------------------- */
+
+  const [transition, setTransition] = useState<Transition | null>(null);
+  const dashOffset = useMotionValue(1);
+  const runTokenRef = useRef(0);
+  const controlsRef = useRef<ReturnType<typeof animate> | null>(null);
+  const pauseTimerRef = useRef<number | undefined>(undefined);
+  const runningRef = useRef(false);
+
+  // Mirror the motion value onto the path imperatively (no React re-renders).
+  useEffect(
+    () =>
+      dashOffset.on("change", (v) => {
+        pathRef.current?.setAttribute("stroke-dashoffset", String(v));
+      }),
+    [dashOffset],
+  );
+
+  const cancelTransition = useCallback(() => {
+    runTokenRef.current += 1; // invalidates any pending async completion
+    controlsRef.current?.stop();
+    controlsRef.current = null;
+    window.clearTimeout(pauseTimerRef.current);
+    runningRef.current = false;
+  }, []);
+
+  const measure = useCallback((id: string): Point | null => {
+    const wrap = wrapRef.current;
+    const slot = slotRefs.current.get(id);
+    if (!wrap || !slot) return null;
+    const w = wrap.getBoundingClientRect();
+    const r = slot.getBoundingClientRect();
+    return {
+      x: r.left + r.width / 2 - w.left,
+      y: r.top + r.height / 2 - w.top,
+    };
+  }, []);
+
+  const runTransition = useCallback(
+    (fromId: string, toId: string) => {
+      cancelTransition();
+      const token = runTokenRef.current;
+      const L = latest.current;
+
+      const wrap = wrapRef.current;
+      const a = measure(fromId);
+      const b = measure(toId);
+      if (!wrap || !a || !b) {
+        setTransition(null);
+        return;
+      }
+
+      const box = wrap.getBoundingClientRect();
+      const d = buildPath(a, b, !L.horizontal, L.lineWidth, L.curveStrength);
+
+      dashOffset.set(1);
+      runningRef.current = true;
+      setTransition({
+        seq: token,
+        from: fromId,
+        to: toId,
+        d,
+        w: box.width,
+        h: box.height,
+        phase: "expand",
+      });
+
+      const play = (target: number, ms: number) =>
+        new Promise<void>((resolve) => {
+          controlsRef.current = animate(dashOffset, target, {
+            duration: Math.max(0, ms) / 1000,
+            ease: EASE,
+            onComplete: () => resolve(),
+          });
+        });
+
+      const wait = (ms: number) =>
+        new Promise<void>((resolve) => {
+          pauseTimerRef.current = window.setTimeout(resolve, Math.max(0, ms));
+        });
+
+      const setPhase = (phase: Phase) =>
+        setTransition((t) => (t && t.seq === token ? { ...t, phase } : t));
+
+      void (async () => {
+        await play(0, L.expandDuration); // draw A -> B
+        if (token !== runTokenRef.current) return;
+        setPhase("pause");
+        await wait(L.pauseDuration);
+        if (token !== runTokenRef.current) return;
+        setPhase("retract");
+        // Same path, same dash pattern: pushing the offset past 0 to -1 slides the dash
+        // forward, erasing the stroke from the start (A) toward the end (B).
+        await play(-1, L.retractDuration);
+        if (token !== runTokenRef.current) return;
+        runningRef.current = false;
+        setTransition(null); // path is unmounted: zero residue
+      })();
+    },
+    [cancelTransition, dashOffset, measure],
+  );
+
+  // Start a transition only when the effective active id actually changes.
+  useEffect(() => {
+    const prev = prevActiveRef.current;
+    prevActiveRef.current = effectiveActive;
+    if (prev === null || effectiveActive === null || prev === effectiveActive) {
+      return;
+    }
+    const silent = performance.now() < silentUntilRef.current;
+    if (silent || latest.current.reduced) {
+      cancelTransition();
+      setTransition(null);
+      return;
+    }
+    runTransition(prev, effectiveActive);
+  }, [effectiveActive, runTransition, cancelTransition]);
+
+  // Layout/orientation/motion-preference changes invalidate any running path.
+  useEffect(() => {
+    cancelTransition();
+    setTransition(null);
+  }, [horizontal, reduced, cancelTransition]);
+
+  // Resize during a transition: drop it; geometry is re-measured next time.
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      if (runningRef.current) {
+        cancelTransition();
+        setTransition(null);
+      }
+    });
+    ro.observe(wrap);
+    return () => ro.disconnect();
+  }, [cancelTransition]);
+
+  useEffect(
+    () => () => {
+      cancelTransition();
+    },
+    [cancelTransition],
+  );
+
+  /* ---------------------------- Active-state commit ---------------------------- */
+
+  const commit = useCallback((id: string, silent = false) => {
+    const L = latest.current;
+    if (id === L.effectiveActive) return;
+    if (silent) silentUntilRef.current = performance.now() + SILENT_WINDOW_MS;
+    if (!L.isControlled) {
+      // Optimistic, so bursts of events in one frame don't double-notify.
+      latest.current = { ...L, effectiveActive: id };
+      setInternalId(id);
+    }
+    L.onActiveChange?.(id);
+  }, []);
+
+  /* --------------------------------- Scrollspy -------------------------------- */
+
+  const lockRef = useRef(false);
+  const lockTimerRef = useRef<number | undefined>(undefined);
+  const spyRef = useRef<() => void>(() => {});
+
+  const armLock = useCallback((ms: number) => {
+    lockRef.current = true;
+    window.clearTimeout(lockTimerRef.current);
+    lockTimerRef.current = window.setTimeout(() => {
+      lockRef.current = false;
+      spyRef.current();
+    }, ms);
+  }, []);
+
+  useEffect(() => {
+    if (!idsKey || virtualScroll === true) return;
+    let frame = 0;
+    let first = true;
+
+    let cache: { el: HTMLElement; scroller: HTMLElement | null } | null = null;
+    const scrollerFor = (el: HTMLElement): HTMLElement | null => {
+      if (!cache || cache.el !== el || !el.isConnected) {
+        cache = { el, scroller: findScroller(el) };
+      }
+      return cache.scroller;
+    };
+
+    const resolve = (): string | null => {
+      const { items: list, scrollOffset: so, activationOffset: ao } = latest.current;
+      const found: Array<{ id: string; el: HTMLElement }> = [];
+      for (const s of list) {
+        const el = document.getElementById(s.id);
+        if (el) found.push({ id: s.id, el }); // missing targets are ignored
+      }
+      if (!found.length) return null;
+
+      // Works for both window scrolling and an inner scroll container (e.g. a preview box).
+      const scroller = scrollerFor(found[0].el);
+      const rootTop = scroller ? scroller.getBoundingClientRect().top : 0;
+      const line = rootTop + so + ao + 1;
+
+      let best: { id: string; top: number } | null = null; // last crossed
+      let firstEl: { id: string; top: number } | null = null; // topmost overall
+      let lowest: { id: string; top: number } | null = null; // lowest in doc
+      for (const { id, el } of found) {
+        const top = el.getBoundingClientRect().top;
+        if (!firstEl || top < firstEl.top) firstEl = { id, top };
+        if (!lowest || top > lowest.top) lowest = { id, top };
+        if (top <= line && (!best || top > best.top)) best = { id, top };
+      }
+
+      const atBottom = scroller
+        ? scroller.scrollTop > 0 &&
+          scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2
+        : window.scrollY > 0 &&
+          window.innerHeight + window.scrollY >=
+            document.documentElement.scrollHeight - 2;
+      if (atBottom && lowest) return lowest.id; // lets short final sections activate
+      return best?.id ?? firstEl?.id ?? null;
+    };
+
+    const compute = () => {
+      frame = 0;
+      if (lockRef.current) return;
+      const id = resolve();
+      if (!id) {
+        setAutoVirtual(true); // no section elements on this page -> virtual scrolling
+        return;
+      }
+      setAutoVirtual(false);
+      commit(id, first);
+      first = false;
+    };
+
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(compute);
+    };
+    spyRef.current = schedule;
+
+    const onScroll = () => {
+      if (lockRef.current) {
+        armLock(160); // still moving from a click: wait until it settles
+        return;
+      }
+      schedule();
+    };
+
+    // capture: true also catches scrolling inside nested containers
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+    window.addEventListener("resize", schedule);
+
+    let ro: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(schedule); // content height changes
+      ro.observe(document.documentElement);
+    }
+
+    schedule();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll, { capture: true });
+      window.removeEventListener("resize", schedule);
+      ro?.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+      window.clearTimeout(lockTimerRef.current);
+      lockRef.current = false;
+      spyRef.current = () => {};
+    };
+  }, [idsKey, commit, armLock, virtualScroll]);
+
+  /* ----------------------------- Virtual scrolling ----------------------------- */
+
+  // Keep the virtual position in step with the active item (clicks, mode switch).
+  useEffect(() => {
+    if (!virtual) return;
+    const n = items.length;
+    const idx = items.findIndex((s) => s.id === effectiveActive);
+    if (n === 0 || idx < 0) return;
+    if (Math.min(n - 1, Math.floor(progressRef.current * n)) !== idx) {
+      progressRef.current = (idx + 0.5) / n;
+    }
+  }, [virtual, effectiveActive, idsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const box = captureRef.current;
+    if (!virtual || !box || !idsKey) return;
+
+    // Moves at most ONE item per transition, so each curve can be seen playing
+    // out fully instead of being skipped by fast wheel/trackpad input.
+    let lockUntil = 0;
+    const apply = (delta: number) => {
+      const L = latest.current;
+      const list = L.items;
+      const n = list.length;
+      if (!n) return;
+      const cur = list.findIndex((s) => s.id === L.effectiveActive);
+      if (cur < 0) return;
+
+      progressRef.current = clamp(
+        progressRef.current + delta / (n * VIRTUAL_PX_PER_ITEM),
+        0,
+        1,
+      );
+      const target = Math.min(n - 1, Math.floor(progressRef.current * n));
+      if (target === cur) return;
+
+      const now = performance.now();
+      if (now < lockUntil) {
+        // Transition still playing: don't run ahead of the active item.
+        progressRef.current = clamp(progressRef.current, cur / n, (cur + 1) / n - 1e-6);
+        return;
+      }
+
+      const next = cur + (target > cur ? 1 : -1);
+      lockUntil = L.reduced
+        ? 0
+        : now + L.expandDuration + L.pauseDuration + L.retractDuration + 80;
+      progressRef.current = (next + 0.5) / n;
+      commit(list[next].id);
+    };
+
+    // preventDefault + stopPropagation: nothing else on the page scrolls
+    // (also keeps smooth-scroll libraries from seeing the gesture).
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      apply(e.deltaY);
+    };
+    let touchY = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      touchY = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const y = e.touches[0].clientY;
+      const delta = touchY - y;
+      touchY = y;
+      apply(delta);
+    };
+
+    box.addEventListener("wheel", onWheel, { passive: false });
+    box.addEventListener("touchstart", onTouchStart, { passive: true });
+    box.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => {
+      box.removeEventListener("wheel", onWheel);
+      box.removeEventListener("touchstart", onTouchStart);
+      box.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [virtual, idsKey, commit]);
+
+  /* ---------------------------------- Clicks --------------------------------- */
+
+  const handleClick = (e: ReactMouseEvent<HTMLAnchorElement>, id: string) => {
+    if (
+      e.defaultPrevented ||
+      e.button !== 0 ||
+      e.metaKey ||
+      e.ctrlKey ||
+      e.shiftKey ||
+      e.altKey
+    ) {
+      return;
+    }
+    const target = document.getElementById(id);
+    if (!target) {
+      // Virtual mode (no section elements): just activate. Otherwise let the browser handle it.
+      if (latest.current.virtual) {
+        e.preventDefault();
+        commit(id);
+      }
+      return;
+    }
+
+    e.preventDefault();
+    const behavior: ScrollBehavior = reduced ? "auto" : "smooth";
+    const scroller = findScroller(target);
+    const targetTop = target.getBoundingClientRect().top;
+
+    armLock(220); // ignore intermediate sections while the scroll runs
+    commit(id);
+    if (scroller) {
+      const top = Math.max(
+        0,
+        scroller.scrollTop +
+          targetTop -
+          scroller.getBoundingClientRect().top -
+          scrollOffset,
+      );
+      scroller.scrollTo({ top, behavior });
+    } else {
+      window.scrollTo({
+        top: Math.max(0, targetTop + window.scrollY - scrollOffset),
+        behavior,
+      });
+    }
+
+    const section = latest.current.items.find((s) => s.id === id);
+    if (!section?.href || section.href.startsWith("#")) {
+      try {
+        history.replaceState(null, "", \`#\${id}\`);
+      } catch {
+        /* sandboxed previews may forbid this */
+      }
+    }
+  };
+
+  /* -------------------- Keep the active link visible (horizontal) -------------------- */
+
+  useEffect(() => {
+    if (!horizontal) return;
+    const nav = navRef.current;
+    const el = nav?.querySelector<HTMLElement>('[aria-current="location"]');
+    if (!nav || !el) return;
+    const n = nav.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    let left = nav.scrollLeft;
+    if (r.left < n.left) left += r.left - n.left - 8;
+    else if (r.right > n.right) left += r.right - n.right + 8;
+    if (left !== nav.scrollLeft) {
+      nav.scrollTo({ left, behavior: reduced ? "auto" : "smooth" });
+    }
+  }, [effectiveActive, horizontal, reduced]);
+
+  /* --------------------------------- Rendering -------------------------------- */
+
+  const isAccent = (id: string): boolean => {
+    if (!transition) return id === effectiveActive;
+    switch (transition.phase) {
+      case "expand":
+        return id === transition.from;
+      case "pause":
+        return id === transition.from || id === transition.to;
+      case "retract":
+        return id === transition.to;
+    }
+  };
+
+  const navStyle = {
+    "--animated-sidebar-indicator-size": \`\${indicatorSize}px\`,
+    "--animated-sidebar-line-width": \`\${lineWidth}px\`,
+    ...(accentColor ? { "--animated-sidebar-accent": accentColor } : null),
+  } as CSSProperties;
 
   return (
-    <Reorder.Group axis="y" values={values} onReorder={setValues} className={\`flex flex-col gap-3 \${className}\`}>
-      {values.map((item) => {
-        const Icon = item.icon;
-        const isDragging = draggingId === item.id;
-
-        return (
-          <Reorder.Item
-            key={item.id}
-            value={item}
-            onDragStart={() => setDraggingId(item.id)}
-            onDragEnd={() => setDraggingId(null)}
-            whileDrag={{ scale: 1.02, cursor: "grabbing" }}
-            className={[
-              "relative flex items-center gap-4 rounded-2xl px-4 py-3.5 select-none",
-              "bg-white dark:bg-neutral-900",
-              "border border-neutral-100 dark:border-neutral-800",
-              isDragging
-                ? "ring-2 ring-violet-500/60 shadow-[0_0_24px_rgba(56,189,248,0.35)]"
-                : "shadow-sm",
-            ].join(" ")}
+    <div
+      ref={captureRef}
+      data-lenis-prevent={virtual ? "" : undefined}
+      className={virtual ? "flex h-full w-full items-center justify-center" : "contents"}
+      style={
+        virtual
+          ? { overflow: "hidden", touchAction: "none", userSelect: "none" }
+          : undefined
+      }
+    >
+    <nav
+      ref={navRef}
+      aria-label={ariaLabel}
+      style={navStyle}
+      className={cx(
+        "min-w-0 max-w-full font-sans",
+        horizontal && "overflow-x-auto overflow-y-hidden",
+        className,
+      )}
+    >
+      {title && !horizontal && (
+        <p
+          className="mb-6 text-[17px] font-medium uppercase tracking-[0.08em] text-[color:var(--animated-sidebar-text-active,#24262b)] dark:text-[color:var(--animated-sidebar-text-active,#f4f4f5)]"
+        >
+          {title}
+        </p>
+      )}
+      <div
+        ref={wrapRef}
+        className={cx("relative", horizontal ? "w-max min-w-full" : "w-full")}
+      >
+        {transition && (
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            width={transition.w}
+            height={transition.h}
+            viewBox={\`0 0 \${transition.w} \${transition.h}\`}
+            className="pointer-events-none absolute left-0 top-0 z-0 overflow-visible"
           >
-            <div className="cursor-grab active:cursor-grabbing touch-none text-neutral-300 dark:text-neutral-600" aria-hidden="true">
-              <GripVertical size={18} />
-            </div>
+            <path
+              key={transition.seq}
+              ref={(el) => {
+                pathRef.current = el;
+                if (el) el.setAttribute("stroke-dashoffset", String(dashOffset.get()));
+              }}
+              d={transition.d}
+              pathLength={1}
+              strokeDasharray="1 1"
+              strokeDashoffset={1}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{
+                stroke: "var(--animated-sidebar-accent, #ff5a4f)",
+                strokeWidth: "var(--animated-sidebar-line-width, 2.5px)",
+              }}
+            />
+          </svg>
+        )}
 
-            <div className={\`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 \${colorMap[item.color] ?? colorMap.neutral}\`}>
-              <Icon size={20} />
-            </div>
+        <ul
+          className={cx(
+            "relative z-10 m-0 list-none p-0",
+            horizontal
+              ? "flex flex-row items-end gap-x-[calc(var(--animated-sidebar-item-gap,14px)*1.5)]"
+              : "flex flex-col gap-y-[var(--animated-sidebar-item-gap,14px)]",
+          )}
+        >
+          {items.map((section) => {
+            const active = section.id === effectiveActive;
+            const accent = isAccent(section.id);
+            return (
+              <li key={section.id} className="min-w-0">
+                <a
+                  href={section.href ?? \`#\${section.id}\`}
+                  aria-current={active ? "location" : undefined}
+                  onClick={(e) => handleClick(e, section.id)}
+                  className={cx(
+                    "group rounded-sm text-base leading-snug no-underline outline-none transition-colors duration-200 motion-reduce:transition-none",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--animated-sidebar-accent,#ff5a4f)]",
+                    horizontal
+                      ? "flex flex-col items-center gap-1 whitespace-nowrap"
+                      : "flex items-center gap-[var(--animated-sidebar-label-gap,0px)]",
+                    active
+                      ? "text-[color:var(--animated-sidebar-text-active,#24262b)] dark:text-[color:var(--animated-sidebar-text-active,#f4f4f5)]"
+                      : "text-[color:var(--animated-sidebar-text-inactive,#8b8f98)] hover:text-[color:var(--animated-sidebar-text-active,#24262b)] dark:text-[color:var(--animated-sidebar-text-inactive,#9ca3af)] dark:hover:text-[color:var(--animated-sidebar-text-active,#f4f4f5)]",
+                  )}
+                >
+                  {/* Indicator gutter: reserved independently of label width */}
+                  <span
+                    aria-hidden="true"
+                    className={cx(
+                      "flex shrink-0",
+                      horizontal
+                        ? "h-[var(--animated-sidebar-gutter,28px)] w-full items-end justify-center"
+                        : "w-[var(--animated-sidebar-gutter,40px)] items-center justify-start pl-[var(--animated-sidebar-dot-inset,14px)]",
+                    )}
+                  >
+                    {/* Fixed-size slot: its centre is the stable measuring point */}
+                    <span
+                      ref={(el) => {
+                        if (el) slotRefs.current.set(section.id, el);
+                        else slotRefs.current.delete(section.id);
+                      }}
+                      className="relative block shrink-0"
+                      style={{
+                        width: "var(--animated-sidebar-indicator-size, 8px)",
+                        height: "var(--animated-sidebar-indicator-size, 8px)",
+                      }}
+                    >
+                      <span
+                        className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full transition-[width,height,background-color,opacity] duration-200 motion-reduce:transition-none"
+                        style={{
+                          width: accent
+                            ? "var(--animated-sidebar-indicator-size, 8px)"
+                            : "calc(var(--animated-sidebar-indicator-size, 8px) * 0.75)",
+                          height: accent
+                            ? "var(--animated-sidebar-indicator-size, 8px)"
+                            : "calc(var(--animated-sidebar-indicator-size, 8px) * 0.75)",
+                          backgroundColor: accent
+                            ? "var(--animated-sidebar-accent, #ff5a4f)"
+                            : "var(--animated-sidebar-text-inactive, #9ca3af)",
+                          opacity: accent ? 1 : 0,
+                        }}
+                      />
+                    </span>
+                  </span>
 
-            <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-semibold leading-tight text-neutral-900 dark:text-neutral-50">{item.title}</div>
-              <div className="text-sm leading-tight mt-0.5 text-neutral-500 dark:text-neutral-400">{item.description}</div>
-            </div>
-
-            <ChevronRight size={18} className="text-neutral-300 dark:text-neutral-600 shrink-0" />
-          </Reorder.Item>
-        );
-      })}
-    </Reorder.Group>
+                  {/* Hidden medium-weight twin reserves width so weight changes don't shift layout */}
+                  <span
+                    data-label={section.label}
+                    className={cx(
+                      "inline-flex min-w-0 flex-col",
+                      horizontal ? "items-center" : "break-words",
+                      active ? "font-medium" : "font-normal",
+                      "after:pointer-events-none after:invisible after:block after:h-0 after:select-none after:overflow-hidden after:font-medium after:content-[attr(data-label)]",
+                    )}
+                  >
+                    {section.label}
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </nav>
+    </div>
   );
 }
 
-export { defaultItems as dragDropReorderDefaultItems };
-export default DragDropReorder;
+export default AnimatedSidebar;
 `,
   },
 
-  {
-    slug: "liquid-scroll-progress",
-    name: "Liquid Scroll Progress",
-    cardDescription:
-      "A fixed liquid progress indicator — the component never moves, wheel/touch input drives the fill.",
-    fullDescription:
-      "A self-contained progress indicator: the component stays visually fixed in place while wheel or touch input drives a virtual progress value — filling the pipe, connectors, and stacked cards in sequence, with glass-morphism styling and animated bubbles.",
-    icon: "Droplets",
-    status: "new",
-    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/liquid-scroll-progress.json",
-    importStatement: `import { LiquidScrollProgress } from "@/components/liquid-scroll-progress"`,
-    usageJsx: "<LiquidScrollProgress />",
-    props: [
-      { property: "sections", type: "LiquidScrollProgressSection[]", default: "DEFAULT_SECTIONS", description: "Array of { title } — one per card, filled in order as progress advances." },
-      { property: "liquidColor", type: "string", default: `"#159cff"`, description: "CSS color used for the liquid fill (pipe, connectors, and cards)." },
-      { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer section." },
-    ],
-    previewCode: `"use client";
 
-import {
-  LiquidScrollProgress,
-  type LiquidScrollProgressSection,
-} from "@/components/liquid-scroll-progress";
 
-const sections: LiquidScrollProgressSection[] = [
-  { title: "Introduction" },
-  { title: "Implementation" },
-  { title: "Customization" },
-  { title: "Usage" },
-];
 
-export default function LiquidScrollProgressPreview() {
-  return <LiquidScrollProgress sections={sections} />;
-}
-`,
-    sourceCode: `"use client"
 
-import * as React from "react"
 
-export type LiquidScrollProgressSection = {
-  title: string
-}
 
-type LiquidScrollProgressProps = {
-  sections?: LiquidScrollProgressSection[]
-  liquidColor?: string
-  className?: string
-}
 
-const DEFAULT_SECTIONS: LiquidScrollProgressSection[] = [
-  { title: "Introduction" },
-  { title: "Implementation" },
-  { title: "Customization" },
-  { title: "Usage" },
-]
 
-const clamp = (value: number, min = 0, max = 1) =>
-  Math.min(Math.max(value, min), max)
 
-const PIPE_LEFT = 4
-const PIPE_W = 6
-const GAP = 22
-const TUCK_INTO_CARD = 4
 
-/**
- * How much wheel/touch travel (in px-equivalent units) corresponds to
- * going from 0% to 100% progress. Lower = more sensitive (reaches full
- * faster per notch of scroll); higher = less sensitive. Purely a feel
- * knob — not tied to any real scrollable height, since nothing here
- * actually scrolls.
- */
-const VIRTUAL_SCROLL_RANGE = 600
 
-export function LiquidScrollProgress({
-  sections = DEFAULT_SECTIONS,
-  liquidColor = "#159cff",
-  className = "",
-}: LiquidScrollProgressProps) {
-  const pipeLiquidRef = React.useRef<HTMLDivElement | null>(null)
-  const connectorLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([])
-  const cardLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([])
-  const contentRefs = React.useRef<Array<HTMLDivElement | null>>([])
 
-  // The fixed, non-scrolling "capture" box. It never scrolls — it only
-  // listens for wheel/touch input and turns that into a virtual
-  // progress value below. The component's own DOM never moves.
-  const captureRef = React.useRef<HTMLDivElement | null>(null)
 
-  // Virtual progress, 0–1. This replaces \`window.scrollY\` /
-  // \`container.scrollTop\` entirely — there is no real scroll position
-  // anywhere in this component anymore, just this one number that wheel
-  // and touch input nudge up or down.
-  const progressRef = React.useRef(0)
 
-  connectorLiquidRefs.current = []
-  cardLiquidRefs.current = []
-  contentRefs.current = []
 
-  React.useEffect(() => {
-    if (sections.length === 0) return
 
-    const capture = captureRef.current
-    if (!capture) return
 
-    let frame = 0
-    const total = sections.length
 
-    // Paints the DOM from whatever progressRef.current currently is.
-    // Same fill formulas as before — only the source of \`overall\`
-    // changed (a plain number we control, not a scroll measurement).
-    const paint = () => {
-      if (frame) cancelAnimationFrame(frame)
 
-      frame = requestAnimationFrame(() => {
-        const overall = progressRef.current
 
-        if (pipeLiquidRef.current) {
-          pipeLiquidRef.current.style.transform = \`scaleY(\${overall})\`
-        }
 
-        for (let i = 0; i < total; i++) {
-          const start = i / total
-          const end = (i + 1) / total
-          const raw = clamp((overall - start) / (end - start))
-          const connectorFill = clamp(raw / 0.35)
-          const cardFill = clamp((raw - 0.1) / 0.9)
-          const isFilled = cardFill >= 0.45
 
-          const connectorEl = connectorLiquidRefs.current[i]
-          if (connectorEl) connectorEl.style.transform = \`scaleX(\${connectorFill})\`
 
-          const cardEl = cardLiquidRefs.current[i]
-          if (cardEl) cardEl.style.transform = \`scaleY(\${cardFill})\`
 
-          const contentEl = contentRefs.current[i]
-          if (contentEl) contentEl.classList.toggle("is-filled", isFilled)
-        }
-      })
-    }
 
-    // Wheel: the primary input. preventDefault + stopPropagation stop
-    // both the native page scroll AND any smooth-scroll library (e.g.
-    // Lenis) upstream from ever seeing this event — nothing scrolls,
-    // anywhere, as a result of this gesture.
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      progressRef.current = clamp(progressRef.current + e.deltaY / VIRTUAL_SCROLL_RANGE)
-      paint()
-    }
 
-    // Touch: same idea, tracked manually since there's no native scroll
-    // to read a position from.
-    let touchY = 0
-    const onTouchStart = (e: TouchEvent) => {
-      touchY = e.touches[0].clientY
-    }
-    const onTouchMove = (e: TouchEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      const currentY = e.touches[0].clientY
-      const deltaY = touchY - currentY
-      touchY = currentY
-      progressRef.current = clamp(progressRef.current + deltaY / VIRTUAL_SCROLL_RANGE)
-      paint()
-    }
 
-    paint() // initial paint at progress = 0
 
-    capture.addEventListener("wheel", onWheel, { passive: false })
-    capture.addEventListener("touchstart", onTouchStart, { passive: true })
-    capture.addEventListener("touchmove", onTouchMove, { passive: false })
 
-    return () => {
-      if (frame) cancelAnimationFrame(frame)
-      capture.removeEventListener("wheel", onWheel)
-      capture.removeEventListener("touchstart", onTouchStart)
-      capture.removeEventListener("touchmove", onTouchMove)
-    }
-  }, [sections.length])
 
-  if (sections.length === 0) return null
 
-  return (
-    // Fixed viewport / input capture area. \`overflow: hidden\` with no
-    // scrollable content inside means there is nothing to scroll and
-    // therefore nothing that can ever show a scrollbar. \`touchAction:
-    // "none"\` stops the browser's own touch-scroll gesture from
-    // starting before our touchmove handler even runs. \`data-lenis-
-    // prevent\` is a second line of defense for the Lenis smooth-scroll
-    // library specifically, on top of the stopPropagation() above.
-    <div
-  ref={captureRef}
-  data-lenis-prevent
-  className="flex h-full w-full items-center justify-center"
-  style={{
-    overflow: "hidden",
-    touchAction: "none",
-    userSelect: "none",
-  }}
->
-      <section
-        aria-label="Scroll progress"
-        className={\`relative mx-auto w-fit px-2 py-4 sm:px-3 \${className}\`}
-      >
-        <style>{\`
-          .lsp-glass {
-            border: 1px solid rgba(148,163,184,0.35);
-            background: rgba(255,255,255,0.6);
-            backdrop-filter: blur(8px);
-            box-shadow:
-              inset 1px 0 1px rgba(255,255,255,0.9),
-              inset -1px 0 1px rgba(15,23,42,0.08),
-              0 1px 3px rgba(15,23,42,0.08);
-          }
-          .lsp-card {
-            border: 1px solid rgba(148,163,184,0.4);
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(16px);
-            box-shadow:
-              0 4px 10px rgba(20,40,60,0.08),
-              inset 0 1px rgba(255,255,255,0.9);
-          }
-          .lsp-card-border {
-            border: 1px solid rgba(255,255,255,0.6);
-            box-shadow:
-              inset 0 1px rgba(255,255,255,0.85),
-              inset 0 -1px rgba(15,23,42,0.04);
-          }
-          .lsp-liquid-h {
-            background: linear-gradient(
-              90deg,
-              color-mix(in srgb, var(--lsp-color) 68%, white 32%) 0%,
-              color-mix(in srgb, var(--lsp-color) 58%, white 42%) 65%,
-              rgba(255,255,255,0.7) 100%
-            );
-            box-shadow:
-              0 0 4px color-mix(in srgb, var(--lsp-color) 35%, transparent),
-              inset 0 1px 1px rgba(255,255,255,0.5);
-          }
-          .lsp-liquid {
-            background: linear-gradient(
-              180deg,
-              rgba(255,255,255,0.65) 0%,
-              color-mix(in srgb, var(--lsp-color) 50%, white 50%) 22%,
-              color-mix(in srgb, var(--lsp-color) 68%, white 32%) 100%
-            );
-            box-shadow:
-              0 0 5px color-mix(in srgb, var(--lsp-color) 35%, transparent),
-              inset 1px 0 1px rgba(255,255,255,0.6);
-          }
-          .lsp-content { color: #0f172a; transition: color 300ms ease; }
-          .lsp-content.is-filled { color: #fff; }
-          .lsp-title {
-            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            font-weight: 500;
-            letter-spacing: 0.06em;
-            line-height: 1;
-          }
-          @keyframes liquid-scroll-bubble-mini {
-            0%   { transform: translate3d(0, 3px, 0) scale(0.7); opacity: 0; }
-            15%  { opacity: 0.7; }
-            70%  { opacity: 0.45; }
-            100% { transform: translate3d(var(--bubble-drift, 0px), -34px, 0) scale(1); opacity: 0; }
-          }
-          @keyframes liquid-scroll-wave {
-            0%, 100% { transform: translateX(-2%) scaleX(1); }
-            50%      { transform: translateX(2%) scaleX(1.03); }
-          }
-          @keyframes liquid-scroll-shimmer {
-            0%   { transform: translateX(-120%); }
-            100% { transform: translateX(120%); }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .liquid-scroll-motion { animation: none !important; }
-          }
 
-          /* Dark mode: empty pipes/boxes go transparent instead of grey,
-             text flips to a light color for contrast against dark pages.
-             Scoped to the .dark class your ThemeContext toggles. */
-          .dark .lsp-glass {
-            background: rgba(255,255,255,0.04);
-            border-color: rgba(148,163,184,0.25);
-            box-shadow:
-              inset 1px 0 1px rgba(255,255,255,0.08),
-              inset -1px 0 1px rgba(0,0,0,0.35),
-              0 1px 3px rgba(0,0,0,0.35);
-          }
-          .dark .lsp-card {
-            background: rgba(255,255,255,0.04);
-            border-color: rgba(148,163,184,0.22);
-            box-shadow:
-              0 4px 10px rgba(0,0,0,0.35),
-              inset 0 1px rgba(255,255,255,0.06);
-          }
-          .dark .lsp-card-border {
-            border-color: rgba(255,255,255,0.1);
-            box-shadow:
-              inset 0 1px rgba(255,255,255,0.08),
-              inset 0 -1px rgba(0,0,0,0.2);
-          }
-          .dark .lsp-content { color: rgba(226,232,240,0.85); }
-          .dark .lsp-content.is-filled { color: #fff; }
-        \`}</style>
 
-        <div
-          className="relative w-full"
-          style={{ paddingLeft: GAP, "--lsp-color": liquidColor } as React.CSSProperties}
-        >
-          <div
-            aria-hidden="true"
-            className="absolute bottom-0 top-0 z-20"
-            style={{ left: PIPE_LEFT, width: PIPE_W }}
-          >
-            <div className="lsp-glass absolute inset-0 rounded-full" />
 
-            <div className="absolute inset-[1.5px] overflow-hidden rounded-full">
-              <div
-                ref={pipeLiquidRef}
-                className="lsp-liquid absolute inset-0 origin-top will-change-transform"
-                style={{ transform: "scaleY(0)" }}
-              >
-                <LiquidBubbles compact />
-                <div className="liquid-scroll-motion absolute -left-full top-0 h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent blur-[1px] motion-safe:animate-[liquid-scroll-shimmer_2.8s_ease-in-out_infinite]" />
-              </div>
-            </div>
-          </div>
 
-          <div className="flex flex-col gap-4">
-            {sections.map((section, index) => (
-              <article key={section.title} className="relative w-full">
-                <div
-                  className="absolute top-1/2 z-[5] h-[7px] -translate-y-1/2 overflow-hidden rounded-full"
-                  style={{
-                    left: -(GAP - PIPE_LEFT),
-                    width: GAP - PIPE_LEFT + TUCK_INTO_CARD,
-                  }}
-                >
-                  <div aria-hidden="true" className="lsp-glass absolute inset-0 rounded-full" />
-                  <div
-                    ref={(node) => {
-                      connectorLiquidRefs.current[index] = node
-                    }}
-                    aria-hidden="true"
-                    className="lsp-liquid-h absolute inset-y-0 left-0 w-full origin-left will-change-transform"
-                    style={{ transform: "scaleX(0)" }}
-                  />
-                </div>
 
-                <div className="lsp-card relative z-20 w-[180px] max-w-full h-[48px] overflow-hidden rounded-lg backdrop-blur-xl">
-                  <div
-                    ref={(node) => {
-                      cardLiquidRefs.current[index] = node
-                    }}
-                    aria-hidden="true"
-                    className="lsp-liquid absolute inset-x-0 bottom-0 top-0 origin-bottom overflow-hidden will-change-transform"
-                    style={{ transform: "scaleY(0)" }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-b from-sky-200/40 via-transparent to-sky-400/20" />
-                    <div className="liquid-scroll-motion absolute -left-[5%] -top-[2px] h-1.5 w-[110%] rounded-[50%] bg-white/35 blur-[1px] motion-safe:animate-[liquid-scroll-wave_2.8s_ease-in-out_infinite]" />
-                    <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-white/15 to-transparent" />
-                    <LiquidBubbles />
-                    <div className="liquid-scroll-motion absolute -left-full top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-sm motion-safe:animate-[liquid-scroll-shimmer_3.5s_ease-in-out_infinite]" />
-                  </div>
-
-                  <div
-                    aria-hidden="true"
-                    className="lsp-card-border pointer-events-none absolute inset-0 rounded-lg"
-                  />
-
-                  <div
-                    ref={(node) => {
-                      contentRefs.current[index] = node
-                    }}
-                    className="lsp-content relative z-10 flex h-full w-full items-center justify-center px-3 text-center"
-                  >
-                    <span className="lsp-title truncate uppercase text-[14px] font-medium">
-                      {section.title}
-                    </span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
-
-function LiquidBubbles({ compact = false }: { compact?: boolean }) {
-  const bubbles = compact
-    ? [
-        { left: "35%", size: 1, duration: "2.4s", delay: "0s", drift: "-1px" },
-        { left: "65%", size: 1, duration: "3s", delay: "0.6s", drift: "1px" },
-      ]
-    : [
-        { left: "20%", size: 1.5, duration: "2.6s", delay: "0s", drift: "-1px" },
-        { left: "50%", size: 2, duration: "3.2s", delay: "0.7s", drift: "1px" },
-        { left: "78%", size: 1.5, duration: "2.9s", delay: "1.3s", drift: "-1px" },
-      ]
-
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-    >
-      {bubbles.map((bubble, index) => (
-        <span
-          key={index}
-          className="liquid-scroll-motion absolute bottom-0 rounded-full bg-white/60 shadow-[0_0_3px_rgba(255,255,255,0.65)]"
-          style={
-            {
-              left: bubble.left,
-              width: \`\${bubble.size}px\`,
-              height: \`\${bubble.size}px\`,
-              "--bubble-drift": bubble.drift,
-              animation: \`liquid-scroll-bubble-mini \${bubble.duration} ease-in \${bubble.delay} infinite\`,
-            } as React.CSSProperties
-          }
-        />
-      ))}
-    </div>
-  )
-}
-`,
-  },
 
 
   {
@@ -1048,821 +1480,52 @@ function LiquidBubbles({ compact = false }: { compact?: boolean }) {
 
 
 
-  {
-    slug: "pagination",
-    name: "Pagination",
-    cardDescription:
-      "Four pagination styles — Pills, Outline, Compact, With Input — sharing one page state with a sliding active-page indicator.",
-    fullDescription:
-      "A self-contained pagination component with four visual variants, each independently functional. Every variant smoothly animates its active-page highlight with Framer Motion. Render all four stacked, or a single variant via the variant prop.",
-    icon: "ChevronsRightLeft",
-    status: "new",
-    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/pagination.json",
-    importStatement: `import Pagination from "@/components/pagination"`,
-    usageJsx: "<Pagination />",
-    props: [
-      { property: "totalPages", type: "number", default: "40", description: "Total number of pages." },
-      { property: "page", type: "number", default: "-", description: "Controlled current page (1-indexed). Pass with onPageChange." },
-      { property: "defaultPage", type: "number", default: "1", description: "Uncontrolled initial page. Ignored if page is provided." },
-      { property: "onPageChange", type: "function", default: "-", description: "Called whenever the page changes, from any variant." },
-      { property: "variant", type: `"pills" | "outline" | "compact" | "input"`, default: "all four", description: "Render only this single variant instead of the full four-row demo." },
-      { property: "variants", type: `PaginationVariant[]`, default: `["pills", "outline", "compact", "input"]`, description: "Which variants to render in showcase mode (ignored if variant is set). Reorder or remove entries to change what's shown." },
-      { property: "showInput", type: "boolean", default: "true", description: "Show the \"Go to page\" input on the input variant." },
-      { property: "disabled", type: "boolean", default: "false", description: "Disable every control in every rendered variant." },
-      { property: "siblingCount", type: "number", default: "2", description: "How many pages to show on each side of the current page." },
-      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
-    ],
-    previewCode: `import Pagination, { type PaginationVariant } from "@/components/pagination";
-
-    const variants: PaginationVariant[] = ["pills", "outline", "compact", "input"];
-    
-    export default function PaginationPreview() {
-      return <Pagination variants={variants} />;
-    }
-    `,
-    sourceCode: `
-"use client"
-
-/**
- * ============================================================================
- * Pagination
- * ============================================================================
- * Renders four visually distinct pagination styles — Pills, Outline, Compact,
- * With Input — as four COMPLETELY INDEPENDENT instances. Each one owns its
- * own page state and its own Framer Motion LayoutGroup, so interacting with
- * one never affects, and never animates into, another.
- *
- * WHY THIS FILE HAS NO JSX
- * ------------------------------------------------------------------------
- * This file ends in \`.ts\`, not \`.tsx\`. TypeScript's parser only allows JSX
- * syntax (\`<svg>\`, \`<div>...</div>\`, etc.) inside \`.tsx\` files — in a plain
- * \`.ts\` file that syntax is a parse error ("Expected '>', got 'ident'"),
- * which is exactly the build error this version fixes. Every element below
- * is built with \`React.createElement(...)\` instead of JSX tags. The
- * component's behavior, props, and output are otherwise identical to the
- * JSX version — this is a mechanical syntax translation, not a rewrite.
- *
- * All pagination LOGIC (getPageRange, usePageWindow, usePaginationState, the
- * onChange wiring, the four independent LayoutGroups, the active-indicator
- * animation) and all layout/styling classes are unchanged from the last
- * approved visual pass.
- * ============================================================================
- */
-
-import * as React from "react"
-import { motion, LayoutGroup, type Transition } from "framer-motion"
-
-const h = React.createElement
-
-function cn(...classes: Array<string | false | null | undefined>): string {
-  return classes.filter(Boolean).join(" ")
-}
-
-export type PaginationVariant = "pills" | "outline" | "compact" | "input"
-const DEFAULT_VARIANTS: PaginationVariant[] = ["pills", "outline", "compact", "input"]
-
-export interface PaginationProps {
-  totalPages?: number
-  page?: number
-  defaultPage?: number
-  initialPage?: number
-  onPageChange?: (page: number) => void
-  variant?: PaginationVariant
-  variants?: PaginationVariant[]
-  showInput?: boolean
-  disabled?: boolean
-  siblingCount?: number
-  className?: string
-}
-
-type PageItem = number | "ellipsis"
-
-function getPageRange(
-  current: number,
-  total: number,
-  siblingCount: number,
-  boundaryCount: number
-): PageItem[] {
-  const safeTotal = Math.max(1, Math.floor(total))
-  const safeCurrent = Math.min(Math.max(1, Math.floor(current)), safeTotal)
-  const safeSiblingCount = Math.max(0, Math.floor(siblingCount))
-  const safeBoundaryCount = Math.max(0, Math.floor(boundaryCount))
-  const clamp = (n: number) => Math.min(Math.max(n, 1), safeTotal)
-
-  const visible = new Set<number>()
-  for (let i = 1; i <= Math.min(safeBoundaryCount, safeTotal); i++) visible.add(i)
-  for (let i = Math.max(safeTotal - safeBoundaryCount + 1, 1); i <= safeTotal; i++) visible.add(i)
-  for (let i = clamp(safeCurrent - safeSiblingCount); i <= clamp(safeCurrent + safeSiblingCount); i++) {
-    visible.add(i)
-  }
-  visible.add(1)
-  visible.add(safeTotal)
-
-  const sorted = Array.from(visible).sort((a, b) => a - b)
-  const items: PageItem[] = []
-
-  sorted.forEach((num, idx) => {
-    if (idx > 0) {
-      const prev = sorted[idx - 1]
-      const gap = num - prev
-      if (gap === 2) {
-        items.push(prev + 1)
-      } else if (gap > 2) {
-        items.push("ellipsis")
-      }
-    }
-    items.push(num)
-  })
-
-  return items
-}
-
-function usePageWindow(
-  page: number,
-  totalPages: number,
-  siblingCount: number,
-  isCompact: boolean
-): PageItem[] {
-  const effectiveSibling = isCompact ? Math.min(siblingCount, 1) : siblingCount
-  return React.useMemo(
-    () => getPageRange(page, totalPages, effectiveSibling, 1),
-    [page, totalPages, effectiveSibling]
-  )
-}
-
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = React.useState(false)
-
-  React.useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setReduced(query.matches)
-    const listener = (event: MediaQueryListEvent) => setReduced(event.matches)
-    query.addEventListener("change", listener)
-    return () => query.removeEventListener("change", listener)
-  }, [])
-
-  return reduced
-}
-
-function useIsCompactViewport(breakpointPx = 480): boolean {
-  const [isCompact, setIsCompact] = React.useState(false)
-
-  React.useEffect(() => {
-    const query = window.matchMedia(\`(max-width: \${breakpointPx}px)\`)
-    setIsCompact(query.matches)
-    const listener = (event: MediaQueryListEvent) => setIsCompact(event.matches)
-    query.addEventListener("change", listener)
-    return () => query.removeEventListener("change", listener)
-  }, [breakpointPx])
-
-  return isCompact
-}
-
-function useIndicatorTransition(): Transition {
-  const reducedMotion = usePrefersReducedMotion()
-  if (reducedMotion) return { duration: 0 }
-  return { type: "spring", stiffness: 500, damping: 40, mass: 0.8 }
-}
-
-function usePaginationState({
-  totalPages,
-  page: controlledPage,
-  defaultPage,
-  onPageChange,
-}: {
-  totalPages: number
-  page?: number
-  defaultPage?: number
-  onPageChange?: (page: number) => void
-}) {
-  const isControlled = controlledPage !== undefined
-  const [internalPage, setInternalPage] = React.useState(defaultPage ?? 1)
-  const page = isControlled ? (controlledPage as number) : internalPage
-
-  const setPage = React.useCallback(
-    (next: number) => {
-      const clamped = Math.min(Math.max(next, 1), Math.max(1, totalPages))
-      if (!isControlled) setInternalPage(clamped)
-      onPageChange?.(clamped)
-    },
-    [isControlled, totalPages, onPageChange]
-  )
-
-  return [page, setPage] as const
-}
-
-function ChevronLeftIcon(props: React.SVGProps<SVGSVGElement>) {
-  return h(
-    "svg",
-    { viewBox: "0 0 24 24", fill: "none", "aria-hidden": "true", ...props },
-    h("path", {
-      d: "M15 6l-6 6 6 6",
-      stroke: "currentColor",
-      strokeWidth: 2,
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-    })
-  )
-}
-
-function ChevronRightIcon(props: React.SVGProps<SVGSVGElement>) {
-  return h(
-    "svg",
-    { viewBox: "0 0 24 24", fill: "none", "aria-hidden": "true", ...props },
-    h("path", {
-      d: "M9 6l6 6-6 6",
-      stroke: "currentColor",
-      strokeWidth: 2,
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-    })
-  )
-}
-
-interface VariantProps {
-  page: number
-  totalPages: number
-  onChange: (page: number) => void
-  disabled?: boolean
-  siblingCount: number
-}
-
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900"
-
-const interactiveCursor = "cursor-pointer disabled:cursor-not-allowed"
-
-function renderEllipsis(tag: "li" | "span", key: string, className: string) {
-  return h(tag, { key, className }, "\\u2026")
-}
-
-function PillsPagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
-  const transition = useIndicatorTransition()
-  const isCompact = useIsCompactViewport()
-  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
-
-  const prevButton = h(
-    "button",
-    {
-      type: "button",
-      "aria-label": "Previous page",
-      disabled: disabled || page <= 1,
-      onClick: () => onChange(page - 1),
-      className: cn(
-        "grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-neutral-500 shadow-sm ring-1 ring-black/5 transition-colors",
-        "max-[480px]:h-9 max-[480px]:w-9",
-        "hover:text-neutral-900 disabled:opacity-40 disabled:hover:text-neutral-500",
-        "dark:bg-neutral-800 dark:text-neutral-400 dark:ring-white/10 dark:hover:text-white",
-        interactiveCursor,
-        focusRing
-      ),
-    },
-    h(ChevronLeftIcon, { className: "h-4 w-4" })
-  )
-
-  const nextButton = h(
-    "button",
-    {
-      type: "button",
-      "aria-label": "Next page",
-      disabled: disabled || page >= totalPages,
-      onClick: () => onChange(page + 1),
-      className: cn(
-        "grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-neutral-500 shadow-sm ring-1 ring-black/5 transition-colors",
-        "max-[480px]:h-9 max-[480px]:w-9",
-        "hover:text-neutral-900 disabled:opacity-40 disabled:hover:text-neutral-500",
-        "dark:bg-neutral-800 dark:text-neutral-400 dark:ring-white/10 dark:hover:text-white",
-        interactiveCursor,
-        focusRing
-      ),
-    },
-    h(ChevronRightIcon, { className: "h-4 w-4" })
-  )
-
-  const numberItems = items.map((item, index) => {
-    if (item === "ellipsis") {
-      return renderEllipsis(
-        "li",
-        \`ellipsis-\${index}\`,
-        "grid h-9 w-5 shrink-0 place-items-center text-sm text-neutral-400 max-[480px]:h-8 max-[480px]:w-4 max-[480px]:text-xs dark:text-neutral-500"
-      )
-    }
-    const isActive = item === page
-    return h(
-      "li",
-      { key: item, className: "shrink-0" },
-      h(
-        "button",
-        {
-          type: "button",
-          disabled: disabled,
-          "aria-current": isActive ? "page" : undefined,
-          "aria-label": \`Go to page \${item}\`,
-          onClick: () => onChange(item),
-          className: cn(
-            "relative grid h-9 w-9 place-items-center rounded-full text-sm font-medium transition-colors max-[480px]:h-8 max-[480px]:w-8 max-[480px]:text-xs",
-            isActive ? "text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700/60",
-            interactiveCursor,
-            focusRing
-          ),
-        },
-        isActive &&
-          h(motion.span, {
-            layoutId: "pills-active",
-            transition,
-            className: "absolute inset-0 rounded-full bg-indigo-600",
-          }),
-        h("span", { className: "relative z-10" }, item)
-      )
-    )
-  })
-
-  const numbersList = h(
-    "ul",
-    {
-      className:
-        "flex shrink-0 items-center gap-1 overflow-hidden rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-black/5 max-[480px]:gap-0.5 max-[480px]:px-2 max-[480px]:py-1 dark:bg-neutral-800 dark:ring-white/10",
-    },
-    numberItems
-  )
-
-  const group = h(
-    "div",
-    { className: "inline-flex max-w-full items-center gap-3 max-[480px]:gap-1.5" },
-    prevButton,
-    numbersList,
-    nextButton
-  )
-
-  return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, group)
-}
-
-function OutlinePagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
-  const transition = useIndicatorTransition()
-  const isCompact = useIsCompactViewport()
-  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
-
-  const prevButton = h(
-    "button",
-    {
-      type: "button",
-      "aria-label": "Previous page",
-      disabled: disabled || page <= 1,
-      onClick: () => onChange(page - 1),
-      className: cn(
-        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-indigo-600 transition-colors max-[480px]:h-7 max-[480px]:w-7",
-        "hover:bg-indigo-50 disabled:opacity-30 disabled:hover:bg-transparent",
-        "dark:text-indigo-400 dark:hover:bg-indigo-500/10",
-        interactiveCursor,
-        focusRing
-      ),
-    },
-    h(ChevronLeftIcon, { className: "h-4 w-4" })
-  )
-
-  const nextButton = h(
-    "button",
-    {
-      type: "button",
-      "aria-label": "Next page",
-      disabled: disabled || page >= totalPages,
-      onClick: () => onChange(page + 1),
-      className: cn(
-        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-indigo-600 transition-colors max-[480px]:h-7 max-[480px]:w-7",
-        "hover:bg-indigo-50 disabled:opacity-30 disabled:hover:bg-transparent",
-        "dark:text-indigo-400 dark:hover:bg-indigo-500/10",
-        interactiveCursor,
-        focusRing
-      ),
-    },
-    h(ChevronRightIcon, { className: "h-4 w-4" })
-  )
-
-  const numberItems = items.map((item, index) => {
-    if (item === "ellipsis") {
-      return renderEllipsis(
-        "span",
-        \`ellipsis-\${index}\`,
-        "grid h-8 w-5 shrink-0 place-items-center text-sm text-neutral-400 max-[480px]:h-7 max-[480px]:w-4 max-[480px]:text-xs dark:text-neutral-500"
-      )
-    }
-    const isActive = item === page
-    return h(
-      "button",
-      {
-        key: item,
-        type: "button",
-        disabled: disabled,
-        "aria-current": isActive ? "page" : undefined,
-        "aria-label": \`Go to page \${item}\`,
-        onClick: () => onChange(item),
-        className: cn(
-          "relative grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-medium transition-colors max-[480px]:h-7 max-[480px]:w-7 max-[480px]:text-xs",
-          isActive
-            ? "text-indigo-600 dark:text-indigo-400"
-            : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
-          interactiveCursor,
-          focusRing
-        ),
-      },
-      isActive &&
-        h(motion.span, {
-          layoutId: "outline-active",
-          transition,
-          className: "absolute inset-0 rounded-lg ring-2 ring-indigo-600 dark:ring-indigo-400",
-        }),
-      h("span", { className: "relative z-10" }, item)
-    )
-  })
-
-  const numbersRow = h("div", { className: "flex shrink-0 items-center gap-1 py-0.5" }, numberItems)
-
-  const box = h(
-    "div",
-    {
-      className: cn(
-        "box-border inline-flex max-w-full items-center gap-5 rounded-2xl border border-neutral-200 bg-white px-8 py-2 shadow-sm",
-        "max-[480px]:gap-1 max-[480px]:px-2 max-[480px]:py-2",
-        "dark:border-neutral-800 dark:bg-neutral-900"
-      ),
-    },
-    prevButton,
-    numbersRow,
-    nextButton
-  )
-
-  return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, box)
-}
-
-function CompactPagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
-  const transition = useIndicatorTransition()
-  const isCompact = useIsCompactViewport()
-  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
-
-  const numberItems = items.map((item, index) => {
-    if (item === "ellipsis") {
-      return renderEllipsis(
-        "li",
-        \`ellipsis-\${index}\`,
-        "grid h-7 w-4 shrink-0 place-items-center text-xs text-neutral-400 dark:text-neutral-500"
-      )
-    }
-    const isActive = item === page
-    return h(
-      "li",
-      { key: item, className: "shrink-0" },
-      h(
-        "button",
-        {
-          type: "button",
-          disabled: disabled,
-          "aria-current": isActive ? "page" : undefined,
-          "aria-label": \`Go to page \${item}\`,
-          onClick: () => onChange(item),
-          className: cn(
-            "relative grid h-7 w-7 place-items-center rounded-md text-xs font-medium transition-colors max-[480px]:h-6 max-[480px]:w-6",
-            isActive ? "text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
-            interactiveCursor,
-            focusRing
-          ),
-        },
-        isActive &&
-          h(motion.span, {
-            layoutId: "compact-active",
-            transition,
-            className: "absolute inset-0 rounded-md bg-indigo-600",
-          }),
-        h("span", { className: "relative z-10" }, item)
-      )
-    )
-  })
-
-  const numbersList = h("ul", { className: "flex shrink-0 items-center gap-1" }, numberItems)
-
-  const prevButton = h(
-    "button",
-    {
-      type: "button",
-      "aria-label": "Previous page",
-      disabled: disabled || page <= 1,
-      onClick: () => onChange(page - 1),
-      className: cn(
-        "grid h-7 w-7 place-items-center rounded-md bg-neutral-100 text-neutral-500 transition-colors max-[480px]:h-6 max-[480px]:w-6",
-        "hover:text-neutral-900 disabled:opacity-40 disabled:hover:text-neutral-500",
-        "dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-white",
-        interactiveCursor,
-        focusRing
-      ),
-    },
-    h(ChevronLeftIcon, { className: "h-3.5 w-3.5" })
-  )
-
-  const nextButton = h(
-    "button",
-    {
-      type: "button",
-      "aria-label": "Next page",
-      disabled: disabled || page >= totalPages,
-      onClick: () => onChange(page + 1),
-      className: cn(
-        "grid h-7 w-7 place-items-center rounded-md bg-indigo-600 text-white transition-colors max-[480px]:h-6 max-[480px]:w-6",
-        "hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600",
-        interactiveCursor,
-        focusRing
-      ),
-    },
-    h(ChevronRightIcon, { className: "h-3.5 w-3.5" })
-  )
-
-  const controls = h("div", { className: "flex shrink-0 items-center gap-1" }, prevButton, nextButton)
-
-  const box = h(
-    "div",
-    {
-      className: cn(
-        "box-border inline-flex max-w-full items-center gap-5 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-sm",
-        "max-[480px]:gap-3 max-[480px]:px-2 max-[480px]:py-1.5",
-        "dark:border-neutral-800 dark:bg-neutral-900"
-      ),
-    },
-    numbersList,
-    controls
-  )
-
-  return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, box)
-}
-
-function InputPagination({
-  page,
-  totalPages,
-  onChange,
-  disabled,
-  siblingCount,
-  showInput = true,
-}: VariantProps & { showInput?: boolean }) {
-  const transition = useIndicatorTransition()
-  const isCompact = useIsCompactViewport()
-  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
-  const [inputValue, setInputValue] = React.useState("")
-  const inputId = React.useId()
-
-  const submitGoTo = () => {
-    const parsed = Number.parseInt(inputValue, 10)
-    if (Number.isNaN(parsed)) {
-      setInputValue("")
-      return
-    }
-    const clamped = Math.min(Math.max(parsed, 1), totalPages)
-    onChange(clamped)
-    setInputValue("")
-  }
-
-  const prevButton = h(
-    "button",
-    {
-      type: "button",
-      "aria-label": "Previous page",
-      disabled: disabled || page <= 1,
-      onClick: () => onChange(page - 1),
-      className: cn(
-        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors",
-        "hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent",
-        "dark:text-neutral-400 dark:hover:bg-neutral-800",
-        interactiveCursor,
-        focusRing
-      ),
-    },
-    h(ChevronLeftIcon, { className: "h-4 w-4" })
-  )
-
-  const nextButton = h(
-    "button",
-    {
-      type: "button",
-      "aria-label": "Next page",
-      disabled: disabled || page >= totalPages,
-      onClick: () => onChange(page + 1),
-      className: cn(
-        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors",
-        "hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent",
-        "dark:text-neutral-400 dark:hover:bg-neutral-800",
-        interactiveCursor,
-        focusRing
-      ),
-    },
-    h(ChevronRightIcon, { className: "h-4 w-4" })
-  )
-
-  const numberItems = items.map((item, index) => {
-    if (item === "ellipsis") {
-      return renderEllipsis(
-        "li",
-        \`ellipsis-\${index}\`,
-        "grid h-8 w-4 shrink-0 place-items-center text-sm text-neutral-400 max-[480px]:h-7 max-[480px]:text-xs dark:text-neutral-500"
-      )
-    }
-    const isActive = item === page
-    return h(
-      "li",
-      { key: item, className: "shrink-0" },
-      h(
-        "button",
-        {
-          type: "button",
-          disabled: disabled,
-          "aria-current": isActive ? "page" : undefined,
-          "aria-label": \`Go to page \${item}\`,
-          onClick: () => onChange(item),
-          className: cn(
-            "relative grid h-8 w-8 place-items-center rounded-lg text-sm font-medium transition-colors max-[480px]:h-7 max-[480px]:w-7 max-[480px]:text-xs",
-            isActive ? "text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
-            interactiveCursor,
-            focusRing
-          ),
-        },
-        isActive &&
-          h(motion.span, {
-            layoutId: "input-active",
-            layout: true,
-            transition,
-            style: { rotate: 45 },
-            className: "absolute inset-1 rounded-md bg-indigo-600",
-          }),
-        h("span", { className: "relative z-10" }, item)
-      )
-    )
-  })
-
-  const numbersList = h("ul", { className: "flex shrink-0 items-center gap-1 px-0.5" }, numberItems)
-
-  const nav = h(
-    "nav",
-    {
-      "aria-label": "Pagination",
-      className: "inline-flex shrink-0 items-center gap-1 max-[480px]:w-full max-[480px]:justify-center",
-    },
-    prevButton,
-    numbersList,
-    nextButton
-  )
-
-  const goToForm = showInput
-    ? h(
-        "form",
-        {
-          className: "inline-flex shrink-0 items-center gap-2 max-[480px]:w-full max-[480px]:justify-center",
-          onSubmit: (event: React.FormEvent) => {
-            event.preventDefault()
-            submitGoTo()
-          },
-        },
-        h(
-          "label",
-          {
-            htmlFor: inputId,
-            className: "whitespace-nowrap text-sm text-neutral-500 max-[480px]:text-xs dark:text-neutral-400",
-          },
-          "Go to page"
-        ),
-        h("input", {
-          id: inputId,
-          type: "text",
-          inputMode: "numeric",
-          disabled: disabled,
-          value: inputValue,
-          onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
-            setInputValue(event.target.value.replace(/[^0-9]/g, "")),
-          placeholder: String(page),
-          className: cn(
-            "h-8 w-14 shrink-0 rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm text-neutral-800 transition-colors max-[480px]:h-7 max-[480px]:w-11 max-[480px]:text-xs",
-            "placeholder:text-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100",
-            focusRing
-          ),
-        }),
-        h(
-          "button",
-          {
-            type: "submit",
-            disabled: disabled || inputValue === "",
-            className: cn(
-              "flex h-8 shrink-0 items-center gap-1 rounded-lg bg-indigo-600 px-3 text-sm font-medium text-white transition-colors max-[480px]:h-7 max-[480px]:px-2 max-[480px]:text-xs",
-              "hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600",
-              interactiveCursor,
-              focusRing
-            ),
-          },
-          "Go",
-          h(ChevronRightIcon, { className: "h-3.5 w-3.5" })
-        )
-      )
-    : null
-
-  const box = h(
-    "div",
-    {
-      className: cn(
-        "box-border flex max-w-full flex-col items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm",
-        "min-[481px]:w-fit min-[481px]:flex-row min-[481px]:gap-4 min-[481px]:rounded-full min-[481px]:py-2",
-        "max-[480px]:w-full",
-        "dark:border-neutral-800 dark:bg-neutral-900"
-      ),
-    },
-    nav,
-    goToForm
-  )
-
-  return h("div", { className: "flex w-full items-center justify-center" }, box)
-}
-
-function PaginationInstance({
-  variant,
-  totalPages,
-  initialPage,
-  siblingCount,
-  disabled,
-  showInput,
-}: {
-  variant: PaginationVariant
-  totalPages: number
-  initialPage: number
-  siblingCount: number
-  disabled?: boolean
-  showInput?: boolean
-}) {
-  const groupId = React.useId()
-  const [page, setPage] = usePaginationState({ totalPages, defaultPage: initialPage })
-  const shared: VariantProps = { page, totalPages, onChange: setPage, disabled, siblingCount }
-
-  let content: React.ReactNode = null
-  if (variant === "pills") content = h(PillsPagination, shared)
-  else if (variant === "outline") content = h(OutlinePagination, shared)
-  else if (variant === "compact") content = h(CompactPagination, shared)
-  else if (variant === "input") content = h(InputPagination, { ...shared, showInput: showInput ?? true })
-
-  return h(LayoutGroup, { id: \`pagination-\${variant}-\${groupId}\` }, content)
-}
-
-export default function Pagination({
-  totalPages = 40,
-  page,
-  defaultPage,
-  initialPage,
-  onPageChange,
-  variant,
-  variants = DEFAULT_VARIANTS,
-  showInput = true,
-  disabled = false,
-  siblingCount = 2,
-  className,
-}: PaginationProps) {
-  const singleGroupId = React.useId()
-  const [singlePage, setSinglePage] = usePaginationState({
-    totalPages,
-    page,
-    defaultPage: defaultPage ?? initialPage ?? 1,
-    onPageChange,
-  })
-
-  if (variant) {
-    const shared: VariantProps = { page: singlePage, totalPages, onChange: setSinglePage, disabled, siblingCount }
-    let content: React.ReactNode = null
-    if (variant === "pills") content = h(PillsPagination, shared)
-    else if (variant === "outline") content = h(OutlinePagination, shared)
-    else if (variant === "compact") content = h(CompactPagination, shared)
-    else if (variant === "input") content = h(InputPagination, { ...shared, showInput })
-
-    return h(
-      LayoutGroup,
-      { id: \`pagination-\${variant}-\${singleGroupId}\` },
-      h("div", { className: cn("w-full", className) }, content)
-    )
-  }
-
-  const seed = defaultPage ?? initialPage ?? 3
-
-  return h(
-    "div",
-    { className: cn("mx-auto flex w-full max-w-[860px] flex-col gap-7", className) },
-    ...variants.map((v) =>
-      h(PaginationInstance, {
-        key: v,
-        variant: v,
-        totalPages,
-        initialPage: seed,
-        siblingCount,
-        disabled,
-        showInput: v === "input" ? showInput : undefined,
-      })
-    )
-  )
-}
-`,
-  },
-
-
-
-
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   {
     slug: "otp-input",
     name: "OTP Input",
@@ -2735,6 +2398,1017 @@ export default function Pagination({
   }
   `,
   },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  {
+    slug: "drag-drop-reorder",
+    name: "Drag & Drop Reorder",
+    cardDescription:
+      "A smooth, accessible sortable list with spring physics and a glow while dragging.",
+    fullDescription:
+      "A smooth, customizable, and accessible sortable list for modern applications.",
+    icon: "GripVertical",
+    status: "new",
+    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/drag-drop-reorder.json",
+    importStatement: `import { DragDropReorder } from "@/components/drag-drop-reorder"`,
+    usageJsx: "<DragDropReorder />",
+    props: [
+      { property: "items", type: "ReorderItem[]", default: "-", description: "Array of { id, title, description, icon, color } (controlled)." },
+      { property: "onReorder", type: "function", default: "-", description: "Callback fired with the new order when dragging ends." },
+      { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer card." },
+    ],
+    // Shown in the docs page's "Code" tab. Kept intentionally short —
+    // this is how a consumer actually uses the component, not the
+    // implementation itself.
+    previewCode: `"use client";
+
+import { useState } from "react";
+import { DragDropReorder } from "@/components/drag-drop-reorder";
+import type { ReorderItem } from "@/components/drag-drop-reorder";
+import { Image, Code2, TerminalSquare, CloudUpload, RefreshCw } from "lucide-react";
+
+const initialItems: ReorderItem[] = [
+  { id: "design", title: "Design", description: "Create beautiful experiences", icon: Image, color: "pink" },
+  { id: "develop", title: "Develop", description: "Build with modern tools", icon: Code2, color: "blue" },
+  { id: "test", title: "Test", description: "Ensure everything works", icon: TerminalSquare, color: "neutral" },
+  { id: "deploy", title: "Deploy", description: "Launch to the world", icon: CloudUpload, color: "violet" },
+  { id: "iterate", title: "Iterate", description: "Make it better", icon: RefreshCw, color: "orange" },
+];
+
+export default function DragDropReorderPreview() {
+  const [items, setItems] = useState<ReorderItem[]>(initialItems);
+
+  return (
+    <div className="flex w-full items-center justify-center p-4">
+      <DragDropReorder items={items} onReorder={setItems} />
+    </div>
+  );
+}
+`,
+    // Full implementation. Not rendered anywhere in the docs UI directly —
+    // intended as the source your registry JSON route serves to the CLI.
+    // (See note below on wiring up a real /r/drag-drop-reorder.json route.)
+    sourceCode: `"use client";
+
+import * as React from "react";
+import { Reorder } from "framer-motion";
+import {
+  GripVertical,
+  ChevronRight,
+  Image,
+  Code2,
+  TerminalSquare,
+  CloudUpload,
+  RefreshCw,
+  type LucideIcon,
+} from "lucide-react";
+
+export type ReorderColor = "pink" | "blue" | "violet" | "orange" | "neutral";
+
+export interface ReorderItem {
+  id: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  color: ReorderColor;
+}
+
+const defaultItems: ReorderItem[] = [
+  { id: "design", title: "Design", description: "Create beautiful experiences", icon: Image, color: "pink" },
+  { id: "develop", title: "Develop", description: "Build with modern tools", icon: Code2, color: "blue" },
+  { id: "test", title: "Test", description: "Ensure everything works", icon: TerminalSquare, color: "neutral" },
+  { id: "deploy", title: "Deploy", description: "Launch to the world", icon: CloudUpload, color: "violet" },
+  { id: "iterate", title: "Iterate", description: "Make it better", icon: RefreshCw, color: "orange" },
+];
+
+const colorMap: Record<ReorderColor, string> = {
+  pink: "bg-pink-100 text-pink-600 dark:bg-pink-950/60 dark:text-pink-400",
+  blue: "bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400",
+  violet: "bg-violet-100 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400",
+  orange: "bg-orange-100 text-orange-600 dark:bg-orange-950/60 dark:text-orange-400",
+  neutral: "bg-neutral-900 text-white dark:bg-neutral-800 dark:text-white",
+};
+
+export interface DragDropReorderProps {
+  items?: ReorderItem[];
+  onReorder?: (items: ReorderItem[]) => void;
+  className?: string;
+}
+
+export function DragDropReorder({ items, onReorder, className = "" }: DragDropReorderProps) {
+  const [internalItems, setInternalItems] = React.useState<ReorderItem[]>(defaultItems);
+  const [draggingId, setDraggingId] = React.useState<string | null>(null);
+
+  const isControlled = Array.isArray(items);
+  const values = isControlled ? (items as ReorderItem[]) : internalItems;
+  const setValues = isControlled ? (onReorder as (items: ReorderItem[]) => void) : setInternalItems;
+
+  return (
+    <Reorder.Group axis="y" values={values} onReorder={setValues} className={\`flex flex-col gap-3 \${className}\`}>
+      {values.map((item) => {
+        const Icon = item.icon;
+        const isDragging = draggingId === item.id;
+
+        return (
+          <Reorder.Item
+            key={item.id}
+            value={item}
+            onDragStart={() => setDraggingId(item.id)}
+            onDragEnd={() => setDraggingId(null)}
+            whileDrag={{ scale: 1.02, cursor: "grabbing" }}
+            className={[
+              "relative flex items-center gap-4 rounded-2xl px-4 py-3.5 select-none",
+              "bg-white dark:bg-neutral-900",
+              "border border-neutral-100 dark:border-neutral-800",
+              isDragging
+                ? "ring-2 ring-violet-500/60 shadow-[0_0_24px_rgba(56,189,248,0.35)]"
+                : "shadow-sm",
+            ].join(" ")}
+          >
+            <div className="cursor-grab active:cursor-grabbing touch-none text-neutral-300 dark:text-neutral-600" aria-hidden="true">
+              <GripVertical size={18} />
+            </div>
+
+            <div className={\`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 \${colorMap[item.color] ?? colorMap.neutral}\`}>
+              <Icon size={20} />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-semibold leading-tight text-neutral-900 dark:text-neutral-50">{item.title}</div>
+              <div className="text-sm leading-tight mt-0.5 text-neutral-500 dark:text-neutral-400">{item.description}</div>
+            </div>
+
+            <ChevronRight size={18} className="text-neutral-300 dark:text-neutral-600 shrink-0" />
+          </Reorder.Item>
+        );
+      })}
+    </Reorder.Group>
+  );
+}
+
+export { defaultItems as dragDropReorderDefaultItems };
+export default DragDropReorder;
+`,
+  },
+
+  
+
+
+  
+
+
+
+
+
+
+  {
+    slug: "pagination",
+    name: "Pagination",
+    cardDescription:
+      "Four pagination styles — Pills, Outline, Compact, With Input — sharing one page state with a sliding active-page indicator.",
+    fullDescription:
+      "A self-contained pagination component with four visual variants, each independently functional. Every variant smoothly animates its active-page highlight with Framer Motion. Render all four stacked, or a single variant via the variant prop.",
+    icon: "ChevronsRightLeft",
+    status: "new",
+    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/pagination.json",
+    importStatement: `import Pagination from "@/components/pagination"`,
+    usageJsx: "<Pagination />",
+    props: [
+      { property: "totalPages", type: "number", default: "40", description: "Total number of pages." },
+      { property: "page", type: "number", default: "-", description: "Controlled current page (1-indexed). Pass with onPageChange." },
+      { property: "defaultPage", type: "number", default: "1", description: "Uncontrolled initial page. Ignored if page is provided." },
+      { property: "onPageChange", type: "function", default: "-", description: "Called whenever the page changes, from any variant." },
+      { property: "variant", type: `"pills" | "outline" | "compact" | "input"`, default: "all four", description: "Render only this single variant instead of the full four-row demo." },
+      { property: "variants", type: `PaginationVariant[]`, default: `["pills", "outline", "compact", "input"]`, description: "Which variants to render in showcase mode (ignored if variant is set). Reorder or remove entries to change what's shown." },
+      { property: "showInput", type: "boolean", default: "true", description: "Show the \"Go to page\" input on the input variant." },
+      { property: "disabled", type: "boolean", default: "false", description: "Disable every control in every rendered variant." },
+      { property: "siblingCount", type: "number", default: "2", description: "How many pages to show on each side of the current page." },
+      { property: "className", type: "string", default: "-", description: "Extra classes applied to the outermost wrapper." },
+    ],
+    previewCode: `import Pagination, { type PaginationVariant } from "@/components/pagination";
+
+    const variants: PaginationVariant[] = ["pills", "outline", "compact", "input"];
+    
+    export default function PaginationPreview() {
+      return <Pagination variants={variants} />;
+    }
+    `,
+    sourceCode: `
+"use client"
+
+/**
+ * ============================================================================
+ * Pagination
+ * ============================================================================
+ * Renders four visually distinct pagination styles — Pills, Outline, Compact,
+ * With Input — as four COMPLETELY INDEPENDENT instances. Each one owns its
+ * own page state and its own Framer Motion LayoutGroup, so interacting with
+ * one never affects, and never animates into, another.
+ *
+ * WHY THIS FILE HAS NO JSX
+ * ------------------------------------------------------------------------
+ * This file ends in \`.ts\`, not \`.tsx\`. TypeScript's parser only allows JSX
+ * syntax (\`<svg>\`, \`<div>...</div>\`, etc.) inside \`.tsx\` files — in a plain
+ * \`.ts\` file that syntax is a parse error ("Expected '>', got 'ident'"),
+ * which is exactly the build error this version fixes. Every element below
+ * is built with \`React.createElement(...)\` instead of JSX tags. The
+ * component's behavior, props, and output are otherwise identical to the
+ * JSX version — this is a mechanical syntax translation, not a rewrite.
+ *
+ * All pagination LOGIC (getPageRange, usePageWindow, usePaginationState, the
+ * onChange wiring, the four independent LayoutGroups, the active-indicator
+ * animation) and all layout/styling classes are unchanged from the last
+ * approved visual pass.
+ * ============================================================================
+ */
+
+import * as React from "react"
+import { motion, LayoutGroup, type Transition } from "framer-motion"
+
+const h = React.createElement
+
+function cn(...classes: Array<string | false | null | undefined>): string {
+  return classes.filter(Boolean).join(" ")
+}
+
+export type PaginationVariant = "pills" | "outline" | "compact" | "input"
+const DEFAULT_VARIANTS: PaginationVariant[] = ["pills", "outline", "compact", "input"]
+
+export interface PaginationProps {
+  totalPages?: number
+  page?: number
+  defaultPage?: number
+  initialPage?: number
+  onPageChange?: (page: number) => void
+  variant?: PaginationVariant
+  variants?: PaginationVariant[]
+  showInput?: boolean
+  disabled?: boolean
+  siblingCount?: number
+  className?: string
+}
+
+type PageItem = number | "ellipsis"
+
+function getPageRange(
+  current: number,
+  total: number,
+  siblingCount: number,
+  boundaryCount: number
+): PageItem[] {
+  const safeTotal = Math.max(1, Math.floor(total))
+  const safeCurrent = Math.min(Math.max(1, Math.floor(current)), safeTotal)
+  const safeSiblingCount = Math.max(0, Math.floor(siblingCount))
+  const safeBoundaryCount = Math.max(0, Math.floor(boundaryCount))
+  const clamp = (n: number) => Math.min(Math.max(n, 1), safeTotal)
+
+  const visible = new Set<number>()
+  for (let i = 1; i <= Math.min(safeBoundaryCount, safeTotal); i++) visible.add(i)
+  for (let i = Math.max(safeTotal - safeBoundaryCount + 1, 1); i <= safeTotal; i++) visible.add(i)
+  for (let i = clamp(safeCurrent - safeSiblingCount); i <= clamp(safeCurrent + safeSiblingCount); i++) {
+    visible.add(i)
+  }
+  visible.add(1)
+  visible.add(safeTotal)
+
+  const sorted = Array.from(visible).sort((a, b) => a - b)
+  const items: PageItem[] = []
+
+  sorted.forEach((num, idx) => {
+    if (idx > 0) {
+      const prev = sorted[idx - 1]
+      const gap = num - prev
+      if (gap === 2) {
+        items.push(prev + 1)
+      } else if (gap > 2) {
+        items.push("ellipsis")
+      }
+    }
+    items.push(num)
+  })
+
+  return items
+}
+
+function usePageWindow(
+  page: number,
+  totalPages: number,
+  siblingCount: number,
+  isCompact: boolean
+): PageItem[] {
+  const effectiveSibling = isCompact ? Math.min(siblingCount, 1) : siblingCount
+  return React.useMemo(
+    () => getPageRange(page, totalPages, effectiveSibling, 1),
+    [page, totalPages, effectiveSibling]
+  )
+}
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = React.useState(false)
+
+  React.useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setReduced(query.matches)
+    const listener = (event: MediaQueryListEvent) => setReduced(event.matches)
+    query.addEventListener("change", listener)
+    return () => query.removeEventListener("change", listener)
+  }, [])
+
+  return reduced
+}
+
+function useIsCompactViewport(breakpointPx = 480): boolean {
+  const [isCompact, setIsCompact] = React.useState(false)
+
+  React.useEffect(() => {
+    const query = window.matchMedia(\`(max-width: \${breakpointPx}px)\`)
+    setIsCompact(query.matches)
+    const listener = (event: MediaQueryListEvent) => setIsCompact(event.matches)
+    query.addEventListener("change", listener)
+    return () => query.removeEventListener("change", listener)
+  }, [breakpointPx])
+
+  return isCompact
+}
+
+function useIndicatorTransition(): Transition {
+  const reducedMotion = usePrefersReducedMotion()
+  if (reducedMotion) return { duration: 0 }
+  return { type: "spring", stiffness: 500, damping: 40, mass: 0.8 }
+}
+
+function usePaginationState({
+  totalPages,
+  page: controlledPage,
+  defaultPage,
+  onPageChange,
+}: {
+  totalPages: number
+  page?: number
+  defaultPage?: number
+  onPageChange?: (page: number) => void
+}) {
+  const isControlled = controlledPage !== undefined
+  const [internalPage, setInternalPage] = React.useState(defaultPage ?? 1)
+  const page = isControlled ? (controlledPage as number) : internalPage
+
+  const setPage = React.useCallback(
+    (next: number) => {
+      const clamped = Math.min(Math.max(next, 1), Math.max(1, totalPages))
+      if (!isControlled) setInternalPage(clamped)
+      onPageChange?.(clamped)
+    },
+    [isControlled, totalPages, onPageChange]
+  )
+
+  return [page, setPage] as const
+}
+
+function ChevronLeftIcon(props: React.SVGProps<SVGSVGElement>) {
+  return h(
+    "svg",
+    { viewBox: "0 0 24 24", fill: "none", "aria-hidden": "true", ...props },
+    h("path", {
+      d: "M15 6l-6 6 6 6",
+      stroke: "currentColor",
+      strokeWidth: 2,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+    })
+  )
+}
+
+function ChevronRightIcon(props: React.SVGProps<SVGSVGElement>) {
+  return h(
+    "svg",
+    { viewBox: "0 0 24 24", fill: "none", "aria-hidden": "true", ...props },
+    h("path", {
+      d: "M9 6l6 6-6 6",
+      stroke: "currentColor",
+      strokeWidth: 2,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+    })
+  )
+}
+
+interface VariantProps {
+  page: number
+  totalPages: number
+  onChange: (page: number) => void
+  disabled?: boolean
+  siblingCount: number
+}
+
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900"
+
+const interactiveCursor = "cursor-pointer disabled:cursor-not-allowed"
+
+function renderEllipsis(tag: "li" | "span", key: string, className: string) {
+  return h(tag, { key, className }, "\\u2026")
+}
+
+function PillsPagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
+  const transition = useIndicatorTransition()
+  const isCompact = useIsCompactViewport()
+  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
+
+  const prevButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Previous page",
+      disabled: disabled || page <= 1,
+      onClick: () => onChange(page - 1),
+      className: cn(
+        "grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-neutral-500 shadow-sm ring-1 ring-black/5 transition-colors",
+        "max-[480px]:h-9 max-[480px]:w-9",
+        "hover:text-neutral-900 disabled:opacity-40 disabled:hover:text-neutral-500",
+        "dark:bg-neutral-800 dark:text-neutral-400 dark:ring-white/10 dark:hover:text-white",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronLeftIcon, { className: "h-4 w-4" })
+  )
+
+  const nextButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Next page",
+      disabled: disabled || page >= totalPages,
+      onClick: () => onChange(page + 1),
+      className: cn(
+        "grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-neutral-500 shadow-sm ring-1 ring-black/5 transition-colors",
+        "max-[480px]:h-9 max-[480px]:w-9",
+        "hover:text-neutral-900 disabled:opacity-40 disabled:hover:text-neutral-500",
+        "dark:bg-neutral-800 dark:text-neutral-400 dark:ring-white/10 dark:hover:text-white",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronRightIcon, { className: "h-4 w-4" })
+  )
+
+  const numberItems = items.map((item, index) => {
+    if (item === "ellipsis") {
+      return renderEllipsis(
+        "li",
+        \`ellipsis-\${index}\`,
+        "grid h-9 w-5 shrink-0 place-items-center text-sm text-neutral-400 max-[480px]:h-8 max-[480px]:w-4 max-[480px]:text-xs dark:text-neutral-500"
+      )
+    }
+    const isActive = item === page
+    return h(
+      "li",
+      { key: item, className: "shrink-0" },
+      h(
+        "button",
+        {
+          type: "button",
+          disabled: disabled,
+          "aria-current": isActive ? "page" : undefined,
+          "aria-label": \`Go to page \${item}\`,
+          onClick: () => onChange(item),
+          className: cn(
+            "relative grid h-9 w-9 place-items-center rounded-full text-sm font-medium transition-colors max-[480px]:h-8 max-[480px]:w-8 max-[480px]:text-xs",
+            isActive ? "text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700/60",
+            interactiveCursor,
+            focusRing
+          ),
+        },
+        isActive &&
+          h(motion.span, {
+            layoutId: "pills-active",
+            transition,
+            className: "absolute inset-0 rounded-full bg-indigo-600",
+          }),
+        h("span", { className: "relative z-10" }, item)
+      )
+    )
+  })
+
+  const numbersList = h(
+    "ul",
+    {
+      className:
+        "flex shrink-0 items-center gap-1 overflow-hidden rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-black/5 max-[480px]:gap-0.5 max-[480px]:px-2 max-[480px]:py-1 dark:bg-neutral-800 dark:ring-white/10",
+    },
+    numberItems
+  )
+
+  const group = h(
+    "div",
+    { className: "inline-flex max-w-full items-center gap-3 max-[480px]:gap-1.5" },
+    prevButton,
+    numbersList,
+    nextButton
+  )
+
+  return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, group)
+}
+
+function OutlinePagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
+  const transition = useIndicatorTransition()
+  const isCompact = useIsCompactViewport()
+  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
+
+  const prevButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Previous page",
+      disabled: disabled || page <= 1,
+      onClick: () => onChange(page - 1),
+      className: cn(
+        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-indigo-600 transition-colors max-[480px]:h-7 max-[480px]:w-7",
+        "hover:bg-indigo-50 disabled:opacity-30 disabled:hover:bg-transparent",
+        "dark:text-indigo-400 dark:hover:bg-indigo-500/10",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronLeftIcon, { className: "h-4 w-4" })
+  )
+
+  const nextButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Next page",
+      disabled: disabled || page >= totalPages,
+      onClick: () => onChange(page + 1),
+      className: cn(
+        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-indigo-600 transition-colors max-[480px]:h-7 max-[480px]:w-7",
+        "hover:bg-indigo-50 disabled:opacity-30 disabled:hover:bg-transparent",
+        "dark:text-indigo-400 dark:hover:bg-indigo-500/10",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronRightIcon, { className: "h-4 w-4" })
+  )
+
+  const numberItems = items.map((item, index) => {
+    if (item === "ellipsis") {
+      return renderEllipsis(
+        "span",
+        \`ellipsis-\${index}\`,
+        "grid h-8 w-5 shrink-0 place-items-center text-sm text-neutral-400 max-[480px]:h-7 max-[480px]:w-4 max-[480px]:text-xs dark:text-neutral-500"
+      )
+    }
+    const isActive = item === page
+    return h(
+      "button",
+      {
+        key: item,
+        type: "button",
+        disabled: disabled,
+        "aria-current": isActive ? "page" : undefined,
+        "aria-label": \`Go to page \${item}\`,
+        onClick: () => onChange(item),
+        className: cn(
+          "relative grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-medium transition-colors max-[480px]:h-7 max-[480px]:w-7 max-[480px]:text-xs",
+          isActive
+            ? "text-indigo-600 dark:text-indigo-400"
+            : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
+          interactiveCursor,
+          focusRing
+        ),
+      },
+      isActive &&
+        h(motion.span, {
+          layoutId: "outline-active",
+          transition,
+          className: "absolute inset-0 rounded-lg ring-2 ring-indigo-600 dark:ring-indigo-400",
+        }),
+      h("span", { className: "relative z-10" }, item)
+    )
+  })
+
+  const numbersRow = h("div", { className: "flex shrink-0 items-center gap-1 py-0.5" }, numberItems)
+
+  const box = h(
+    "div",
+    {
+      className: cn(
+        "box-border inline-flex max-w-full items-center gap-5 rounded-2xl border border-neutral-200 bg-white px-8 py-2 shadow-sm",
+        "max-[480px]:gap-1 max-[480px]:px-2 max-[480px]:py-2",
+        "dark:border-neutral-800 dark:bg-neutral-900"
+      ),
+    },
+    prevButton,
+    numbersRow,
+    nextButton
+  )
+
+  return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, box)
+}
+
+function CompactPagination({ page, totalPages, onChange, disabled, siblingCount }: VariantProps) {
+  const transition = useIndicatorTransition()
+  const isCompact = useIsCompactViewport()
+  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
+
+  const numberItems = items.map((item, index) => {
+    if (item === "ellipsis") {
+      return renderEllipsis(
+        "li",
+        \`ellipsis-\${index}\`,
+        "grid h-7 w-4 shrink-0 place-items-center text-xs text-neutral-400 dark:text-neutral-500"
+      )
+    }
+    const isActive = item === page
+    return h(
+      "li",
+      { key: item, className: "shrink-0" },
+      h(
+        "button",
+        {
+          type: "button",
+          disabled: disabled,
+          "aria-current": isActive ? "page" : undefined,
+          "aria-label": \`Go to page \${item}\`,
+          onClick: () => onChange(item),
+          className: cn(
+            "relative grid h-7 w-7 place-items-center rounded-md text-xs font-medium transition-colors max-[480px]:h-6 max-[480px]:w-6",
+            isActive ? "text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
+            interactiveCursor,
+            focusRing
+          ),
+        },
+        isActive &&
+          h(motion.span, {
+            layoutId: "compact-active",
+            transition,
+            className: "absolute inset-0 rounded-md bg-indigo-600",
+          }),
+        h("span", { className: "relative z-10" }, item)
+      )
+    )
+  })
+
+  const numbersList = h("ul", { className: "flex shrink-0 items-center gap-1" }, numberItems)
+
+  const prevButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Previous page",
+      disabled: disabled || page <= 1,
+      onClick: () => onChange(page - 1),
+      className: cn(
+        "grid h-7 w-7 place-items-center rounded-md bg-neutral-100 text-neutral-500 transition-colors max-[480px]:h-6 max-[480px]:w-6",
+        "hover:text-neutral-900 disabled:opacity-40 disabled:hover:text-neutral-500",
+        "dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-white",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronLeftIcon, { className: "h-3.5 w-3.5" })
+  )
+
+  const nextButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Next page",
+      disabled: disabled || page >= totalPages,
+      onClick: () => onChange(page + 1),
+      className: cn(
+        "grid h-7 w-7 place-items-center rounded-md bg-indigo-600 text-white transition-colors max-[480px]:h-6 max-[480px]:w-6",
+        "hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronRightIcon, { className: "h-3.5 w-3.5" })
+  )
+
+  const controls = h("div", { className: "flex shrink-0 items-center gap-1" }, prevButton, nextButton)
+
+  const box = h(
+    "div",
+    {
+      className: cn(
+        "box-border inline-flex max-w-full items-center gap-5 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-sm",
+        "max-[480px]:gap-3 max-[480px]:px-2 max-[480px]:py-1.5",
+        "dark:border-neutral-800 dark:bg-neutral-900"
+      ),
+    },
+    numbersList,
+    controls
+  )
+
+  return h("nav", { "aria-label": "Pagination", className: "flex w-full items-center justify-center" }, box)
+}
+
+function InputPagination({
+  page,
+  totalPages,
+  onChange,
+  disabled,
+  siblingCount,
+  showInput = true,
+}: VariantProps & { showInput?: boolean }) {
+  const transition = useIndicatorTransition()
+  const isCompact = useIsCompactViewport()
+  const items = usePageWindow(page, totalPages, siblingCount, isCompact)
+  const [inputValue, setInputValue] = React.useState("")
+  const inputId = React.useId()
+
+  const submitGoTo = () => {
+    const parsed = Number.parseInt(inputValue, 10)
+    if (Number.isNaN(parsed)) {
+      setInputValue("")
+      return
+    }
+    const clamped = Math.min(Math.max(parsed, 1), totalPages)
+    onChange(clamped)
+    setInputValue("")
+  }
+
+  const prevButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Previous page",
+      disabled: disabled || page <= 1,
+      onClick: () => onChange(page - 1),
+      className: cn(
+        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors",
+        "hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent",
+        "dark:text-neutral-400 dark:hover:bg-neutral-800",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronLeftIcon, { className: "h-4 w-4" })
+  )
+
+  const nextButton = h(
+    "button",
+    {
+      type: "button",
+      "aria-label": "Next page",
+      disabled: disabled || page >= totalPages,
+      onClick: () => onChange(page + 1),
+      className: cn(
+        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors",
+        "hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent",
+        "dark:text-neutral-400 dark:hover:bg-neutral-800",
+        interactiveCursor,
+        focusRing
+      ),
+    },
+    h(ChevronRightIcon, { className: "h-4 w-4" })
+  )
+
+  const numberItems = items.map((item, index) => {
+    if (item === "ellipsis") {
+      return renderEllipsis(
+        "li",
+        \`ellipsis-\${index}\`,
+        "grid h-8 w-4 shrink-0 place-items-center text-sm text-neutral-400 max-[480px]:h-7 max-[480px]:text-xs dark:text-neutral-500"
+      )
+    }
+    const isActive = item === page
+    return h(
+      "li",
+      { key: item, className: "shrink-0" },
+      h(
+        "button",
+        {
+          type: "button",
+          disabled: disabled,
+          "aria-current": isActive ? "page" : undefined,
+          "aria-label": \`Go to page \${item}\`,
+          onClick: () => onChange(item),
+          className: cn(
+            "relative grid h-8 w-8 place-items-center rounded-lg text-sm font-medium transition-colors max-[480px]:h-7 max-[480px]:w-7 max-[480px]:text-xs",
+            isActive ? "text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
+            interactiveCursor,
+            focusRing
+          ),
+        },
+        isActive &&
+          h(motion.span, {
+            layoutId: "input-active",
+            layout: true,
+            transition,
+            style: { rotate: 45 },
+            className: "absolute inset-1 rounded-md bg-indigo-600",
+          }),
+        h("span", { className: "relative z-10" }, item)
+      )
+    )
+  })
+
+  const numbersList = h("ul", { className: "flex shrink-0 items-center gap-1 px-0.5" }, numberItems)
+
+  const nav = h(
+    "nav",
+    {
+      "aria-label": "Pagination",
+      className: "inline-flex shrink-0 items-center gap-1 max-[480px]:w-full max-[480px]:justify-center",
+    },
+    prevButton,
+    numbersList,
+    nextButton
+  )
+
+  const goToForm = showInput
+    ? h(
+        "form",
+        {
+          className: "inline-flex shrink-0 items-center gap-2 max-[480px]:w-full max-[480px]:justify-center",
+          onSubmit: (event: React.FormEvent) => {
+            event.preventDefault()
+            submitGoTo()
+          },
+        },
+        h(
+          "label",
+          {
+            htmlFor: inputId,
+            className: "whitespace-nowrap text-sm text-neutral-500 max-[480px]:text-xs dark:text-neutral-400",
+          },
+          "Go to page"
+        ),
+        h("input", {
+          id: inputId,
+          type: "text",
+          inputMode: "numeric",
+          disabled: disabled,
+          value: inputValue,
+          onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
+            setInputValue(event.target.value.replace(/[^0-9]/g, "")),
+          placeholder: String(page),
+          className: cn(
+            "h-8 w-14 shrink-0 rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm text-neutral-800 transition-colors max-[480px]:h-7 max-[480px]:w-11 max-[480px]:text-xs",
+            "placeholder:text-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100",
+            focusRing
+          ),
+        }),
+        h(
+          "button",
+          {
+            type: "submit",
+            disabled: disabled || inputValue === "",
+            className: cn(
+              "flex h-8 shrink-0 items-center gap-1 rounded-lg bg-indigo-600 px-3 text-sm font-medium text-white transition-colors max-[480px]:h-7 max-[480px]:px-2 max-[480px]:text-xs",
+              "hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600",
+              interactiveCursor,
+              focusRing
+            ),
+          },
+          "Go",
+          h(ChevronRightIcon, { className: "h-3.5 w-3.5" })
+        )
+      )
+    : null
+
+  const box = h(
+    "div",
+    {
+      className: cn(
+        "box-border flex max-w-full flex-col items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm",
+        "min-[481px]:w-fit min-[481px]:flex-row min-[481px]:gap-4 min-[481px]:rounded-full min-[481px]:py-2",
+        "max-[480px]:w-full",
+        "dark:border-neutral-800 dark:bg-neutral-900"
+      ),
+    },
+    nav,
+    goToForm
+  )
+
+  return h("div", { className: "flex w-full items-center justify-center" }, box)
+}
+
+function PaginationInstance({
+  variant,
+  totalPages,
+  initialPage,
+  siblingCount,
+  disabled,
+  showInput,
+}: {
+  variant: PaginationVariant
+  totalPages: number
+  initialPage: number
+  siblingCount: number
+  disabled?: boolean
+  showInput?: boolean
+}) {
+  const groupId = React.useId()
+  const [page, setPage] = usePaginationState({ totalPages, defaultPage: initialPage })
+  const shared: VariantProps = { page, totalPages, onChange: setPage, disabled, siblingCount }
+
+  let content: React.ReactNode = null
+  if (variant === "pills") content = h(PillsPagination, shared)
+  else if (variant === "outline") content = h(OutlinePagination, shared)
+  else if (variant === "compact") content = h(CompactPagination, shared)
+  else if (variant === "input") content = h(InputPagination, { ...shared, showInput: showInput ?? true })
+
+  return h(LayoutGroup, { id: \`pagination-\${variant}-\${groupId}\` }, content)
+}
+
+export default function Pagination({
+  totalPages = 40,
+  page,
+  defaultPage,
+  initialPage,
+  onPageChange,
+  variant,
+  variants = DEFAULT_VARIANTS,
+  showInput = true,
+  disabled = false,
+  siblingCount = 2,
+  className,
+}: PaginationProps) {
+  const singleGroupId = React.useId()
+  const [singlePage, setSinglePage] = usePaginationState({
+    totalPages,
+    page,
+    defaultPage: defaultPage ?? initialPage ?? 1,
+    onPageChange,
+  })
+
+  if (variant) {
+    const shared: VariantProps = { page: singlePage, totalPages, onChange: setSinglePage, disabled, siblingCount }
+    let content: React.ReactNode = null
+    if (variant === "pills") content = h(PillsPagination, shared)
+    else if (variant === "outline") content = h(OutlinePagination, shared)
+    else if (variant === "compact") content = h(CompactPagination, shared)
+    else if (variant === "input") content = h(InputPagination, { ...shared, showInput })
+
+    return h(
+      LayoutGroup,
+      { id: \`pagination-\${variant}-\${singleGroupId}\` },
+      h("div", { className: cn("w-full", className) }, content)
+    )
+  }
+
+  const seed = defaultPage ?? initialPage ?? 3
+
+  return h(
+    "div",
+    { className: cn("mx-auto flex w-full max-w-[860px] flex-col gap-7", className) },
+    ...variants.map((v) =>
+      h(PaginationInstance, {
+        key: v,
+        variant: v,
+        totalPages,
+        initialPage: seed,
+        siblingCount,
+        disabled,
+        showInput: v === "input" ? showInput : undefined,
+      })
+    )
+  )
+}
+`,
+  },
+
+
+
+
+  
+ 
 
 
 
@@ -4703,986 +5377,441 @@ export default function ElasticDropdownShowcase() {
 
 
 
-
-
-
-
-
-
-
-
   {
-    slug: "flow-sidebar",
-    name: "Flow Sidebar",
+    slug: "liquid-scroll-progress",
+    name: "Liquid Scroll Progress",
     cardDescription:
-      "A minimalist scroll-aware table of contents. When the active section changes, a curved line draws from the old dot to the new one, then retracts and leaves nothing behind.",
+      "A fixed liquid progress indicator — the component never moves, wheel/touch input drives the fill.",
     fullDescription:
-      "A scroll-aware sidebar navigation with real section tracking, smooth click-to-scroll, and a temporary curved SVG line that connects the previous and next active dots. Supports any number of items, light and dark themes, reduced motion, keyboard navigation, and a horizontal layout for narrow screens.",
-    icon: "ListTree",
+      "A self-contained progress indicator: the component stays visually fixed in place while wheel or touch input drives a virtual progress value — filling the pipe, connectors, and stacked cards in sequence, with glass-morphism styling and animated bubbles.",
+    icon: "Droplets",
     status: "new",
-    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/flow-sidebar.json",
-    importStatement: `import { AnimatedSidebar } from "@/components/flow-sidebar"`,
-    usageJsx: `<AnimatedSidebar
-  sections={[
-    { id: "introduction", label: "Introduction" },
-    { id: "history", label: "History" },
-    { id: "overview", label: "Overview" },
-  ]}
-  accentColor="#ff5a4f"
-/>`,
+    installCommand: "npx shadcn@latest add https://shreyashtech.me/r/liquid-scroll-progress.json",
+    importStatement: `import { LiquidScrollProgress } from "@/components/liquid-scroll-progress"`,
+    usageJsx: "<LiquidScrollProgress />",
     props: [
-      { property: "sections", type: "SidebarSection[]", default: "-", description: "Navigation items. Each has an id (matches the section element's id), a label, and an optional href." },
-      { property: "activeSectionId", type: "string", default: "-", description: "Controlled active section. Pass with onActiveChange to control the sidebar externally." },
-      { property: "defaultActiveSectionId", type: "string", default: "first section", description: "Initial active section for uncontrolled use." },
-      { property: "onActiveChange", type: "function", default: "-", description: "Called with the new section id whenever the active section changes." },
-      { property: "title", type: "string", default: "\"Contents\"", description: "Heading shown above the list in vertical mode. Pass \"\" to hide it." },
-      { property: "ariaLabel", type: "string", default: "\"Table of contents\"", description: "Accessible label for the nav landmark." },
-      { property: "accentColor", type: "string", default: "#ff5a4f", description: "Colour of the active dot and the curved line. Any CSS colour." },
-      { property: "activationOffset", type: "number", default: "24", description: "Pixels below the sticky-header offset where the reading line sits." },
-      { property: "scrollOffset", type: "number", default: "0", description: "Height of a sticky header in px. Used by the reading line and click scrolling." },
-      { property: "expandDuration", type: "number", default: "320", description: "Milliseconds for the curve to draw from the old dot to the new one." },
-      { property: "pauseDuration", type: "number", default: "70", description: "Milliseconds the full curve stays visible." },
-      { property: "retractDuration", type: "number", default: "320", description: "Milliseconds for the curve to erase." },
-      { property: "curveStrength", type: "number", default: "1", description: "Multiplier for how far the curve bows. It never leaves the indicator gutter." },
-      { property: "lineWidth", type: "number", default: "2.5", description: "Stroke width of the curve in px." },
-      { property: "indicatorSize", type: "number", default: "8", description: "Active dot diameter in px. Inactive dots are 75%." },
-      { property: "orientation", type: "\"vertical\" | \"horizontal\" | \"responsive\"", default: "\"vertical\"", description: "Layout direction. Responsive switches to a horizontal strip on narrow screens." },
-      { property: "responsiveBreakpoint", type: "number", default: "640", description: "Viewport width in px at or below which responsive becomes horizontal." },
-      { property: "virtualScroll", type: "boolean", default: "auto", description: "Wheel and touch drive the active item instead of real scrolling. Auto-enabled when no section elements exist (isolated previews)." },
-      { property: "className", type: "string", default: "-", description: "Extra classes applied to the nav element." },
+      { property: "sections", type: "LiquidScrollProgressSection[]", default: "DEFAULT_SECTIONS", description: "Array of { title } — one per card, filled in order as progress advances." },
+      { property: "liquidColor", type: "string", default: `"#159cff"`, description: "CSS color used for the liquid fill (pipe, connectors, and cards)." },
+      { property: "className", type: "string", default: "-", description: "Additional classes applied to the outer section." },
     ],
     previewCode: `"use client";
 
-import { AnimatedSidebar } from "@/components/flow-sidebar";
+import {
+  LiquidScrollProgress,
+  type LiquidScrollProgressSection,
+} from "@/components/liquid-scroll-progress";
 
-const sections = [
-  { id: "introduction", label: "Introduction" },
-  { id: "history", label: "History" },
-  { id: "overview", label: "Overview" },
-  { id: "architecture", label: "Architecture" },
-  { id: "implementation", label: "Implementation" },
-  { id: "references", label: "References" },
+const sections: LiquidScrollProgressSection[] = [
+  { title: "Introduction" },
+  { title: "Implementation" },
+  { title: "Customization" },
+  { title: "Usage" },
 ];
 
-export default function FlowSidebarPreview() {
-  return <AnimatedSidebar sections={sections} accentColor="#ff5a4f" />;
+export default function LiquidScrollProgressPreview() {
+  return <LiquidScrollProgress sections={sections} />;
 }
 `,
-    sourceCode: `"use client";
+    sourceCode: `"use client"
+
+import * as React from "react"
+
+export type LiquidScrollProgressSection = {
+  title: string
+}
+
+type LiquidScrollProgressProps = {
+  sections?: LiquidScrollProgressSection[]
+  liquidColor?: string
+  className?: string
+}
+
+const DEFAULT_SECTIONS: LiquidScrollProgressSection[] = [
+  { title: "Introduction" },
+  { title: "Implementation" },
+  { title: "Customization" },
+  { title: "Usage" },
+]
+
+const clamp = (value: number, min = 0, max = 1) =>
+  Math.min(Math.max(value, min), max)
+
+const PIPE_LEFT = 4
+const PIPE_W = 6
+const GAP = 22
+const TUCK_INTO_CARD = 4
 
 /**
- * AnimatedSidebar
- *
- * A minimalist, scroll-aware table-of-contents navigation. When the active
- * section changes, a temporary curved SVG line draws from the old dot to the
- * new dot, pauses briefly, then retracts along the same path, leaving nothing
- * behind.
- *
- * Requirements: React 18+, Tailwind CSS, framer-motion.
- * Scrolling is tracked on \`window\` (the document scroller).
- *
- * Customisation (CSS custom properties, set on the component or any ancestor):
- *   --animated-sidebar-text-active
- *   --animated-sidebar-text-inactive
- *   --animated-sidebar-accent          (or use the \`accentColor\` prop)
- *   --animated-sidebar-item-gap
- *   --animated-sidebar-label-gap
- *   --animated-sidebar-gutter          (width/height of the indicator gutter)
- *   --animated-sidebar-dot-inset       (dot distance from the gutter's left edge)
- * \`indicatorSize\` and \`lineWidth\` are props and write
- *   --animated-sidebar-indicator-size / --animated-sidebar-line-width.
- *
- * \`href\` on a section is used as the link's href. If the section's element
- * exists on the current page, the click is intercepted and scrolled to with
- * the configured offset; otherwise the browser navigates normally.
+ * How much wheel/touch travel (in px-equivalent units) corresponds to
+ * going from 0% to 100% progress. Lower = more sensitive (reaches full
+ * faster per notch of scroll); higher = less sensitive. Purely a feel
+ * knob — not tied to any real scrollable height, since nothing here
+ * actually scrolls.
  */
+const VIRTUAL_SCROLL_RANGE = 600
 
-import { animate, useMotionValue } from "framer-motion";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type MouseEvent as ReactMouseEvent,
-} from "react";
+export function LiquidScrollProgress({
+  sections = DEFAULT_SECTIONS,
+  liquidColor = "#159cff",
+  className = "",
+}: LiquidScrollProgressProps) {
+  const pipeLiquidRef = React.useRef<HTMLDivElement | null>(null)
+  const connectorLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([])
+  const cardLiquidRefs = React.useRef<Array<HTMLDivElement | null>>([])
+  const contentRefs = React.useRef<Array<HTMLDivElement | null>>([])
 
-/* -------------------------------------------------------------------------- */
-/*                                    Types                                   */
-/* -------------------------------------------------------------------------- */
+  // The fixed, non-scrolling "capture" box. It never scrolls — it only
+  // listens for wheel/touch input and turns that into a virtual
+  // progress value below. The component's own DOM never moves.
+  const captureRef = React.useRef<HTMLDivElement | null>(null)
 
-export type SidebarSection = {
-  id: string;
-  label: string;
-  href?: string;
-};
+  // Virtual progress, 0–1. This replaces \`window.scrollY\` /
+  // \`container.scrollTop\` entirely — there is no real scroll position
+  // anywhere in this component anymore, just this one number that wheel
+  // and touch input nudge up or down.
+  const progressRef = React.useRef(0)
 
-export type AnimatedSidebarProps = {
-  sections: SidebarSection[];
+  connectorLiquidRefs.current = []
+  cardLiquidRefs.current = []
+  contentRefs.current = []
 
-  /** Controlled active section. */
-  activeSectionId?: string;
-  /** Initial active section when uncontrolled. Defaults to the first section. */
-  defaultActiveSectionId?: string;
-  onActiveChange?: (id: string) => void;
+  React.useEffect(() => {
+    if (sections.length === 0) return
 
-  ariaLabel?: string;
-  /** Heading shown above the list (vertical mode only). Pass "" to hide. Default "Contents". */
-  title?: string;
+    const capture = captureRef.current
+    if (!capture) return
 
-  /** Px below the sticky-header offset where the reading line sits. Default 24. */
-  activationOffset?: number;
-  /** Height (px) of a sticky header; used for the reading line and click scrolling. Default 0. */
-  scrollOffset?: number;
+    let frame = 0
+    const total = sections.length
 
-  /** Milliseconds. Defaults: 320 / 70 / 320. */
-  expandDuration?: number;
-  pauseDuration?: number;
-  retractDuration?: number;
+    // Paints the DOM from whatever progressRef.current currently is.
+    // Same fill formulas as before — only the source of \`overall\`
+    // changed (a plain number we control, not a scroll measurement).
+    const paint = () => {
+      if (frame) cancelAnimationFrame(frame)
 
-  /** Multiplier for how far the curve bows. Default 1. */
-  curveStrength?: number;
-  /** Stroke width in px. Default 2.5. */
-  lineWidth?: number;
-  /** Active dot diameter in px (inactive dots are 75%). Default 8. */
-  indicatorSize?: number;
+      frame = requestAnimationFrame(() => {
+        const overall = progressRef.current
 
-  accentColor?: string;
-  className?: string;
-
-  orientation?: "vertical" | "horizontal" | "responsive";
-  /**
-   * Virtual scrolling: wheel/touch input over the component's box drives the active
-   * item and the page never scrolls (useful for isolated previews with no sections).
-   * Default (undefined) = automatic: enabled only when none of the section elements exist.
-   */
-  virtualScroll?: boolean;
-  /** Viewport width (px) at or below which "responsive" becomes horizontal. Default 640. */
-  responsiveBreakpoint?: number;
-};
-
-type Phase = "expand" | "pause" | "retract";
-type Point = { x: number; y: number };
-type Transition = {
-  seq: number;
-  from: string;
-  to: string;
-  d: string;
-  w: number;
-  h: number;
-  phase: Phase;
-};
-
-/* -------------------------------------------------------------------------- */
-/*                                  Constants                                 */
-/* -------------------------------------------------------------------------- */
-
-const EASE: [number, number, number, number] = [0.65, 0, 0.35, 1];
-const MIN_BULGE = 9;
-const MAX_BULGE = 28;
-const SILENT_WINDOW_MS = 150;
-/** Virtual wheel/touch travel (px) needed to move one item in virtual-scroll mode. */
-const VIRTUAL_PX_PER_ITEM = 220;
-
-const useIsoLayoutEffect =
-  typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
-const cx = (...parts: Array<string | false | null | undefined>): string =>
-  parts.filter(Boolean).join(" ");
-
-const clamp = (v: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, v));
-
-/** Nearest ancestor that actually scrolls, or null when the window scrolls. */
-function findScroller(el: HTMLElement): HTMLElement | null {
-  let p = el.parentElement;
-  while (p && p !== document.body && p !== document.documentElement) {
-    const oy = getComputedStyle(p).overflowY;
-    if (
-      (oy === "auto" || oy === "scroll" || oy === "overlay") &&
-      p.scrollHeight > p.clientHeight
-    ) {
-      return p;
-    }
-    p = p.parentElement;
-  }
-  return null;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                    Hooks                                   */
-/* -------------------------------------------------------------------------- */
-
-function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mql = window.matchMedia(query);
-    const update = () => setMatches(mql.matches);
-    update();
-    mql.addEventListener("change", update);
-    return () => mql.removeEventListener("change", update);
-  }, [query]);
-  return matches;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                  Geometry                                  */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Builds a cubic Bézier from dot A to dot B that bows toward the gutter side
- * (left in vertical mode, up in horizontal mode), like a rounded "(".
- * The shape is symmetric, so reversing direction reuses the same route.
- */
-function buildPath(
-  a: Point,
-  b: Point,
-  vertical: boolean,
-  lineWidth: number,
-  strength: number,
-): string {
-  const along0 = vertical ? a.y : a.x;
-  const along1 = vertical ? b.y : b.x;
-  const cross = vertical ? (a.x + b.x) / 2 : (a.y + b.y) / 2;
-  const dist = along1 - along0;
-
-  // Never leave the indicator gutter (cross coordinate 0 is its outer edge).
-  const maxBulge = Math.max(0, cross - lineWidth / 2 - 0.5);
-  const bulge = Math.min(
-    maxBulge,
-    clamp(Math.abs(dist) * 0.3, MIN_BULGE, MAX_BULGE) * strength,
-  );
-  // A cubic with both control points at offset h reaches 0.75h at its midpoint.
-  const h = bulge / 0.75;
-
-  const p = (al: number, cr: number): string =>
-    vertical ? \`\${cr} \${al}\` : \`\${al} \${cr}\`;
-
-  return [
-    \`M \${p(along0, cross)}\`,
-    \`C \${p(along0 + dist * 0.22, cross - h)}\`,
-    \`\${p(along1 - dist * 0.22, cross - h)}\`,
-    \`\${p(along1, cross)}\`,
-  ].join(" ");
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                  Component                                 */
-/* -------------------------------------------------------------------------- */
-
-export function AnimatedSidebar({
-  sections,
-  activeSectionId,
-  defaultActiveSectionId,
-  onActiveChange,
-  ariaLabel = "Table of contents",
-  title = "Contents",
-  activationOffset = 24,
-  scrollOffset = 0,
-  expandDuration = 320,
-  pauseDuration = 70,
-  retractDuration = 320,
-  curveStrength = 1,
-  lineWidth = 2.5,
-  indicatorSize = 8,
-  accentColor,
-  className,
-  orientation = "vertical",
-  virtualScroll,
-  responsiveBreakpoint = 640,
-}: AnimatedSidebarProps) {
-  /* ------------------------------ Normalisation ----------------------------- */
-
-  // Defensive de-duplication: the first occurrence of an id wins.
-  const items = useMemo(() => {
-    const seen = new Set<string>();
-    const out: SidebarSection[] = [];
-    for (const s of sections) {
-      if (seen.has(s.id)) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn(\`[AnimatedSidebar] Duplicate section id "\${s.id}" ignored.\`);
+        if (pipeLiquidRef.current) {
+          pipeLiquidRef.current.style.transform = \`scaleY(\${overall})\`
         }
-        continue;
-      }
-      seen.add(s.id);
-      out.push(s);
-    }
-    return out;
-  }, [sections]);
 
-  const idsKey = items.map((s) => s.id).join("\\u0000");
+        for (let i = 0; i < total; i++) {
+          const start = i / total
+          const end = (i + 1) / total
+          const raw = clamp((overall - start) / (end - start))
+          const connectorFill = clamp(raw / 0.35)
+          const cardFill = clamp((raw - 0.1) / 0.9)
+          const isFilled = cardFill >= 0.45
 
-  const isControlled = activeSectionId !== undefined;
-  const [internalId, setInternalId] = useState<string | null>(null);
+          const connectorEl = connectorLiquidRefs.current[i]
+          if (connectorEl) connectorEl.style.transform = \`scaleX(\${connectorFill})\`
 
-  const pick = (id: string | null | undefined): string | null =>
-    id && items.some((s) => s.id === id) ? id : null;
+          const cardEl = cardLiquidRefs.current[i]
+          if (cardEl) cardEl.style.transform = \`scaleY(\${cardFill})\`
 
-  const effectiveActive: string | null =
-    pick(activeSectionId) ??
-    pick(internalId) ??
-    pick(defaultActiveSectionId) ??
-    items[0]?.id ??
-    null;
-
-  const [autoVirtual, setAutoVirtual] = useState(false);
-  const virtual = virtualScroll ?? autoVirtual;
-
-  const reduced = useMediaQuery("(prefers-reduced-motion: reduce)");
-  const narrow = useMediaQuery(\`(max-width: \${responsiveBreakpoint}px)\`);
-  const horizontal =
-    orientation === "horizontal" || (orientation === "responsive" && narrow);
-
-  /* --------------------------------- Refs ---------------------------------- */
-
-  const navRef = useRef<HTMLElement | null>(null);
-  const captureRef = useRef<HTMLDivElement | null>(null);
-  const progressRef = useRef(0); // virtual scroll progress, 0..1
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const pathRef = useRef<SVGPathElement | null>(null);
-  const slotRefs = useRef(new Map<string, HTMLSpanElement>());
-
-  const latest = useRef({
-    items,
-    scrollOffset,
-    activationOffset,
-    expandDuration,
-    pauseDuration,
-    retractDuration,
-    curveStrength,
-    lineWidth,
-    onActiveChange,
-    isControlled,
-    reduced,
-    horizontal,
-    effectiveActive,
-    virtual,
-  });
-  useIsoLayoutEffect(() => {
-    latest.current = {
-      items,
-      scrollOffset,
-      activationOffset,
-      expandDuration,
-      pauseDuration,
-      retractDuration,
-      curveStrength,
-      lineWidth,
-      onActiveChange,
-      isControlled,
-      reduced,
-      horizontal,
-      effectiveActive,
-      virtual,
-    };
-  });
-
-  const prevActiveRef = useRef<string | null>(effectiveActive);
-  const silentUntilRef = useRef(0);
-
-  /* ------------------------------- Animation ------------------------------- */
-
-  const [transition, setTransition] = useState<Transition | null>(null);
-  const dashOffset = useMotionValue(1);
-  const runTokenRef = useRef(0);
-  const controlsRef = useRef<ReturnType<typeof animate> | null>(null);
-  const pauseTimerRef = useRef<number | undefined>(undefined);
-  const runningRef = useRef(false);
-
-  // Mirror the motion value onto the path imperatively (no React re-renders).
-  useEffect(
-    () =>
-      dashOffset.on("change", (v) => {
-        pathRef.current?.setAttribute("stroke-dashoffset", String(v));
-      }),
-    [dashOffset],
-  );
-
-  const cancelTransition = useCallback(() => {
-    runTokenRef.current += 1; // invalidates any pending async completion
-    controlsRef.current?.stop();
-    controlsRef.current = null;
-    window.clearTimeout(pauseTimerRef.current);
-    runningRef.current = false;
-  }, []);
-
-  const measure = useCallback((id: string): Point | null => {
-    const wrap = wrapRef.current;
-    const slot = slotRefs.current.get(id);
-    if (!wrap || !slot) return null;
-    const w = wrap.getBoundingClientRect();
-    const r = slot.getBoundingClientRect();
-    return {
-      x: r.left + r.width / 2 - w.left,
-      y: r.top + r.height / 2 - w.top,
-    };
-  }, []);
-
-  const runTransition = useCallback(
-    (fromId: string, toId: string) => {
-      cancelTransition();
-      const token = runTokenRef.current;
-      const L = latest.current;
-
-      const wrap = wrapRef.current;
-      const a = measure(fromId);
-      const b = measure(toId);
-      if (!wrap || !a || !b) {
-        setTransition(null);
-        return;
-      }
-
-      const box = wrap.getBoundingClientRect();
-      const d = buildPath(a, b, !L.horizontal, L.lineWidth, L.curveStrength);
-
-      dashOffset.set(1);
-      runningRef.current = true;
-      setTransition({
-        seq: token,
-        from: fromId,
-        to: toId,
-        d,
-        w: box.width,
-        h: box.height,
-        phase: "expand",
-      });
-
-      const play = (target: number, ms: number) =>
-        new Promise<void>((resolve) => {
-          controlsRef.current = animate(dashOffset, target, {
-            duration: Math.max(0, ms) / 1000,
-            ease: EASE,
-            onComplete: () => resolve(),
-          });
-        });
-
-      const wait = (ms: number) =>
-        new Promise<void>((resolve) => {
-          pauseTimerRef.current = window.setTimeout(resolve, Math.max(0, ms));
-        });
-
-      const setPhase = (phase: Phase) =>
-        setTransition((t) => (t && t.seq === token ? { ...t, phase } : t));
-
-      void (async () => {
-        await play(0, L.expandDuration); // draw A -> B
-        if (token !== runTokenRef.current) return;
-        setPhase("pause");
-        await wait(L.pauseDuration);
-        if (token !== runTokenRef.current) return;
-        setPhase("retract");
-        // Same path, same dash pattern: pushing the offset past 0 to -1 slides the dash
-        // forward, erasing the stroke from the start (A) toward the end (B).
-        await play(-1, L.retractDuration);
-        if (token !== runTokenRef.current) return;
-        runningRef.current = false;
-        setTransition(null); // path is unmounted: zero residue
-      })();
-    },
-    [cancelTransition, dashOffset, measure],
-  );
-
-  // Start a transition only when the effective active id actually changes.
-  useEffect(() => {
-    const prev = prevActiveRef.current;
-    prevActiveRef.current = effectiveActive;
-    if (prev === null || effectiveActive === null || prev === effectiveActive) {
-      return;
-    }
-    const silent = performance.now() < silentUntilRef.current;
-    if (silent || latest.current.reduced) {
-      cancelTransition();
-      setTransition(null);
-      return;
-    }
-    runTransition(prev, effectiveActive);
-  }, [effectiveActive, runTransition, cancelTransition]);
-
-  // Layout/orientation/motion-preference changes invalidate any running path.
-  useEffect(() => {
-    cancelTransition();
-    setTransition(null);
-  }, [horizontal, reduced, cancelTransition]);
-
-  // Resize during a transition: drop it; geometry is re-measured next time.
-  useEffect(() => {
-    const wrap = wrapRef.current;
-    if (!wrap || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => {
-      if (runningRef.current) {
-        cancelTransition();
-        setTransition(null);
-      }
-    });
-    ro.observe(wrap);
-    return () => ro.disconnect();
-  }, [cancelTransition]);
-
-  useEffect(
-    () => () => {
-      cancelTransition();
-    },
-    [cancelTransition],
-  );
-
-  /* ---------------------------- Active-state commit ---------------------------- */
-
-  const commit = useCallback((id: string, silent = false) => {
-    const L = latest.current;
-    if (id === L.effectiveActive) return;
-    if (silent) silentUntilRef.current = performance.now() + SILENT_WINDOW_MS;
-    if (!L.isControlled) {
-      // Optimistic, so bursts of events in one frame don't double-notify.
-      latest.current = { ...L, effectiveActive: id };
-      setInternalId(id);
-    }
-    L.onActiveChange?.(id);
-  }, []);
-
-  /* --------------------------------- Scrollspy -------------------------------- */
-
-  const lockRef = useRef(false);
-  const lockTimerRef = useRef<number | undefined>(undefined);
-  const spyRef = useRef<() => void>(() => {});
-
-  const armLock = useCallback((ms: number) => {
-    lockRef.current = true;
-    window.clearTimeout(lockTimerRef.current);
-    lockTimerRef.current = window.setTimeout(() => {
-      lockRef.current = false;
-      spyRef.current();
-    }, ms);
-  }, []);
-
-  useEffect(() => {
-    if (!idsKey || virtualScroll === true) return;
-    let frame = 0;
-    let first = true;
-
-    let cache: { el: HTMLElement; scroller: HTMLElement | null } | null = null;
-    const scrollerFor = (el: HTMLElement): HTMLElement | null => {
-      if (!cache || cache.el !== el || !el.isConnected) {
-        cache = { el, scroller: findScroller(el) };
-      }
-      return cache.scroller;
-    };
-
-    const resolve = (): string | null => {
-      const { items: list, scrollOffset: so, activationOffset: ao } = latest.current;
-      const found: Array<{ id: string; el: HTMLElement }> = [];
-      for (const s of list) {
-        const el = document.getElementById(s.id);
-        if (el) found.push({ id: s.id, el }); // missing targets are ignored
-      }
-      if (!found.length) return null;
-
-      // Works for both window scrolling and an inner scroll container (e.g. a preview box).
-      const scroller = scrollerFor(found[0].el);
-      const rootTop = scroller ? scroller.getBoundingClientRect().top : 0;
-      const line = rootTop + so + ao + 1;
-
-      let best: { id: string; top: number } | null = null; // last crossed
-      let firstEl: { id: string; top: number } | null = null; // topmost overall
-      let lowest: { id: string; top: number } | null = null; // lowest in doc
-      for (const { id, el } of found) {
-        const top = el.getBoundingClientRect().top;
-        if (!firstEl || top < firstEl.top) firstEl = { id, top };
-        if (!lowest || top > lowest.top) lowest = { id, top };
-        if (top <= line && (!best || top > best.top)) best = { id, top };
-      }
-
-      const atBottom = scroller
-        ? scroller.scrollTop > 0 &&
-          scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2
-        : window.scrollY > 0 &&
-          window.innerHeight + window.scrollY >=
-            document.documentElement.scrollHeight - 2;
-      if (atBottom && lowest) return lowest.id; // lets short final sections activate
-      return best?.id ?? firstEl?.id ?? null;
-    };
-
-    const compute = () => {
-      frame = 0;
-      if (lockRef.current) return;
-      const id = resolve();
-      if (!id) {
-        setAutoVirtual(true); // no section elements on this page -> virtual scrolling
-        return;
-      }
-      setAutoVirtual(false);
-      commit(id, first);
-      first = false;
-    };
-
-    const schedule = () => {
-      if (!frame) frame = window.requestAnimationFrame(compute);
-    };
-    spyRef.current = schedule;
-
-    const onScroll = () => {
-      if (lockRef.current) {
-        armLock(160); // still moving from a click: wait until it settles
-        return;
-      }
-      schedule();
-    };
-
-    // capture: true also catches scrolling inside nested containers
-    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
-    window.addEventListener("resize", schedule);
-
-    let ro: ResizeObserver | undefined;
-    if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(schedule); // content height changes
-      ro.observe(document.documentElement);
+          const contentEl = contentRefs.current[i]
+          if (contentEl) contentEl.classList.toggle("is-filled", isFilled)
+        }
+      })
     }
 
-    schedule();
-
-    return () => {
-      window.removeEventListener("scroll", onScroll, { capture: true });
-      window.removeEventListener("resize", schedule);
-      ro?.disconnect();
-      if (frame) window.cancelAnimationFrame(frame);
-      window.clearTimeout(lockTimerRef.current);
-      lockRef.current = false;
-      spyRef.current = () => {};
-    };
-  }, [idsKey, commit, armLock, virtualScroll]);
-
-  /* ----------------------------- Virtual scrolling ----------------------------- */
-
-  // Keep the virtual position in step with the active item (clicks, mode switch).
-  useEffect(() => {
-    if (!virtual) return;
-    const n = items.length;
-    const idx = items.findIndex((s) => s.id === effectiveActive);
-    if (n === 0 || idx < 0) return;
-    if (Math.min(n - 1, Math.floor(progressRef.current * n)) !== idx) {
-      progressRef.current = (idx + 0.5) / n;
-    }
-  }, [virtual, effectiveActive, idsKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const box = captureRef.current;
-    if (!virtual || !box || !idsKey) return;
-
-    // Moves at most ONE item per transition, so each curve can be seen playing
-    // out fully instead of being skipped by fast wheel/trackpad input.
-    let lockUntil = 0;
-    const apply = (delta: number) => {
-      const L = latest.current;
-      const list = L.items;
-      const n = list.length;
-      if (!n) return;
-      const cur = list.findIndex((s) => s.id === L.effectiveActive);
-      if (cur < 0) return;
-
-      progressRef.current = clamp(
-        progressRef.current + delta / (n * VIRTUAL_PX_PER_ITEM),
-        0,
-        1,
-      );
-      const target = Math.min(n - 1, Math.floor(progressRef.current * n));
-      if (target === cur) return;
-
-      const now = performance.now();
-      if (now < lockUntil) {
-        // Transition still playing: don't run ahead of the active item.
-        progressRef.current = clamp(progressRef.current, cur / n, (cur + 1) / n - 1e-6);
-        return;
-      }
-
-      const next = cur + (target > cur ? 1 : -1);
-      lockUntil = L.reduced
-        ? 0
-        : now + L.expandDuration + L.pauseDuration + L.retractDuration + 80;
-      progressRef.current = (next + 0.5) / n;
-      commit(list[next].id);
-    };
-
-    // preventDefault + stopPropagation: nothing else on the page scrolls
-    // (also keeps smooth-scroll libraries from seeing the gesture).
+    // Wheel: the primary input. preventDefault + stopPropagation stop
+    // both the native page scroll AND any smooth-scroll library (e.g.
+    // Lenis) upstream from ever seeing this event — nothing scrolls,
+    // anywhere, as a result of this gesture.
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      apply(e.deltaY);
-    };
-    let touchY = 0;
+      e.preventDefault()
+      e.stopPropagation()
+      progressRef.current = clamp(progressRef.current + e.deltaY / VIRTUAL_SCROLL_RANGE)
+      paint()
+    }
+
+    // Touch: same idea, tracked manually since there's no native scroll
+    // to read a position from.
+    let touchY = 0
     const onTouchStart = (e: TouchEvent) => {
-      touchY = e.touches[0].clientY;
-    };
+      touchY = e.touches[0].clientY
+    }
     const onTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const y = e.touches[0].clientY;
-      const delta = touchY - y;
-      touchY = y;
-      apply(delta);
-    };
+      e.preventDefault()
+      e.stopPropagation()
+      const currentY = e.touches[0].clientY
+      const deltaY = touchY - currentY
+      touchY = currentY
+      progressRef.current = clamp(progressRef.current + deltaY / VIRTUAL_SCROLL_RANGE)
+      paint()
+    }
 
-    box.addEventListener("wheel", onWheel, { passive: false });
-    box.addEventListener("touchstart", onTouchStart, { passive: true });
-    box.addEventListener("touchmove", onTouchMove, { passive: false });
+    paint() // initial paint at progress = 0
+
+    capture.addEventListener("wheel", onWheel, { passive: false })
+    capture.addEventListener("touchstart", onTouchStart, { passive: true })
+    capture.addEventListener("touchmove", onTouchMove, { passive: false })
+
     return () => {
-      box.removeEventListener("wheel", onWheel);
-      box.removeEventListener("touchstart", onTouchStart);
-      box.removeEventListener("touchmove", onTouchMove);
-    };
-  }, [virtual, idsKey, commit]);
-
-  /* ---------------------------------- Clicks --------------------------------- */
-
-  const handleClick = (e: ReactMouseEvent<HTMLAnchorElement>, id: string) => {
-    if (
-      e.defaultPrevented ||
-      e.button !== 0 ||
-      e.metaKey ||
-      e.ctrlKey ||
-      e.shiftKey ||
-      e.altKey
-    ) {
-      return;
+      if (frame) cancelAnimationFrame(frame)
+      capture.removeEventListener("wheel", onWheel)
+      capture.removeEventListener("touchstart", onTouchStart)
+      capture.removeEventListener("touchmove", onTouchMove)
     }
-    const target = document.getElementById(id);
-    if (!target) {
-      // Virtual mode (no section elements): just activate. Otherwise let the browser handle it.
-      if (latest.current.virtual) {
-        e.preventDefault();
-        commit(id);
-      }
-      return;
-    }
+  }, [sections.length])
 
-    e.preventDefault();
-    const behavior: ScrollBehavior = reduced ? "auto" : "smooth";
-    const scroller = findScroller(target);
-    const targetTop = target.getBoundingClientRect().top;
+  if (sections.length === 0) return null
 
-    armLock(220); // ignore intermediate sections while the scroll runs
-    commit(id);
-    if (scroller) {
-      const top = Math.max(
-        0,
-        scroller.scrollTop +
-          targetTop -
-          scroller.getBoundingClientRect().top -
-          scrollOffset,
-      );
-      scroller.scrollTo({ top, behavior });
-    } else {
-      window.scrollTo({
-        top: Math.max(0, targetTop + window.scrollY - scrollOffset),
-        behavior,
-      });
-    }
+  return (
+    // Fixed viewport / input capture area. \`overflow: hidden\` with no
+    // scrollable content inside means there is nothing to scroll and
+    // therefore nothing that can ever show a scrollbar. \`touchAction:
+    // "none"\` stops the browser's own touch-scroll gesture from
+    // starting before our touchmove handler even runs. \`data-lenis-
+    // prevent\` is a second line of defense for the Lenis smooth-scroll
+    // library specifically, on top of the stopPropagation() above.
+    <div
+  ref={captureRef}
+  data-lenis-prevent
+  className="flex h-full w-full items-center justify-center"
+  style={{
+    overflow: "hidden",
+    touchAction: "none",
+    userSelect: "none",
+  }}
+>
+      <section
+        aria-label="Scroll progress"
+        className={\`relative mx-auto w-fit px-2 py-4 sm:px-3 \${className}\`}
+      >
+        <style>{\`
+          .lsp-glass {
+            border: 1px solid rgba(148,163,184,0.35);
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(8px);
+            box-shadow:
+              inset 1px 0 1px rgba(255,255,255,0.9),
+              inset -1px 0 1px rgba(15,23,42,0.08),
+              0 1px 3px rgba(15,23,42,0.08);
+          }
+          .lsp-card {
+            border: 1px solid rgba(148,163,184,0.4);
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(16px);
+            box-shadow:
+              0 4px 10px rgba(20,40,60,0.08),
+              inset 0 1px rgba(255,255,255,0.9);
+          }
+          .lsp-card-border {
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow:
+              inset 0 1px rgba(255,255,255,0.85),
+              inset 0 -1px rgba(15,23,42,0.04);
+          }
+          .lsp-liquid-h {
+            background: linear-gradient(
+              90deg,
+              color-mix(in srgb, var(--lsp-color) 68%, white 32%) 0%,
+              color-mix(in srgb, var(--lsp-color) 58%, white 42%) 65%,
+              rgba(255,255,255,0.7) 100%
+            );
+            box-shadow:
+              0 0 4px color-mix(in srgb, var(--lsp-color) 35%, transparent),
+              inset 0 1px 1px rgba(255,255,255,0.5);
+          }
+          .lsp-liquid {
+            background: linear-gradient(
+              180deg,
+              rgba(255,255,255,0.65) 0%,
+              color-mix(in srgb, var(--lsp-color) 50%, white 50%) 22%,
+              color-mix(in srgb, var(--lsp-color) 68%, white 32%) 100%
+            );
+            box-shadow:
+              0 0 5px color-mix(in srgb, var(--lsp-color) 35%, transparent),
+              inset 1px 0 1px rgba(255,255,255,0.6);
+          }
+          .lsp-content { color: #0f172a; transition: color 300ms ease; }
+          .lsp-content.is-filled { color: #fff; }
+          .lsp-title {
+            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            line-height: 1;
+          }
+          @keyframes liquid-scroll-bubble-mini {
+            0%   { transform: translate3d(0, 3px, 0) scale(0.7); opacity: 0; }
+            15%  { opacity: 0.7; }
+            70%  { opacity: 0.45; }
+            100% { transform: translate3d(var(--bubble-drift, 0px), -34px, 0) scale(1); opacity: 0; }
+          }
+          @keyframes liquid-scroll-wave {
+            0%, 100% { transform: translateX(-2%) scaleX(1); }
+            50%      { transform: translateX(2%) scaleX(1.03); }
+          }
+          @keyframes liquid-scroll-shimmer {
+            0%   { transform: translateX(-120%); }
+            100% { transform: translateX(120%); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .liquid-scroll-motion { animation: none !important; }
+          }
 
-    const section = latest.current.items.find((s) => s.id === id);
-    if (!section?.href || section.href.startsWith("#")) {
-      try {
-        history.replaceState(null, "", \`#\${id}\`);
-      } catch {
-        /* sandboxed previews may forbid this */
-      }
-    }
-  };
+          /* Dark mode: empty pipes/boxes go transparent instead of grey,
+             text flips to a light color for contrast against dark pages.
+             Scoped to the .dark class your ThemeContext toggles. */
+          .dark .lsp-glass {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(148,163,184,0.25);
+            box-shadow:
+              inset 1px 0 1px rgba(255,255,255,0.08),
+              inset -1px 0 1px rgba(0,0,0,0.35),
+              0 1px 3px rgba(0,0,0,0.35);
+          }
+          .dark .lsp-card {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(148,163,184,0.22);
+            box-shadow:
+              0 4px 10px rgba(0,0,0,0.35),
+              inset 0 1px rgba(255,255,255,0.06);
+          }
+          .dark .lsp-card-border {
+            border-color: rgba(255,255,255,0.1);
+            box-shadow:
+              inset 0 1px rgba(255,255,255,0.08),
+              inset 0 -1px rgba(0,0,0,0.2);
+          }
+          .dark .lsp-content { color: rgba(226,232,240,0.85); }
+          .dark .lsp-content.is-filled { color: #fff; }
+        \`}</style>
 
-  /* -------------------- Keep the active link visible (horizontal) -------------------- */
+        <div
+          className="relative w-full"
+          style={{ paddingLeft: GAP, "--lsp-color": liquidColor } as React.CSSProperties}
+        >
+          <div
+            aria-hidden="true"
+            className="absolute bottom-0 top-0 z-20"
+            style={{ left: PIPE_LEFT, width: PIPE_W }}
+          >
+            <div className="lsp-glass absolute inset-0 rounded-full" />
 
-  useEffect(() => {
-    if (!horizontal) return;
-    const nav = navRef.current;
-    const el = nav?.querySelector<HTMLElement>('[aria-current="location"]');
-    if (!nav || !el) return;
-    const n = nav.getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    let left = nav.scrollLeft;
-    if (r.left < n.left) left += r.left - n.left - 8;
-    else if (r.right > n.right) left += r.right - n.right + 8;
-    if (left !== nav.scrollLeft) {
-      nav.scrollTo({ left, behavior: reduced ? "auto" : "smooth" });
-    }
-  }, [effectiveActive, horizontal, reduced]);
+            <div className="absolute inset-[1.5px] overflow-hidden rounded-full">
+              <div
+                ref={pipeLiquidRef}
+                className="lsp-liquid absolute inset-0 origin-top will-change-transform"
+                style={{ transform: "scaleY(0)" }}
+              >
+                <LiquidBubbles compact />
+                <div className="liquid-scroll-motion absolute -left-full top-0 h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent blur-[1px] motion-safe:animate-[liquid-scroll-shimmer_2.8s_ease-in-out_infinite]" />
+              </div>
+            </div>
+          </div>
 
-  /* --------------------------------- Rendering -------------------------------- */
+          <div className="flex flex-col gap-4">
+            {sections.map((section, index) => (
+              <article key={section.title} className="relative w-full">
+                <div
+                  className="absolute top-1/2 z-[5] h-[7px] -translate-y-1/2 overflow-hidden rounded-full"
+                  style={{
+                    left: -(GAP - PIPE_LEFT),
+                    width: GAP - PIPE_LEFT + TUCK_INTO_CARD,
+                  }}
+                >
+                  <div aria-hidden="true" className="lsp-glass absolute inset-0 rounded-full" />
+                  <div
+                    ref={(node) => {
+                      connectorLiquidRefs.current[index] = node
+                    }}
+                    aria-hidden="true"
+                    className="lsp-liquid-h absolute inset-y-0 left-0 w-full origin-left will-change-transform"
+                    style={{ transform: "scaleX(0)" }}
+                  />
+                </div>
 
-  const isAccent = (id: string): boolean => {
-    if (!transition) return id === effectiveActive;
-    switch (transition.phase) {
-      case "expand":
-        return id === transition.from;
-      case "pause":
-        return id === transition.from || id === transition.to;
-      case "retract":
-        return id === transition.to;
-    }
-  };
+                <div className="lsp-card relative z-20 w-[180px] max-w-full h-[48px] overflow-hidden rounded-lg backdrop-blur-xl">
+                  <div
+                    ref={(node) => {
+                      cardLiquidRefs.current[index] = node
+                    }}
+                    aria-hidden="true"
+                    className="lsp-liquid absolute inset-x-0 bottom-0 top-0 origin-bottom overflow-hidden will-change-transform"
+                    style={{ transform: "scaleY(0)" }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-b from-sky-200/40 via-transparent to-sky-400/20" />
+                    <div className="liquid-scroll-motion absolute -left-[5%] -top-[2px] h-1.5 w-[110%] rounded-[50%] bg-white/35 blur-[1px] motion-safe:animate-[liquid-scroll-wave_2.8s_ease-in-out_infinite]" />
+                    <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-white/15 to-transparent" />
+                    <LiquidBubbles />
+                    <div className="liquid-scroll-motion absolute -left-full top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-sm motion-safe:animate-[liquid-scroll-shimmer_3.5s_ease-in-out_infinite]" />
+                  </div>
 
-  const navStyle = {
-    "--animated-sidebar-indicator-size": \`\${indicatorSize}px\`,
-    "--animated-sidebar-line-width": \`\${lineWidth}px\`,
-    ...(accentColor ? { "--animated-sidebar-accent": accentColor } : null),
-  } as CSSProperties;
+                  <div
+                    aria-hidden="true"
+                    className="lsp-card-border pointer-events-none absolute inset-0 rounded-lg"
+                  />
+
+                  <div
+                    ref={(node) => {
+                      contentRefs.current[index] = node
+                    }}
+                    className="lsp-content relative z-10 flex h-full w-full items-center justify-center px-3 text-center"
+                  >
+                    <span className="lsp-title truncate uppercase text-[14px] font-medium">
+                      {section.title}
+                    </span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function LiquidBubbles({ compact = false }: { compact?: boolean }) {
+  const bubbles = compact
+    ? [
+        { left: "35%", size: 1, duration: "2.4s", delay: "0s", drift: "-1px" },
+        { left: "65%", size: 1, duration: "3s", delay: "0.6s", drift: "1px" },
+      ]
+    : [
+        { left: "20%", size: 1.5, duration: "2.6s", delay: "0s", drift: "-1px" },
+        { left: "50%", size: 2, duration: "3.2s", delay: "0.7s", drift: "1px" },
+        { left: "78%", size: 1.5, duration: "2.9s", delay: "1.3s", drift: "-1px" },
+      ]
 
   return (
     <div
-      ref={captureRef}
-      data-lenis-prevent={virtual ? "" : undefined}
-      className={virtual ? "flex h-full w-full items-center justify-center" : "contents"}
-      style={
-        virtual
-          ? { overflow: "hidden", touchAction: "none", userSelect: "none" }
-          : undefined
-      }
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-    <nav
-      ref={navRef}
-      aria-label={ariaLabel}
-      style={navStyle}
-      className={cx(
-        "min-w-0 max-w-full font-sans",
-        horizontal && "overflow-x-auto overflow-y-hidden",
-        className,
-      )}
-    >
-      {title && !horizontal && (
-        <p
-          className="mb-6 text-[17px] font-medium uppercase tracking-[0.08em] text-[color:var(--animated-sidebar-text-active,#24262b)] dark:text-[color:var(--animated-sidebar-text-active,#f4f4f5)]"
-        >
-          {title}
-        </p>
-      )}
-      <div
-        ref={wrapRef}
-        className={cx("relative", horizontal ? "w-max min-w-full" : "w-full")}
-      >
-        {transition && (
-          <svg
-            aria-hidden="true"
-            focusable="false"
-            width={transition.w}
-            height={transition.h}
-            viewBox={\`0 0 \${transition.w} \${transition.h}\`}
-            className="pointer-events-none absolute left-0 top-0 z-0 overflow-visible"
-          >
-            <path
-              key={transition.seq}
-              ref={(el) => {
-                pathRef.current = el;
-                if (el) el.setAttribute("stroke-dashoffset", String(dashOffset.get()));
-              }}
-              d={transition.d}
-              pathLength={1}
-              strokeDasharray="1 1"
-              strokeDashoffset={1}
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{
-                stroke: "var(--animated-sidebar-accent, #ff5a4f)",
-                strokeWidth: "var(--animated-sidebar-line-width, 2.5px)",
-              }}
-            />
-          </svg>
-        )}
-
-        <ul
-          className={cx(
-            "relative z-10 m-0 list-none p-0",
-            horizontal
-              ? "flex flex-row items-end gap-x-[calc(var(--animated-sidebar-item-gap,14px)*1.5)]"
-              : "flex flex-col gap-y-[var(--animated-sidebar-item-gap,14px)]",
-          )}
-        >
-          {items.map((section) => {
-            const active = section.id === effectiveActive;
-            const accent = isAccent(section.id);
-            return (
-              <li key={section.id} className="min-w-0">
-                <a
-                  href={section.href ?? \`#\${section.id}\`}
-                  aria-current={active ? "location" : undefined}
-                  onClick={(e) => handleClick(e, section.id)}
-                  className={cx(
-                    "group rounded-sm text-base leading-snug no-underline outline-none transition-colors duration-200 motion-reduce:transition-none",
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--animated-sidebar-accent,#ff5a4f)]",
-                    horizontal
-                      ? "flex flex-col items-center gap-1 whitespace-nowrap"
-                      : "flex items-center gap-[var(--animated-sidebar-label-gap,0px)]",
-                    active
-                      ? "text-[color:var(--animated-sidebar-text-active,#24262b)] dark:text-[color:var(--animated-sidebar-text-active,#f4f4f5)]"
-                      : "text-[color:var(--animated-sidebar-text-inactive,#8b8f98)] hover:text-[color:var(--animated-sidebar-text-active,#24262b)] dark:text-[color:var(--animated-sidebar-text-inactive,#9ca3af)] dark:hover:text-[color:var(--animated-sidebar-text-active,#f4f4f5)]",
-                  )}
-                >
-                  {/* Indicator gutter: reserved independently of label width */}
-                  <span
-                    aria-hidden="true"
-                    className={cx(
-                      "flex shrink-0",
-                      horizontal
-                        ? "h-[var(--animated-sidebar-gutter,28px)] w-full items-end justify-center"
-                        : "w-[var(--animated-sidebar-gutter,40px)] items-center justify-start pl-[var(--animated-sidebar-dot-inset,14px)]",
-                    )}
-                  >
-                    {/* Fixed-size slot: its centre is the stable measuring point */}
-                    <span
-                      ref={(el) => {
-                        if (el) slotRefs.current.set(section.id, el);
-                        else slotRefs.current.delete(section.id);
-                      }}
-                      className="relative block shrink-0"
-                      style={{
-                        width: "var(--animated-sidebar-indicator-size, 8px)",
-                        height: "var(--animated-sidebar-indicator-size, 8px)",
-                      }}
-                    >
-                      <span
-                        className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full transition-[width,height,background-color,opacity] duration-200 motion-reduce:transition-none"
-                        style={{
-                          width: accent
-                            ? "var(--animated-sidebar-indicator-size, 8px)"
-                            : "calc(var(--animated-sidebar-indicator-size, 8px) * 0.75)",
-                          height: accent
-                            ? "var(--animated-sidebar-indicator-size, 8px)"
-                            : "calc(var(--animated-sidebar-indicator-size, 8px) * 0.75)",
-                          backgroundColor: accent
-                            ? "var(--animated-sidebar-accent, #ff5a4f)"
-                            : "var(--animated-sidebar-text-inactive, #9ca3af)",
-                          opacity: accent ? 1 : 0,
-                        }}
-                      />
-                    </span>
-                  </span>
-
-                  {/* Hidden medium-weight twin reserves width so weight changes don't shift layout */}
-                  <span
-                    data-label={section.label}
-                    className={cx(
-                      "inline-flex min-w-0 flex-col",
-                      horizontal ? "items-center" : "break-words",
-                      active ? "font-medium" : "font-normal",
-                      "after:pointer-events-none after:invisible after:block after:h-0 after:select-none after:overflow-hidden after:font-medium after:content-[attr(data-label)]",
-                    )}
-                  >
-                    {section.label}
-                  </span>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </nav>
+      {bubbles.map((bubble, index) => (
+        <span
+          key={index}
+          className="liquid-scroll-motion absolute bottom-0 rounded-full bg-white/60 shadow-[0_0_3px_rgba(255,255,255,0.65)]"
+          style={
+            {
+              left: bubble.left,
+              width: \`\${bubble.size}px\`,
+              height: \`\${bubble.size}px\`,
+              "--bubble-drift": bubble.drift,
+              animation: \`liquid-scroll-bubble-mini \${bubble.duration} ease-in \${bubble.delay} infinite\`,
+            } as React.CSSProperties
+          }
+        />
+      ))}
     </div>
-  );
+  )
 }
-
-export default AnimatedSidebar;
 `,
   },
+
+
+
+
+
+
+
+  
 ];
 
 export function getComponentBySlug(slug: string): ComponentEntry | undefined {
