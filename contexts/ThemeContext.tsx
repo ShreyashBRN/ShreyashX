@@ -32,12 +32,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   // Runs once on mount, client-only — reads saved preference, falls back to
-  // system preference, then applies the class. Doing this in an effect
+  // light mode, then applies the class. Doing this in an effect
   // (not during render) avoids a server/client HTML mismatch.
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initial: Theme = saved ?? (systemPrefersDark ? "dark" : "light");
+    const initial: Theme = saved === "dark" || saved === "light" ? saved : "light";
     setTheme(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
     setMounted(true);
