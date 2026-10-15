@@ -60,19 +60,8 @@ function StackCard({
   // no scroll required to see the first project. Only cards after it
   // slide up from below into the stack as the user scrolls.
   const segments = Math.max(total - 1, 1);
-  const desktopOffset = 0.04;
-  const start =
-    index === 0
-      ? 0
-      : variant === "desktop"
-      ? desktopOffset + ((index - 1) / segments) * (1 - desktopOffset)
-      : (index - 1) / segments;
-  const end =
-    index === 0
-      ? 0
-      : variant === "desktop"
-      ? desktopOffset + (index / segments) * (1 - desktopOffset)
-      : index / segments;
+  const start = index === 0 ? 0 : (index - 1) / segments;
+  const end = index === 0 ? 0 : index / segments;
   const flyInDistance = variant === "mobile" ? 680 : 920;
 
   const y = useTransform(
@@ -173,11 +162,10 @@ export default function Projects() {
   });
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    // Keep the active-card tracker in sync with the desktop pacing
+    // Keep the active-card tracker in sync with the same pacing used by
+    // StackCard (card 0 resolved already, cards 1..total-1 split the rest).
     const segments = Math.max(total - 1, 1);
-    const desktopOffset = 0.04;
-    const progress = Math.max(0, (v - desktopOffset) / (1 - desktopOffset));
-    const idx = Math.min(total - 1, Math.round(progress * segments));
+    const idx = Math.min(total - 1, Math.round(v * segments));
     setActiveIndex(idx);
   });
 
@@ -193,7 +181,7 @@ export default function Projects() {
         className="projects-runway relative bg-[#F2F1ED] h-[220svh] md:h-[350svh]"
       >
         <div
-          className="projects-pin sticky flex flex-col overflow-visible h-auto md:h-[calc(100dvh-32px)] md:min-h-[800px]"
+          className="projects-pin sticky flex flex-col overflow-visible md:overflow-hidden h-auto md:h-[calc(100dvh-32px)] md:min-h-[640px]"
           style={{
             top: NAVBAR_HEIGHT,
           }}
