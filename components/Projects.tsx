@@ -193,11 +193,7 @@ export default function Projects() {
         className="projects-runway relative bg-[#F2F1ED] h-[220svh] md:h-[350svh]"
       >
         <div
-<<<<<<< HEAD
           className="projects-pin sticky flex flex-col overflow-visible h-auto md:h-[calc(100dvh-32px)] md:min-h-[800px]"
-=======
-          className="projects-pin sticky flex flex-col overflow-visible md:overflow-hidden h-auto md:h-[calc(100dvh-32px)] md:min-h-[640px]"
->>>>>>> daf374e33b945809b72d1e99f59082c031b74646
           style={{
             top: NAVBAR_HEIGHT,
           }}
