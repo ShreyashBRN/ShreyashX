@@ -60,8 +60,19 @@ function StackCard({
   // no scroll required to see the first project. Only cards after it
   // slide up from below into the stack as the user scrolls.
   const segments = Math.max(total - 1, 1);
-  const start = index === 0 ? 0 : (index - 1) / segments;
-  const end = index === 0 ? 0 : index / segments;
+  const desktopOffset = 0.04;
+  const start =
+    index === 0
+      ? 0
+      : variant === "desktop"
+      ? desktopOffset + ((index - 1) / segments) * (1 - desktopOffset)
+      : (index - 1) / segments;
+  const end =
+    index === 0
+      ? 0
+      : variant === "desktop"
+      ? desktopOffset + (index / segments) * (1 - desktopOffset)
+      : index / segments;
   const flyInDistance = variant === "mobile" ? 680 : 920;
 
   const y = useTransform(
@@ -162,10 +173,11 @@ export default function Projects() {
   });
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    // Keep the active-card tracker in sync with the same pacing used by
-    // StackCard (card 0 resolved already, cards 1..total-1 split the rest).
+    // Keep the active-card tracker in sync with the desktop pacing
     const segments = Math.max(total - 1, 1);
-    const idx = Math.min(total - 1, Math.round(v * segments));
+    const desktopOffset = 0.04;
+    const progress = Math.max(0, (v - desktopOffset) / (1 - desktopOffset));
+    const idx = Math.min(total - 1, Math.round(progress * segments));
     setActiveIndex(idx);
   });
 
@@ -181,7 +193,7 @@ export default function Projects() {
         className="projects-runway relative bg-[#F2F1ED] h-[220svh] md:h-[350svh]"
       >
         <div
-          className="projects-pin sticky flex flex-col overflow-visible md:overflow-hidden h-auto md:h-[calc(100dvh-32px)] md:min-h-[640px]"
+          className="projects-pin sticky flex flex-col overflow-visible h-auto md:h-[calc(100dvh-32px)] md:min-h-[800px]"
           style={{
             top: NAVBAR_HEIGHT,
           }}
@@ -289,11 +301,10 @@ export default function Projects() {
           </div>
         </Container>
 
-        {/* Desktop Collaborate: pinned inside frame and joins stacking sequence at the end */}
+        {/* Desktop Collaborate: pinned inside frame and shifted downward */}
         <motion.div
-          className="collaborate-wrap hidden md:block md:absolute inset-x-0 z-30"
+          className="collaborate-wrap hidden md:block md:absolute inset-x-0 z-30 md:top-[610px]"
           style={{
-            top: "min(610px, calc(100% - 205px))",
             y: useTransform(scrollYProgress, [(total - 1) / total, 1], [200, 0]),
             opacity: useTransform(scrollYProgress, [(total - 1) / total, 1], [0, 1]),
           }}
