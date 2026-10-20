@@ -5,6 +5,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import DesktopSiteViewport from "@/components/DesktopSiteViewport";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -79,6 +80,7 @@ export default function RootLayout({
         <DesktopSiteViewport />
         <SmoothScroll>{children}</SmoothScroll>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
